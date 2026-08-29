@@ -28,6 +28,7 @@ dev = [
     "mutmut>=3.0",
     "hypothesis>=6.112",
     "ty==0.0.75",
+    "pytest-cov>=6",
 ]
 
 [tool.pytest.ini_options]
