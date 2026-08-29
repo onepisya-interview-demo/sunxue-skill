@@ -1,12 +1,13 @@
-# sunxue skill — 六层 Python 门禁工程
+# sunxue skill — 七层 Python 门禁工程
 
 按 [PLAN.md §0](../PLAN.md#0-背景与目标) 实施。把 v1.0.0 的 6 个 stdlib
 脚本升级为完整 Python 门禁工程，对应质量五维（正确性 / 安全性 /
-可维护性 / 性能 / 成本效率）。
+可维护性 / 性能 / 成本效率）。plan 1.2 增补第 7 层 claims-lint
+口径一致性门禁。
 
 ---
 
-## 1. 六层门禁 × 命令 × 质量维度
+## 1. 七层门禁 × 命令 × 质量维度
 
 | Layer | 工具 | 命令 | 质量维度 | 对应本项目 |
 |---|---|---|---|---|
@@ -16,6 +17,7 @@
 | Changed-line coverage | coverage.py + diff-cover | `uv run pytest --cov=sunxue_gates --cov-branch --cov-report=xml --cov-fail-under=90` + `uv run diff-cover coverage.xml --compare-branch gate-baseline --fail-under=100` | 可维护性 | 无 fail-under 则该层永不失败；diff-cover 专门卡变更行 |
 | Mutation | mutmut 3+ | `uv run mutmut run` | 正确性 | 幸存者 = 弱测试；产出 triage 报告（`tests/mutation-report.md`） |
 | Property-based | hypothesis | `@given(...)` 随 pytest 运行 | 正确性 | 门禁逻辑的真实不变量（`tests/property/`） |
+| Claims-lint（plan 1.2） | `lint_claims.run` | `uv run gates`（内嵌） | 可维护性 | 口径一致性：VERSION ↔ pyproject、README 目录树 ↔ 磁盘、阈值 ↔ tests/README、uv 命令 ↔ 已注册 CLI |
 
 > 成功判据：上表所有命令退出码 0（变异层允许有书面豁免的幸存者，记录在
 > `tests/mutation-report.md`）。

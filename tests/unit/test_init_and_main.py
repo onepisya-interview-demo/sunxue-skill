@@ -9,6 +9,9 @@ Covers:
   this package's ``src/``).
 - ``main`` returns 0 when all gates PASS and 1 otherwise.
 
+The repo carries seven gates (the seventh is ``lint_claims``, plan 1.2).
+GATE_NAMES is the source of truth for the count.
+
 The ``default_root`` / ``main`` tests resolve the repo root from the
 package's own ``__file__`` — which is wrong under mutation testing
 (mutmut copies the package source into ``mutants/src/``). They are

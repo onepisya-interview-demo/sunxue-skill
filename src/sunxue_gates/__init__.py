@@ -1,7 +1,7 @@
-"""Six-layer gate harness for the sunxue skill.
+"""Seven-layer gate harness for the sunxue skill.
 
 Public API:
-- :func:`run_all` — execute all six gates against a root directory.
+- :func:`run_all` — execute all seven gates against a root directory.
 - :func:`run` — execute a single gate by name.
 - :class:`~sunxue_gates.results.GateResult` / :class:`~sunxue_gates.results.CheckResult`
 - Individual gate modules (``lint_structure``, ``scan_security``, …) are also importable
@@ -30,6 +30,7 @@ __all__ = [
 # not gate execution.
 from . import (
     injection_drill,
+    lint_claims,
     lint_structure,
     mutation_drill,
     regression_output,
@@ -37,7 +38,9 @@ from . import (
     token_budget,
 )
 
-# Execution order matches the original test/ scripts.
+# Execution order matches the original test/ scripts; lint_claims (gate 7)
+# is appended at the end since it is a documentation / cross-check gate
+# that does not touch the skill body.
 GATES = (
     lint_structure,
     scan_security,
@@ -45,6 +48,7 @@ GATES = (
     token_budget,
     injection_drill,
     mutation_drill,
+    lint_claims,
 )
 
 GATE_NAMES: tuple[str, ...] = tuple(m.__name__.split(".")[-1] for m in GATES)

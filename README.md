@@ -5,7 +5,7 @@
 > 三个子模式（writing / judgment / meta）合装在一个 skill 内，
 > 触发词命中哪个子模式就只加载对应章节。
 
-**版本**：v1.1.0（六层 Python 门禁工程化）
+**版本**：v1.1.0（七层 Python 门禁工程化）
 **License**：MIT（双源版权 + 原文版权归原作者，详见 [LICENSE](./LICENSE)）
 
 > **元信息冻结**：SKILL.md 自 v1.0 起冻结（字符数顶在 lint 门禁上限）。
@@ -183,11 +183,12 @@ sunxue/
 │   ├── judgment-corpus.md            # gehao628 sun-judgment（核实语料 + 禁用清单）
 │   ├── background.md                 # bayshier 孙宇晨其人 + 事件脉络
 │   └── jingtian-essay-7000.md        # 孙宇晨原作《我的女友景甜》原文片段（v1.0 起存在，v1.1 README 首次登记）
-├── examples/                         # 5 个真实样本（无占位）
+├── examples/                         # 6 个真实样本（无占位）
 │   ├── writing-巴菲特午餐.md         # gehao628：用孙文体写孙本人
 │   ├── writing-示例2-被割版.md       # 真实完整稿（v1.0 误标占位，v1.1 更正）
 │   ├── writing-示例3-AI时代前端.md   # regression_output 真实样本（v1.0 起存在，v1.1 README 首次登记）
 │   ├── writing-景甜-原文片段.md       # 孙宇晨原作引用片段（v1.0 起存在，v1.1 README 首次登记）
+│   ├── writing-十二个字节.md          # v2 门禁实战样本
 │   └── judgment-老客户账期.md         # gehao628：账期四波
 ├── assets/                           # 推广海报
 │   ├── promo-1.jpg

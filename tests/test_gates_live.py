@@ -3,6 +3,10 @@
 This pins the contract that used to be the exit-code of the original
 stdlib scripts. Each gate's ``run(root)`` returns ``passed = True``.
 
+The repo carries seven gates (the seventh is ``lint_claims``, plan 1.2);
+GATE_NAMES drives the parametrize list so this module stays in sync with
+``sunxue_gates.GATES`` automatically.
+
 NOTE: This test runs the gates against the actual skill repo on disk.
 Under mutation testing, mutmut copies the test tree into ``mutants/``,
 so the resolved path no longer points at the real repo. We skip the
