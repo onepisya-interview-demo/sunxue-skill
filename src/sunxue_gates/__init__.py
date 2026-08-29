@@ -23,7 +23,11 @@ __all__ = [
     "run_all",
 ]
 
-# Import gate modules lazily so callers can opt into one gate without paying for all six.
+# Gate modules are imported eagerly below so that :data:`GATES` is a concrete
+# module tuple ready for ``run_all`` / ``run`` lookups. Tests can still import
+# a single gate module directly (e.g. ``from sunxue_gates import lint_structure``)
+# without paying for the rest; the import side-effect here is module loading,
+# not gate execution.
 from . import (
     injection_drill,
     lint_structure,

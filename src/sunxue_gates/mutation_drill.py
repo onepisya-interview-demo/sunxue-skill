@@ -136,7 +136,7 @@ def run(root: Path) -> GateResult:
             details=(
                 CheckResult(name="SKILL.md", passed=False, message=f"[MISS] {skill_md} 不存在"),
             ),
-            summary=f"[MISS] {skill_md} 不存在",
+            summary=f"总结: FAIL ([MISS] {skill_md} 不存在)",
         )
 
     text = skill_md.read_text(encoding="utf-8")

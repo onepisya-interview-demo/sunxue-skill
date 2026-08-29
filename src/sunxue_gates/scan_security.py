@@ -8,7 +8,6 @@ or known injection vector) flips the gate to FAIL.
 from __future__ import annotations
 
 import re
-from collections.abc import Iterable
 from pathlib import Path
 
 from .results import CheckResult, GateResult
@@ -17,6 +16,7 @@ __all__ = [
     "PII_PATTERNS",
     "SECRET_PATTERNS",
     "INJECTION_PATTERNS",
+    "ITER_PATTERNS",
     "collect_scan_files",
     "scan_file",
     "run",
@@ -129,8 +129,8 @@ def run(root: Path) -> GateResult:
 
 
 # Re-exported for callers that want to iterate pattern triples explicitly.
-ITER_PATTERNS: Iterable[tuple[str, str]] = (
-    *((p, label) for p, label in PII_PATTERNS),
-    *((p, label) for p, label in SECRET_PATTERNS),
-    *((p, label) for p, label in INJECTION_PATTERNS),
+ITER_PATTERNS: tuple[tuple[str, str], ...] = (
+    *PII_PATTERNS,
+    *SECRET_PATTERNS,
+    *INJECTION_PATTERNS,
 )
