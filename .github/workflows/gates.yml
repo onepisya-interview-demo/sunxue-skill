@@ -1,0 +1,44 @@
+name: gates
+
+# PLAN §1.3 — macos-14 runner because the project ships a skill authored for
+# macOS-only tooling (uv sandbox quirk) and existing diff-cover baseline tag
+# ``gate-baseline`` was produced on macOS. Swap to ubuntu-latest if Linux
+# parity is later verified.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: gates-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Keep uv's cache inside the workspace so the runner's default ephemeral
+  # disk layout doesn't surprise later steps with permission errors. The
+  # repo .gitignore covers .cache/ — see commit that introduced this.
+  UV_CACHE_DIR: ${{ github.workspace }}/.cache/uv
+
+jobs:
+  acceptance:
+    name: gates --all
+    runs-on: macos-14
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # diff-cover needs history against gate-baseline
+
+      - name: setup-uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          # Pin to the project's MSRV per pyproject.toml.
+          python-version: "3.11"
+
+      - name: sync dev deps
+        run: uv sync --dev
+
+      - name: gates --all (8-stage acceptance chain)
+        run: uv run gates --all

@@ -11,3 +11,4 @@ htmlcov/
 .DS_Store
 text_*.json
 mutants/
+.cache/

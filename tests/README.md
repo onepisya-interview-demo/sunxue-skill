@@ -152,3 +152,62 @@ dataclass，至少包含：
 | 覆盖率达标 | `uv run pytest --cov-fail-under=90` exit 0（实际 100%） |
 | 变更行全覆盖 | `uv run diff-cover coverage.xml --compare-branch gate-baseline --fail-under=100` exit 0 |
 | 六门禁串跑 | `uv run gates` exit 0（6/6 PASS） |
+
+---
+
+## 8. Hooks & CI (PLAN §1.3)
+
+`gates --all` 把八条验收命令串成一条命令；同时提供两层防护，让"代码进
+仓库前"和"仓库进主分支后"两段时间都有门禁。
+
+### 8.1 本地 pre-commit（快层）
+
+`.githooks/pre-commit` 是纯 bash 钩子（无新增 Python 依赖），串跑快层
+五条：
+
+```
+uv run ruff format --check .
+uv run ruff check .
+uv run basedpyright
+uv run ty check .
+uv run pytest -q
+```
+
+慢层（覆盖率 / diff-cover / mutmut）故意不进 pre-commit——mutmut 单跑
+≈11s，留给 CI 与本地显式 `gates --all`。
+
+一次性启用本仓库钩子路径（每个新克隆只需执行一次）：
+
+```bash
+git config core.hooksPath .githooks
+```
+
+跳过本次钩子：
+
+```bash
+git commit --no-verify
+```
+
+### 8.2 CI（慢层 + 完整链）
+
+`.github/workflows/gates.yml` 在 `macos-14` 上跑：
+
+```
+uv sync --dev
+uv run gates --all
+```
+
+`gates --all` 内部包含覆盖率 / diff-cover / mutmut，加上 pre-commit
+的五条，正好八条。CI 的 stage table + total wall time 会写入工作流日志，
+失败时定位到具体 stage 与 exit code。
+
+### 8.3 命令速查
+
+| 场景 | 命令 |
+|------|------|
+| 本地快门禁（提交前） | `.githooks/pre-commit`（启用见 8.1） |
+| 本地全链（一键验收） | `uv run gates --all` |
+| CI 全链 | `uv run gates --all`（workflow 自动） |
+| 机器可读结果 | `uv run gates --json`（六 GateResult JSON 数组） |
+| 单独跑某条 | `uv run ruff check .` 等（§4 表） |
+
