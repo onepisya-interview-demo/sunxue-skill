@@ -9,3 +9,4 @@ htmlcov/
 .ruff_cache/
 *.egg-info/
 .DS_Store
+text_*.json
