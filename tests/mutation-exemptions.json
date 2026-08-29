@@ -1,0 +1,8 @@
+[
+  {
+    "category": "PLACEHOLDER",
+    "pattern": "src/sunxue_gates/<module>",
+    "count": 0,
+    "reason": "Skeleton entry — tester-2 (W3) will populate the real exemption list by running mutmut against the post-tables-extraction source, classifying each survivor into a category, and recording the count here. The gen_mutation_report.py script reads this file at render time."
+  }
+]

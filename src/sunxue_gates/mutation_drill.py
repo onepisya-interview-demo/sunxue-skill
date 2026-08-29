@@ -9,6 +9,10 @@ For each of 5 key instructions extracted from ``SKILL.md`` (matched on the
 The mutation PASSES iff the resulting sentence still hits ≥ 1 of the
 hard-metric keywords in :data:`HARD_KEYWORDS`, OR the original sentence hit
 zero (nothing to lose).
+
+The literal keyword tuples are extracted to :mod:`sunxue_gates.tables`
+(plan 2.1); this module re-exports ``KEY_PHRASES`` and ``HARD_KEYWORDS`` so
+the golden test and direct importers keep working.
 """
 
 from __future__ import annotations
@@ -18,6 +22,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 from .results import CheckResult, GateResult
+from .tables import HARD_KEYWORDS, KEY_PHRASES
 
 __all__ = [
     "KEY_PHRASES",
@@ -30,30 +35,6 @@ __all__ = [
     "hit_count",
     "run",
 ]
-
-KEY_PHRASES: tuple[str, ...] = (
-    "必须",
-    "不要",
-    "改成",
-    "出庭作证",
-    "判断一个句子是否合格",
-)
-
-HARD_KEYWORDS: tuple[str, ...] = (
-    "数字",
-    "服务者",
-    "物件",
-    "闭环",
-    "沉默",
-    "排比",
-    "反问",
-    "程度副词",
-    "情绪",
-    "比喻",
-    "场景切换",
-    "我说好",
-    "遗留物",
-)
 
 _SPLIT_MARKERS = re.compile(r"([，。；])")
 

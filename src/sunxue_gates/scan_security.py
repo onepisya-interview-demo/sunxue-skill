@@ -3,6 +3,12 @@
 Scans every markdown file under ``root`` (skill root, ``references/``,
 ``examples/``) and the top-level ``README.md``. A single hard hit (PII, secret,
 or known injection vector) flips the gate to FAIL.
+
+The pattern triples live in :mod:`sunxue_gates.tables` (plan 2.1); this
+module re-exports them under their original attribute names so the golden
+literal test (``tests/unit/test_golden_literals.py``) and any direct
+importer (``from sunxue_gates.scan_security import PII_PATTERNS``) continue
+to work without modification.
 """
 
 from __future__ import annotations
@@ -11,6 +17,12 @@ import re
 from pathlib import Path
 
 from .results import CheckResult, GateResult
+from .tables import (
+    INJECTION_PATTERNS,
+    ITER_PATTERNS,
+    PII_PATTERNS,
+    SECRET_PATTERNS,
+)
 
 __all__ = [
     "PII_PATTERNS",
@@ -21,35 +33,6 @@ __all__ = [
     "scan_file",
     "run",
 ]
-
-# (pattern, human label) — applied with re.finditer on full text.
-PII_PATTERNS: tuple[tuple[str, str], ...] = (
-    (r"\b1[3-9]\d{9}\b", "中国手机号"),
-    (r"\b\d{17}[\dXx]\b", "中国身份证"),
-    # Card numbers (16-19 contiguous digits) — exempted when bordered by path separators.
-    (r"(?<![\w/])\d{16,19}(?![\w/])", "疑似银行卡号 (16-19 位连续数字)"),
-    (r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]{2,}", "邮箱"),
-)
-
-SECRET_PATTERNS: tuple[tuple[str, str], ...] = (
-    (r"sk-[A-Za-z0-9]{20,}", "OpenAI / Anthropic API key"),
-    (r"ghp_[A-Za-z0-9]{30,}", "GitHub PAT"),
-    (r"AKIA[0-9A-Z]{16}", "AWS access key"),
-    (r"-----BEGIN [A-Z ]+PRIVATE KEY-----", "私钥"),
-)
-
-INJECTION_PATTERNS: tuple[tuple[str, str], ...] = (
-    (r"忽略(以上|之前|上面)(的|所有)?(指示|指令|内容)", "中文注入: '忽略以上指示'"),
-    (r"ignore (all|previous|above) (instructions|prompts)", "英文注入: ignore previous"),
-    (r"你现在是[^\n]{0,30}角色", "角色劫持: '你现在是...角色'"),
-    (r"<\|im_start\|>", "ChatML 注入: <|im_start|>"),
-    (r"<\|im_end\|>", "ChatML 注入: <|im_end|>"),
-    (r"\[INST\]", "Llama 注入: [INST]"),
-    (r"<<SYS>>", "Llama 系统段: <<SYS>>"),
-    (r"\{\{.*system.*\}\}", "模板注入: {{...system...}}"),
-)
-
-_SCAN_SUBDIRS: tuple[str, ...] = ("", "references", "examples")
 
 # Filenames that legitimately discuss injection markers in narrative prose.
 # A name-only whitelist keeps the rationale auditable: every entry below
@@ -74,6 +57,7 @@ def collect_scan_files(root: Path) -> list[tuple[str, Path]]:
     hits are filtered out in :func:`scan_file` — they stay in the file
     list so any other category (PII / SECRET) is still caught.
     """
+    _SCAN_SUBDIRS: tuple[str, ...] = ("", "references", "examples")
     files: list[tuple[str, Path]] = []
     for sub in _SCAN_SUBDIRS:
         base = root / sub if sub else root
@@ -176,11 +160,3 @@ def run(root: Path) -> GateResult:
         details=tuple(all_checks),
         summary=f"扫描完成: {summary}",
     )
-
-
-# Re-exported for callers that want to iterate pattern triples explicitly.
-ITER_PATTERNS: tuple[tuple[str, str], ...] = (
-    *PII_PATTERNS,
-    *SECRET_PATTERNS,
-    *INJECTION_PATTERNS,
-)

@@ -69,3 +69,11 @@ show_missing = true
 
 [tool.mutmut]
 source_paths = ["src/sunxue_gates"]
+# Plan 2.1: tables.py is pure data (keyword/pattern tokens) — mutating
+# every literal is noise, not signal. Excluded via mutmut 3.x's documented
+# ``do_not_mutate`` glob (empirically verified on mutmut 3.7.0: with this
+# line present, ``mutmut run`` skips tables.py entirely; without it, every
+# DRILLS / PII_PATTERNS / KEY_PHRASES literal gets a ""-wrap mutant).
+# The golden contract (``tests/golden/literals.json``) keeps the table
+# quality signal — mutating tables wouldn't catch new bugs, just churn.
+do_not_mutate = ["src/sunxue_gates/tables.py"]

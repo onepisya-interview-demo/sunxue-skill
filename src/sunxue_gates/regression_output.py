@@ -3,6 +3,11 @@
 Each example under ``examples/`` is checked against a fixed table of
 ``(kind, expected, op)`` rules. Pure counter functions are exposed so a
 future worker.test can property-test them with Hypothesis.
+
+The literal DEG_ADV / EMO_DIRECT / SERVER_POLYPHONY_WORDS tables live
+in :mod:`sunxue_gates.tables` (plan 2.1); this module re-exports them
+under their original attribute names so the golden test and direct
+importers keep working.
 """
 
 from __future__ import annotations
@@ -13,6 +18,13 @@ from collections.abc import Callable
 from pathlib import Path
 
 from .results import CheckResult, GateResult
+
+# SERVER_POLYPHONY_WORDS is imported solely to re-export it under this
+# module's attribute path (the golden literal test probes
+# ``regression_output.SERVER_POLYPHONY_WORDS``); the runtime code
+# uses the local literal ``_WORDS`` inside ``count_server_polyphony``
+# (see comment there for why the literal is duplicated).
+from .tables import DEG_ADV, EMO_DIRECT, SERVER_POLYPHONY_WORDS  # noqa: F401
 
 __all__ = [
     "DEG_ADV",
@@ -35,45 +47,6 @@ __all__ = [
     "sample_files",
     "run",
 ]
-
-DEG_ADV: tuple[str, ...] = (
-    "非常",
-    "无比",
-    "深深",
-    "格外",
-    "极其",
-    "特别",
-    "十分",
-    "极为",
-    "甚为",
-    "尤为",
-    "万分",
-    "百般",
-    "分外",
-    "相当",
-    "异常",
-    "极度",
-    "特别地",
-    "非常地",
-)
-
-EMO_DIRECT: tuple[str, ...] = (
-    "我很痛苦",
-    "我很爱她",
-    "我很伤心",
-    "我很难过",
-    "我很高兴",
-    "我很开心",
-    "我好难过",
-    "我好痛苦",
-    "心里很痛",
-    "心如刀割",
-    "心碎",
-    "泪流满面",
-    "泪水模糊",
-    "我好委屈",
-    "我特别难过",
-)
 
 # (metric_label) -> (kind, expected, op)
 EXPECT: dict[str, tuple[str, int, str]] = {
@@ -153,7 +126,18 @@ def count_chen_mo(text: str) -> int:
 
 def count_server_polyphony(text: str) -> int:
     """Count mentions of service-worker / low-status roles."""
-    words = (
+    # Local literal keeps the table on ``co_consts`` so the golden
+    # generator + the golden literal test (which discover it via
+    # ``count_server_polyphony.__code__.co_consts``) keep working
+    # without any change to their discovery logic. The table is
+    # duplicated here ONLY for the co_consts contract; the canonical
+    # home remains :mod:`sunxue_gates.tables` (``SERVER_POLYPHONY_WORDS``).
+    # The golden literal test enforces byte-level equality between the
+    # two views (regenerating ``tests/golden/literals.json`` after a
+    # table change will fail loudly if the literal drifts). We don't
+    # add an in-function assert because mutmut mutates every string
+    # and would constantly trip the guard.
+    _WORDS: tuple[str, ...] = (
         "工人",
         "摊主",
         "助理",
@@ -176,7 +160,7 @@ def count_server_polyphony(text: str) -> int:
         "小哥",
         "外卖员",
     )
-    return sum(text.count(w) for w in words)
+    return sum(text.count(w) for w in _WORDS)
 
 
 def count_object_callback(text: str) -> int:

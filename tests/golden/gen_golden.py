@@ -109,25 +109,26 @@ def _flat_string_tables(
 
 
 def _server_polyphony_table() -> list[dict[str, str]]:
-    """Reach the ``words = (...)`` tuple inside count_server_polyphony.
+    """Reach the role-word table from its module-level home.
 
-    This role-word list is defined as a local in that function — the only
-    pure-string table in regression_output that is not a module-level
-    constant. We pull it via ``co_consts[1]`` (the only tuple in that
-    code object). If that table ever moves to a module-level constant,
-    swap to ``_flat_string_tables("sunxue_gates.regression_output", "WORDS")``.
+    Plan 2.1 moved the role-word list out of
+    ``regression_output.count_server_polyphony``'s local scope and into
+    :mod:`sunxue_gates.tables` (``SERVER_POLYPHONY_WORDS``). The
+    :mod:`sunxue_gates.regression_output` module re-exports it so
+    ``regression_output.SERVER_POLYPHONY_WORDS`` still resolves, but
+    the canonical home for the golden contract is now tables.
     """
-    from sunxue_gates import regression_output
+    from sunxue_gates import regression_output, tables
 
-    fn = regression_output.count_server_polyphony
-    candidates = [c for c in fn.__code__.co_consts if isinstance(c, tuple) and len(c) > 3]
-    if len(candidates) != 1:
-        raise RuntimeError(
-            "Expected exactly one tuple of strings in "
-            "regression_output.count_server_polyphony.__code__.co_consts; "
-            f"got {len(candidates)} — update _server_polyphony_table()."
-        )
-    words: tuple[str, ...] = candidates[0]
+    # Pull from tables (canonical) and verify object-identity with the
+    # re-exported name on the parent module. If the two diverge, the
+    # golden contract is broken and we want to fail loudly.
+    words = tables.SERVER_POLYPHONY_WORDS
+    assert regression_output.SERVER_POLYPHONY_WORDS is words, (
+        "tables.SERVER_POLYPHONY_WORDS and "
+        "regression_output.SERVER_POLYPHONY_WORDS must be the same object "
+        "(golden contract)"
+    )
     return [_hash_string(w) for w in words]
 
 
