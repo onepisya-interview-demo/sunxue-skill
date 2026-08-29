@@ -1,90 +1,154 @@
-# sunxue skill — 门禁测试套件
+# sunxue skill — 六层 Python 门禁工程
 
-本目录是 `/workspace/.skills/sunxue/` 的 6 个门禁脚本 + 1 份说明。所有脚本独立可执行, 不依赖外部网络, 也不装新包。
+按 [PLAN.md §0](../PLAN.md#0-背景与目标) 实施。把 v1.0.0 的 6 个 stdlib
+脚本升级为完整 Python 门禁工程，对应质量五维（正确性 / 安全性 /
+可维护性 / 性能 / 成本效率）。
 
-## 脚本一览
+---
 
-| 脚本 | 类型 | 测什么 | 退出码 |
-|------|------|--------|--------|
-| `lint_structure.py`   | 迁移 (旧 `门禁_结构lint.py`) | SKILL.md frontmatter / 必含章节 / 体积上限 / 章节切分粒度 | 0=PASS, 1=FAIL |
-| `scan_security.py`    | 迁移 (旧 `门禁_安全扫描.py`) | PII / 密钥 / Prompt 注入向量扫描 | 0=干净, 1=硬命中 |
-| `regression_output.py`| 迁移 (旧 `门禁_输出回归.py`) | examples/ 三个示例对照 15 项硬指标 | 0=全部通过, 1=至少一项 FAIL |
-| `token_budget.py`     | 新增 | 字符/3 估算 token, 单文件与全量上限, 冷启动耗时 | 0=在软上限内, 1=超限 |
-| `injection_drill.py`  | 新增 | 5 个注入向量, 检查 description 是否写明防护 | 0=5 个全 PASS, 1=至少 1 个 FAIL |
-| `mutation_drill.py`   | 新增 | 5 条关键指令 × 3 种变异, 检查变异后仍能命中硬指标 | 0=全部 PASS, 1=变异破坏约束 |
+## 1. 六层门禁 × 命令 × 质量维度
 
-## 硬指标来源
+| Layer | 工具 | 命令 | 质量维度 | 对应本项目 |
+|---|---|---|---|---|
+| Tests | pytest | `uv run pytest` | 正确性 | 门禁逻辑单元测试 + 属性测试 + 仓库级回归（`test_gates_live.py`） |
+| Types（双门禁） | basedpyright + ty | `uv run basedpyright && uv run ty check .` | 可维护性 | 两个引擎互补：basedpyright 深度规则，ty 快速新锐；任一报错即 FAIL |
+| Lint + format | ruff | `uv run ruff check . && uv run ruff format .` | 可维护性 | 门禁代码风格统一（line-length 100，select [E,F,I,UP,B]） |
+| Changed-line coverage | coverage.py + diff-cover | `uv run pytest --cov=sunxue_gates --cov-branch --cov-report=xml --cov-fail-under=90` + `uv run diff-cover coverage.xml --compare-branch gate-baseline --fail-under=100` | 可维护性 | 无 fail-under 则该层永不失败；diff-cover 专门卡变更行 |
+| Mutation | mutmut 3+ | `uv run mutmut run` | 正确性 | 幸存者 = 弱测试；产出 triage 报告（`tests/mutation-report.md`） |
+| Property-based | hypothesis | `@given(...)` 随 pytest 运行 | 正确性 | 门禁逻辑的真实不变量（`tests/property/`） |
 
-- 15 项硬计数自检: `references/writing-checklist.md`
-- 体积上限: `SKILL.md ≤ 25_000 字符`, `reference ≤ 12_000 字符` (来自合并方案)
-- 注入向量: 来源于 `scan_security.py` 旧版并扩到 5 类
+> 成功判据：上表所有命令退出码 0（变异层允许有书面豁免的幸存者，记录在
+> `tests/mutation-report.md`）。
 
-## 怎么跑
+---
 
-```bash
-cd /workspace/.skills/sunxue/tests
+## 2. 质量五维映射（本项目版）
 
-# 一个一个跑
-python3 lint_structure.py
-python3 scan_security.py
-python3 regression_output.py
-python3 token_budget.py
-python3 injection_drill.py
-python3 mutation_drill.py
+| 维度 | 约束 |
+|---|---|
+| 正确性 | 单元测试、属性测试、变异测试 |
+| 安全性 | `scan_security`（PII/密钥/注入扫描）+ `injection_drill`（越狱演练）—— skill 文档的 SAST |
+| 可维护性 | ruff + basedpyright + ty（双类型门禁）+ 覆盖率 + 结构 lint（体积/章节粒度） |
+| 性能 | `token_budget` 冷启动耗时（性能预算） |
+| 成本效率 | token 预算（字符/3 估算 + 软上限）—— skill 的"计算成本"就是上下文成本 |
 
-# 或一行串跑 (推荐)
-for s in lint_structure scan_security regression_output token_budget injection_drill mutation_drill; do
-  echo "=== $s ==="
-  python3 "$s.py"
-  echo "exit=$?"
-done
+---
+
+## 3. 当前 tests/ 树
+
+```
+tests/
+├── README.md                   # 本文件
+├── conftest.py                 # 共享 fixtures（repo_path 等）
+├── unit/                       # 纯函数单元测试
+│   ├── test_parsing.py         # parse_frontmatter / classify_doc / count_h2
+│   ├── test_results.py         # CheckResult / GateResult / merge_passed
+│   ├── test_lint_structure.py  # 必含章节 / 体积上限 / 标题粒度
+│   ├── test_scan_security.py   # PII / SECRET / INJECTION 正则
+│   ├── test_regression_output.py  # 17 项硬计数
+│   ├── test_token_budget.py    # est_tokens / 软上限
+│   ├── test_injection_drill.py # 5 个演练向量
+│   └── test_mutation_drill.py  # 3 种变异算子
+├── property/                   # hypothesis 属性测试
+│   ├── test_token_monotone.py          # est_tokens 单调 + n // 3
+│   ├── test_frontmatter_roundtrip.py   # 合法 frontmatter round-trip + 任意输入不抛
+│   ├── test_pii_secret.py              # 假数据命中 / 随机安全文本不误报
+│   ├── test_mutation_operators.py      # 变异算子不变量（输≠入 / 确定性 / M3 软化强度词消失）
+│   └── test_hard_metric_permutation.py # 硬指标与句序无关
+├── test_gates_live.py          # 对当前仓库跑 6 个 run()，断言 PASS（v1.0 行为回归）
+└── mutation-report.md          # mutmut 3.x triage（821 killed / 623 exempted 字面字符串幸存者）
 ```
 
-## 每个脚本的设计要点
+---
 
-### lint_structure.py
-- 解析极简 YAML frontmatter (无 pyyaml 依赖, 手写解析, 单行 / 块标量)
-- 必含章节用三组正则: `第一原则|心法|写作引擎|判断引擎|方法论` / `触发词|触发|适用于|命中` / `红线|铁律|禁令|绝对禁令|不要`
-- 体积上限分两类: SKILL.md 25k, reference 12k
-- 章节切分粒度: 二级标题 (##) 超过 80 个视为过碎
+## 4. 怎么跑
 
-### scan_security.py
-- 扫描 SKILL.md / references/ / examples/ / README.md
-- 三大类硬危险: PII (中国手机 / 身份证 / 银行卡 / 邮箱) / SECRET (OpenAI / GitHub PAT / AWS / 私钥) / INJECTION (忽略以上 / 角色劫持 / ChatML / Llama / 模板)
-- 命中即 FAIL, 退出 1; 否则退出 0
+```bash
+# uv 缓存路径覆盖（本机 sandbox 限制；按需删去前缀）
+export UV_CACHE_DIR=.cache/uv
 
-### regression_output.py
-- 对 examples/ 三个示例 (writing-巴菲特午餐, writing-示例2-被割版, judgment-老客户账期) 跑 15 项硬指标
-- 全部 OK 才返回 0; 任意一项 FAIL 则返回 1
-- judgment-老客户账期 是判断模式样本, 部分硬指标 (排比 / 反问 / 比喻等) 可能不适用, 脚本仍按统一规则跑出结果供人判断
+# 一行串跑六个门禁（旧脚本的串跑契约保留为 console script `gates`）
+uv run gates              # 等价于：uv run python -m sunxue_gates
 
-### token_budget.py
-- 估算方式: `chars / 3` (英文常用近似; 对中文偏紧, 但作为预算告警足够)
-- 软上限: SKILL.md ≤ 8_500 token, references/ 合计 ≤ 16_000 token, 单个 reference ≤ 4_000 token
-- 输出冷启动时间 (SKILL.md read + 估算的毫秒数)
+# 全套六层门禁
+uv run pytest                                                       # Tests
+uv run basedpyright                                                  # Types（深度）
+uv run ty check .                                                    # Types（速度）
+uv run ruff check . && uv run ruff format .                          # Lint + format
+uv run pytest --cov=sunxue_gates --cov-branch --cov-fail-under=90    # Coverage
+uv run diff-cover coverage.xml --compare-branch gate-baseline --fail-under=100  # 变更行
+uv run mutmut run                                                    # Mutation（生成 triage）
 
-### injection_drill.py
-- 5 个演练向量 (D1~D5): 中文忽略 / 角色劫持 / ChatML / Llama / 模板注入
-- 判据: 每个向量至少命中 2 个防护关键词 (从 description 或全文搜), 才算该向量防护到位
-- 关键词表来自注入防御语料 (注入 / 拒绝 / 不可信 / 系统段 / Llama / ChatML 等)
+# 对任意目录跑门禁（root 可参数化；__main__ 默认当前 repo 根）
+uv run python -m sunxue_gates <root>
+```
 
-### mutation_drill.py
-- 从 SKILL.md 自动抽取 5 条包含核心动词 (必须 / 不要 / 改成 / 出庭作证 / 判断一个句子是否合格) 的句子
-- 对每条做 3 种变异: M1 同义词 (必须→务必) / M2 拆句 / M3 软化 (必须→建议)
-- 变异后, 计算该句仍能命中几个硬指标关键词; 命中 ≥ 1 视为变异不破坏硬约束
+---
 
-## 完成判据对照
+## 5. 设计要点
 
-| 判据 | 对应脚本 |
+### 5.1 统一接口
+
+每个门禁模块导出 `run(root: Path) -> GateResult`。`GateResult` 是 frozen
+dataclass，至少包含：
+
+- `name: str` —— 门禁名
+- `passed: bool` —— 全部子检查通过
+- `details: tuple[CheckResult, ...]` —— 每个子检查的 name / passed / message / detail
+- `summary: str` —— 一行总结（PASS/FAIL + 数字）
+
+`SKILL_ROOT` 不再是模块级常量，而是 `run(root)` 的参数；`__main__` 默认传
+包父目录的父目录（repo 根）。这样门禁可以**对任意目录跑**（future worker.test
+可以用 fixture 喂迷你仓库）。
+
+### 5.2 各门禁要点
+
+- **`lint_structure`** —— 解析极简 YAML frontmatter（无 pyyaml 依赖，手写解析单行 + 块标量）。必含章节用三组正则。体积上限分两类：SKILL.md 25k、reference 12k。章节切分粒度：二级标题 (##) 超过 80 个视为过碎。
+- **`scan_security`** —— 扫描 SKILL.md / references/ / examples/ / README.md。
+  三大类硬危险：PII（中国手机 / 身份证 / 银行卡 / 邮箱）/ SECRET（OpenAI /
+  GitHub PAT / AWS / 私钥）/ INJECTION（忽略以上 / 角色劫持 / ChatML / Llama
+  / 模板）。命中即 FAIL，退出 1；否则退出 0。
+- **`regression_output`** —— 对 examples/ 4 个示例（`writing-巴菲特午餐`、
+  `writing-示例2-被割版`、`writing-示例3-AI时代前端`、`judgment-老客户账期`）
+  跑 17 项硬指标（`references/writing-checklist.md`）。全部 OK 才返回 0；
+  任意一项 FAIL 则返回 1。`judgment-老客户账期` 是判断模式样本，部分硬指标
+  （排比 / 反问 / 比喻等）可能不适用，脚本仍按统一规则跑出结果供人判断。
+- **`token_budget`** —— 估算方式 `chars / 3`（英文常用近似；对中文偏紧，但
+  作为预算告警足够）。软上限：SKILL.md ≤ 8_500 token、references/ 合计
+  ≤ 16_000 token、单个 reference ≤ 4_000 token。输出冷启动时间
+  （SKILL.md read + 估算的毫秒数）。
+- **`injection_drill`** —— 5 个演练向量（D1~D5）：中文忽略 / 角色劫持 /
+  ChatML / Llama / 模板注入。判据：每个向量至少命中 2 个防护关键词（从
+  description 或全文搜），才算该向量防护到位。关键词表来自注入防御语料
+  （注入 / 拒绝 / 不可信 / 系统段 / Llama / ChatML 等）。
+- **`mutation_drill`** —— 从 SKILL.md 自动抽取 5 条包含核心动词（必须 /
+  不要 / 改成 / 出庭作证 / 判断一个句子是否合格）的句子。对每条做 3 种
+  变异：M1 同义词（必须→务必）/ M2 拆句 / M3 软化（必须→建议）。变异后，
+  计算该句仍能命中几个硬指标关键词；命中 ≥ 1 视为变异不破坏硬约束。
+
+### 5.3 退出码契约
+
+全套统一：`PASS = 0`、`FAIL = 1`。`__main__.py` 串跑 6 个门禁，全部 PASS
+才返回 0，否则返回 1，并打印失败列表。
+
+---
+
+## 6. 与 v1.0 的差异
+
+- **v1.0** —— 6 个独立 stdlib 脚本（`tests/lint_structure.py` 等），无包结构、
+  无类型、无覆盖率、无变异门禁
+- **v1.1** —— 6 个门禁迁入 `src/sunxue_gates/` 包；新增 hypothesis 属性测试、
+  mutmut 变异门禁、diff-cover 变更行门禁、双类型门禁（basedpyright + ty）
+
+---
+
+## 7. 完成判据对照
+
+| 判据 | 对应命令 |
 |------|----------|
-| 6 个脚本存在 | `ls *.py` 应有 6 个 |
-| 每个脚本 `python3 xxx.py` 跑得动 | 见上"怎么跑" |
-| 至少 3 个核心脚本输出真实结果 | `lint_structure / scan_security / regression_output` 全部跑出结构化结果 |
-| 退出码策略 | 全套脚本统一: PASS=0, FAIL=1 |
-
-## 禁止项的遵守
-
-- 不装新包: 全程用标准库 (re, sys, pathlib, time, collections)
-- 不依赖网络: 没有任何 HTTP 调用
-- 不写假装的"代码覆盖率"数字
-- 不写"圈复杂度"
+| 202 个 pytest 用例全过 | `uv run pytest` exit 0 |
+| 双类型门禁清零 | `uv run basedpyright` + `uv run ty check .` 双 0 errors |
+| ruff 风格一致 | `uv run ruff check .` exit 0 |
+| 覆盖率达标 | `uv run pytest --cov-fail-under=90` exit 0（实际 100%） |
+| 变更行全覆盖 | `uv run diff-cover coverage.xml --compare-branch gate-baseline --fail-under=100` exit 0 |
+| 六门禁串跑 | `uv run gates` exit 0（6/6 PASS） |

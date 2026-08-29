@@ -5,6 +5,54 @@ All notable changes to this skill are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-08-30
+
+### Added — 门禁工程化
+
+把 v1.0.0 的 6 个 stdlib 门禁脚本升级为完整 Python 门禁工程。
+
+**src/sunxue_gates/ package**（按 PLAN Step 3 拆分）：
+
+- `lint_structure` —— SKILL.md frontmatter / 必含章节 / 体积上限 / 二级标题粒度
+- `scan_security` —— PII / 密钥 / Prompt 注入向量硬扫描
+- `regression_output` —— examples/ 4 个示例对照 17 项硬指标
+- `token_budget` —— chars/3 估算 + 冷启动耗时
+- `injection_drill` —— 5 个注入向量 × SKILL.md description 防护关键词
+- `mutation_drill` —— 5 条关键指令 × 3 种变异算子
+- 统一接口：`run(root: Path) -> GateResult`；`SKILL_ROOT` 参数化，可测任意目录
+- 公共 dataclass：`CheckResult` / `GateResult`（name / passed / details / summary）
+
+**uv scaffold**（按 PLAN Step 2）：
+
+- `pyproject.toml` —— sunxue-gates 1.1.0，requires-python >=3.11，hatchling 构建
+- dev 依赖组：pytest、ruff、basedpyright、ty==0.0.75（精确锁版本，alpha 期可复现）、coverage[toml]、diff-cover、mutmut、hypothesis
+- console script：`gates` → `sunxue_gates.__main__:main`（保持旧串跑行为）
+- 工具配置进 pyproject：ruff line-length=100 / select=[E,F,I,UP,B]；basedpyright standard；ty root=[src]；coverage branch + fail_under=90 + omit __main__.py；mutmut source_paths=[src/sunxue_gates]
+
+**tests/ 测试树**（按 PLAN Step 4-6）：
+
+- `tests/unit/` —— 纯函数单元测试（frontmatter 解析、PII/secret 正则、计数器、变异算子、dataclass）
+- `tests/property/` —— hypothesis 属性测试（est_tokens 单调 / frontmatter round-trip / PII 正反例 / 变异算子不变量 / 硬指标与句序无关）
+- `tests/test_gates_live.py` —— 对当前仓库跑六个 `run()`，断言 PASS（旧行为回归）
+- `tests/conftest.py` —— 共享 fixtures（repo_path 等）
+- **202 个 pytest 收集用例全部通过**
+- **100% 行覆盖 + 100% 分支覆盖**（`--cov=sunxue_gates --cov-branch --cov-fail-under=90`）
+- **diff-cover 100%** 变更行覆盖（`diff-cover coverage.xml --compare-branch gate-baseline --fail-under=100`）
+- `tests/mutation-report.md` —— mutmut 3.x triage：821 killed / 623 exempted（字面字符串变异幸存者，已附豁免理由）
+
+### Documentation corrections
+
+- README 目录结构：references/ = **7 个文件**（新增 `jingtian-essay-7000.md`，自 v1.0 起已存在于仓库但未列入 README 树）
+- README 目录结构：examples/ = **5 个文件**（`writing-示例3-AI时代前端.md` 为 regression_output 的真实样本；`writing-景甜-原文片段.md` 为孙宇晨原作引用片段，两者自 v1.0 起已在 examples/ 但未列入 README 树）；`writing-示例2-被割版.md` 是真实完整稿（v1.0 误标"占位"）
+- 全篇把 `/workspace/.skills/sunxue/` 硬路径替换为相对路径，并附"示例路径，按实际安装位置替换"一行说明
+- `references/style-anatomy.md` 说明修正：原文是 10 技法（命名 + 心法 + 元反思），与 gehao628 技法合并去重后形成 SKILL.md 的 13 条核心技法
+- README 与 CHANGELOG 同步登记 jingtian-essay-7000.md 与两个未列 example 的存在与原因
+
+### Fixed
+
+- 删除 6 个旧 `tests/*.py` stdlib 脚本（旧行为由 `src/sunxue_gates/` 承接）
+- `text_mutmut_3_pyproject.toml_*.json` 研究产物从 git 索引中移除（保留在磁盘），并把 `text_*.json` 加入 `.gitignore`
+
 ## [1.0.0] - 2026-08-28
 
 ### Added — 首次合并发布
@@ -61,4 +109,5 @@ sunxue/
 - 本次仅原样搬运两个仓库的内容，未做任何技法去重、章节切分或合并
   重写——所有合并与去重工作留给 T2。
 
+[1.1.0]: https://github.com/your-org/sunxue/releases/tag/v1.1.0
 [1.0.0]: https://github.com/your-org/sunxue/releases/tag/v1.0.0

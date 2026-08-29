@@ -5,8 +5,13 @@
 > 三个子模式（writing / judgment / meta）合装在一个 skill 内，
 > 触发词命中哪个子模式就只加载对应章节。
 
-**版本**：v1.0.0（合并首发）
+**版本**：v1.1.0（六层 Python 门禁工程化）
 **License**：MIT（双源版权 + 原文版权归原作者，详见 [LICENSE](./LICENSE)）
+
+> **元信息冻结**：SKILL.md 自 v1.0 起冻结（字符数顶在 lint 门禁上限）。
+> `references/jingtian-essay-7000.md` 与 `examples/writing-示例3-AI时代前端.md`、
+> `examples/writing-景甜-原文片段.md` 自 v1.0 起已存在于仓库但未列入 v1.0 README 树，
+> 详见本 README 与 [CHANGELOG.md 1.1.0 条目](./CHANGELOG.md#110---2026-08-30)。
 
 ---
 
@@ -16,9 +21,13 @@
 
 | 来源 | 焦点 | 蒸馏产物 |
 |---|---|---|
-| bayshier/sunxue v1.4.0 | 写作心法 + 三层孙学 | 10 条技法（命名 + 心法 + 元反思） |
+| bayshier/sunxue v1.4.0 | 写作心法 + 三层孙学 | 10 技法（命名 + 心法 + 元反思），见 `references/style-anatomy.md` |
 | gehao628/sun-writing v1.2 | 写作机械结构 | 12 条硬规则 + 15 项硬计数自检 + 7 步流程 |
 | gehao628/sun-judgment v1.2 | 商业判断 | 规则 0（先量生意半径）+ 7 条规则 + 6 步流程 + 核实语料库 |
+
+> **技法归并说明**：`style-anatomy.md` 记的是 bayshier 原文例证的 **10 条技法**
+> （命名 / 心法 / 元反思三个层）。与 gehao628 的 12 条硬规则合并去重后，
+> 形成 SKILL.md 的 **13 条核心技法**（去重不丢粒度）。详见 CHANGELOG 1.1.0。
 
 合并后形成**三个子模式**：
 
@@ -32,10 +41,10 @@
 
 ### Mavis（推荐）
 
-skill 目录已就位：
+skill 目录已就位（按实际安装路径替换）：
 
 ```
-/workspace/.skills/sunxue/
+<skill-install-path>/sunxue/
 ```
 
 Mavis 在启动时会自动同步 `.skills/` 下的 skill。无需额外步骤。
@@ -44,21 +53,21 @@ Mavis 在启动时会自动同步 `.skills/` 下的 skill。无需额外步骤�
 
 ```bash
 # ZCode / Codex CLI
-cp -r /workspace/.skills/sunxue ~/.zcode/skills/sunxue
+cp -r <skill-install-path>/sunxue ~/.zcode/skills/sunxue
 
 # Claude Code
-cp -r /workspace/.skills/sunxue ~/.claude/skills/sunxue
+cp -r <skill-install-path>/sunxue ~/.claude/skills/sunxue
 
 # 软链
-ln -s /workspace/.skills/sunxue ~/.zcode/skills/sunxue
+ln -s <skill-install-path>/sunxue ~/.zcode/skills/sunxue
 ```
 
 ### 验证安装
 
 ```bash
-ls /workspace/.skills/sunxue/
+ls <skill-install-path>/sunxue/
 # 应该看到：SKILL.md  VERSION  LICENSE  README.md  CHANGELOG.md
-#           references/  examples/  tests/
+#           references/  examples/  tests/  src/  pyproject.toml
 ```
 
 ---
@@ -85,7 +94,7 @@ ls /workspace/.skills/sunxue/
 
 - `references/writing-anatomy.md` —— 五幕骨架解剖
 - `references/writing-checklist.md` —— 15 项硬计数自检
-- `references/style-anatomy.md` —— 10 技法原文例证
+- `references/style-anatomy.md` —— 10 技法原文例证（与 gehao628 技法合并去重后形成 SKILL.md 的 13 条核心技法）
 - `examples/writing-巴菲特午餐.md` —— 用孙文体写孙本人
 
 ### 模式 2：judgment（判断引擎）
@@ -147,23 +156,49 @@ ls /workspace/.skills/sunxue/
 
 ```
 sunxue/
-├── SKILL.md                      # 三模式入口（v1.0 占位）
-├── VERSION                       # 1.0.0
-├── LICENSE                       # MIT + 双源版权声明
-├── README.md                     # 本文件
-├── CHANGELOG.md                  # v1.0.0 合并首发
-├── references/                   # 6 个 reference（原样搬运）
-│   ├── style-anatomy.md
-│   ├── x-field-notes.md
-│   ├── writing-anatomy.md
-│   ├── writing-checklist.md
-│   ├── judgment-corpus.md
-│   └── background.md
-├── examples/                     # 2 真 + 1 占位
-│   ├── writing-巴菲特午餐.md
-│   ├── writing-示例2-被割版.md   # 占位（T1.5 调研后补）
-│   └── judgment-老客户账期.md
-└── tests/                        # 占位（T3 填充 6 个门禁脚本）
+├── SKILL.md                          # 三模式入口（v1.0 起冻结于 24,981 字符）
+├── VERSION                           # 1.1.0
+├── LICENSE                           # MIT + 双源版权声明
+├── README.md                         # 本文件
+├── CHANGELOG.md                      # v1.1.0 门禁工程化 / v1.0.0 合并首发
+├── pyproject.toml                    # uv 配置 + dev 工具链
+├── uv.lock                           # 锁定依赖图
+├── src/
+│   └── sunxue_gates/                 # 门禁包（六门禁 + 共享解析 + 结果类型）
+│       ├── __init__.py               # GATES 元组 + run() / run_all()
+│       ├── __main__.py               # `python -m sunxue_gates` 串跑入口
+│       ├── results.py                # CheckResult / GateResult dataclass
+│       ├── parsing.py                # frontmatter / classify / count_h2
+│       ├── lint_structure.py         # Gate 1
+│       ├── scan_security.py          # Gate 2
+│       ├── regression_output.py      # Gate 3
+│       ├── token_budget.py           # Gate 4
+│       ├── injection_drill.py        # Gate 5
+│       └── mutation_drill.py         # Gate 6
+├── references/                       # 7 个 reference（原样搬运 + 技法注解）
+│   ├── style-anatomy.md              # bayshier 原文例证 10 技法（与 gehao628 合并去重后形成 SKILL.md 的 13 条核心技法）
+│   ├── x-field-notes.md              # bayshier X 舆论场 + 曾颖讲义 + 三层孙学
+│   ├── writing-anatomy.md            # gehao628 sun-writing（五幕骨架 + 数字骨架）
+│   ├── writing-checklist.md          # gehao628 sun-writing（17 项硬计数自检）
+│   ├── judgment-corpus.md            # gehao628 sun-judgment（核实语料 + 禁用清单）
+│   ├── background.md                 # bayshier 孙宇晨其人 + 事件脉络
+│   └── jingtian-essay-7000.md        # 孙宇晨原作《我的女友景甜》原文片段（v1.0 起存在，v1.1 README 首次登记）
+├── examples/                         # 5 个真实样本（无占位）
+│   ├── writing-巴菲特午餐.md         # gehao628：用孙文体写孙本人
+│   ├── writing-示例2-被割版.md       # 真实完整稿（v1.0 误标占位，v1.1 更正）
+│   ├── writing-示例3-AI时代前端.md   # regression_output 真实样本（v1.0 起存在，v1.1 README 首次登记）
+│   ├── writing-景甜-原文片段.md       # 孙宇晨原作引用片段（v1.0 起存在，v1.1 README 首次登记）
+│   └── judgment-老客户账期.md         # gehao628：账期四波
+├── assets/                           # 推广海报
+│   ├── promo-1.jpg
+│   └── promo-2.jpg
+└── tests/                            # pytest 测试树（unit + property + live）
+    ├── README.md                     # 六层门禁命令表 + 质量五维映射
+    ├── conftest.py                   # 共享 fixtures
+    ├── unit/                         # 纯函数单元测试
+    ├── property/                     # hypothesis 属性测试
+    ├── test_gates_live.py            # 对当前仓库跑六个 run()，断言 PASS（旧行为回归）
+    └── mutation-report.md            # mutmut 3.x triage（821 killed / 623 exempted）
 ```
 
 ---
@@ -172,6 +207,7 @@ sunxue/
 
 | 版本 | 日期 | 说明 |
 |---|---|---|
+| 1.1.0 | 2026-08-30 | 门禁工程化：src/sunxue_gates package + uv scaffold + tests/ 测试树（202 pytest 100% 覆盖） |
 | 1.0.0 | 2026-08-28 | 合并首发：bayshier/sunxue v1.4.0 + gehao628 sun-writing + sun-judgment |
 
 详见 [CHANGELOG.md](./CHANGELOG.md)。
