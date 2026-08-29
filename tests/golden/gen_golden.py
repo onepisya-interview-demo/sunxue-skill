@@ -120,9 +120,7 @@ def _server_polyphony_table() -> list[dict[str, str]]:
     from sunxue_gates import regression_output
 
     fn = regression_output.count_server_polyphony
-    candidates = [
-        c for c in fn.__code__.co_consts if isinstance(c, tuple) and len(c) > 3
-    ]
+    candidates = [c for c in fn.__code__.co_consts if isinstance(c, tuple) and len(c) > 3]
     if len(candidates) != 1:
         raise RuntimeError(
             "Expected exactly one tuple of strings in "
@@ -154,9 +152,7 @@ def main() -> int:
         "sunxue_gates.mutation_drill", "KEY_PHRASES", "HARD_KEYWORDS"
     )
     regression: dict[str, object] = {
-        **_flat_string_tables(
-            "sunxue_gates.regression_output", "DEG_ADV", "EMO_DIRECT"
-        ),
+        **_flat_string_tables("sunxue_gates.regression_output", "DEG_ADV", "EMO_DIRECT"),
         "SERVER_POLYPHONY_WORDS": _server_polyphony_table(),
     }
 

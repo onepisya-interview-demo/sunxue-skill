@@ -44,7 +44,6 @@ from __future__ import annotations
 
 import hashlib
 import importlib
-import inspect
 import json
 from pathlib import Path
 
@@ -93,8 +92,7 @@ def _assert_tree_equal(runtime_tree: object, golden_tree: object, path: tuple[st
         # Hash leaf shape: {"sha256": ..., "hex_utf8": ...}
         if set(golden_tree.keys()) != {"sha256", "hex_utf8"}:
             raise AssertionError(
-                f"unknown leaf shape at {'/'.join(path)}: "
-                f"keys={sorted(golden_tree.keys())}"
+                f"unknown leaf shape at {'/'.join(path)}: keys={sorted(golden_tree.keys())}"
             )
         if not isinstance(runtime_tree, str):
             raise AssertionError(
@@ -117,9 +115,7 @@ def _assert_tree_equal(runtime_tree: object, golden_tree: object, path: tuple[st
     )
 
 
-def _runtime_drills() -> tuple[
-    list[str], list[str], list[str], list[tuple[str, ...]]
-]:
+def _runtime_drills() -> tuple[list[str], list[str], list[str], list[tuple[str, ...]]]:
     """Return ``(ids, names, vectors, keywords)`` for the runtime DRILLS table."""
     inj = importlib.import_module("sunxue_gates.injection_drill")
     ids: list[str] = []
@@ -148,9 +144,7 @@ def _runtime_server_polyphony_words() -> tuple[str, ...]:
     """Return the local ``words`` tuple inside ``count_server_polyphony``."""
     reg = importlib.import_module("sunxue_gates.regression_output")
     fn = reg.count_server_polyphony
-    candidates = [
-        c for c in fn.__code__.co_consts if isinstance(c, tuple) and len(c) > 3
-    ]
+    candidates = [c for c in fn.__code__.co_consts if isinstance(c, tuple) and len(c) > 3]
     assert len(candidates) == 1, (
         f"server-polyphony table discovery broken: {len(candidates)} candidates"
     )
@@ -244,9 +238,7 @@ class TestScanSecurityGolden:
     def test_pii_patterns(self) -> None:
         g = _load_golden()
         golden = g["sunxue_gates.scan_security"]["PII_PATTERNS"]
-        runtime = _runtime_patterns("sunxue_gates.scan_security", "PII_PATTERNS")[
-            "PII_PATTERNS"
-        ]
+        runtime = _runtime_patterns("sunxue_gates.scan_security", "PII_PATTERNS")["PII_PATTERNS"]
         _assert_tree_equal(runtime, golden, ("PII_PATTERNS",))
 
     def test_secret_patterns(self) -> None:
@@ -268,9 +260,7 @@ class TestScanSecurityGolden:
     def test_iter_patterns_concat(self) -> None:
         g = _load_golden()
         golden = g["sunxue_gates.scan_security"]["ITER_PATTERNS"]
-        runtime = _runtime_patterns("sunxue_gates.scan_security", "ITER_PATTERNS")[
-            "ITER_PATTERNS"
-        ]
+        runtime = _runtime_patterns("sunxue_gates.scan_security", "ITER_PATTERNS")["ITER_PATTERNS"]
         _assert_tree_equal(runtime, golden, ("ITER_PATTERNS",))
 
 
@@ -278,17 +268,13 @@ class TestMutationDrillGolden:
     def test_key_phrases(self) -> None:
         g = _load_golden()
         golden = g["sunxue_gates.mutation_drill"]["KEY_PHRASES"]
-        runtime = _runtime_flat("sunxue_gates.mutation_drill", "KEY_PHRASES")[
-            "KEY_PHRASES"
-        ]
+        runtime = _runtime_flat("sunxue_gates.mutation_drill", "KEY_PHRASES")["KEY_PHRASES"]
         _assert_tree_equal(runtime, golden, ("KEY_PHRASES",))
 
     def test_hard_keywords(self) -> None:
         g = _load_golden()
         golden = g["sunxue_gates.mutation_drill"]["HARD_KEYWORDS"]
-        runtime = _runtime_flat("sunxue_gates.mutation_drill", "HARD_KEYWORDS")[
-            "HARD_KEYWORDS"
-        ]
+        runtime = _runtime_flat("sunxue_gates.mutation_drill", "HARD_KEYWORDS")["HARD_KEYWORDS"]
         _assert_tree_equal(runtime, golden, ("HARD_KEYWORDS",))
 
 
@@ -302,9 +288,7 @@ class TestRegressionOutputGolden:
     def test_emo_direct(self) -> None:
         g = _load_golden()
         golden = g["sunxue_gates.regression_output"]["EMO_DIRECT"]
-        runtime = _runtime_flat("sunxue_gates.regression_output", "EMO_DIRECT")[
-            "EMO_DIRECT"
-        ]
+        runtime = _runtime_flat("sunxue_gates.regression_output", "EMO_DIRECT")["EMO_DIRECT"]
         _assert_tree_equal(runtime, golden, ("EMO_DIRECT",))
 
     def test_server_polyphony_words(self) -> None:
@@ -338,7 +322,7 @@ class TestSingleByteContract:
                     payload = bytes.fromhex(node["hex_utf8"])
                     expected = hashlib.sha256(payload).hexdigest()
                     if expected != node["sha256"]:
-                        bad.append(f"sha256 mismatch on leaf")
+                        bad.append("sha256 mismatch on leaf")
                     return
                 for v in node.values():
                     walk(v)
