@@ -34,7 +34,7 @@ correctness is pinned by the **set** of keywords (asserted via
 behavioral tests like "synthetic phone always detected" /
 "synonym produces a synonym"), not by their exact textual form.
 
-Approx 540 of the 646 survivors are in this category:
+Approx 540 of the final 623 survivors are in this category:
 
 | Module / Function | What mutmut did | Why the mutation is acceptable |
 |---|---|---|
@@ -78,17 +78,18 @@ that now catches it.
 
 ## Category 3 — Surviving behavioral tests we already had
 
-The 668 🎉 killed mutants were caught by:
+The 821 🎉 killed mutants were caught by:
 
-- 158 unit tests in `tests/unit/`
-- 15 property tests in `tests/property/`
-- 8 live regression tests in `tests/test_gates_live.py`
+- 160 unit test functions in `tests/unit/` (pytest collects 202 *cases*
+  total — the inflated number comes from `@pytest.mark.parametrize`
+  multiplying single test functions into multiple cases)
+- 15 property test functions in `tests/property/`
+- 3 live regression test functions in `tests/test_gates_live.py`
+  (also `@pytest.mark.parametrize`d → 8 cases)
 - the runtime checks themselves (which exercise the gate machinery)
 
-The 131 🫥 "no tests" mutants are mutations on code paths with no
-covering test (e.g. the `__main__` block skipped when the gate is run
-through `run_all` rather than `main`). These are absorbed by
-`coverage` and `__main__.py` being omitted.
+The 1 🫥 "no tests" mutant is a mutation on a code path with no
+covering test. Absorbed by `coverage` and `__main__.py` being omitted.
 
 ---
 
@@ -96,7 +97,11 @@ through `run_all` rather than `main`). These are absorbed by
 
 - mutmut 3.7.0 was run with `[tool.mutmut] source_paths = ["src/sunxue_gates"]`
   (configured in `pyproject.toml`).
-- Full run took ~60 seconds at 143 mutations/second — well within budget.
+- Full run wall-clock: **16.152 s** for **1445 mutants** →
+  **≈ 89.5 mutants/second** end-to-end. mutmut's internal metric
+  reports **126.93 mutations/second** (which excludes per-mutant
+  pytest collection/setup overhead — that overhead dominates the
+  remaining time). Well within budget either way.
 - `tests/test_gates_live.py` and the path-dependent tests in
   `tests/unit/test_init_and_main.py` skip themselves when
   `MUTANT_UNDER_TEST` is set (mutmut copies the test tree into
