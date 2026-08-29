@@ -1,0 +1,60 @@
+MIT License
+
+Copyright (c) 2026 Sunxue Skill Contributors
+
+本 skill 由以下两个独立项目合并而成，二者均以 MIT License 发布：
+
+1. bayshier/sunxue (https://github.com/bayshier/sunxue)
+   Copyright (c) 2026 bayshier
+   原作者：bayshier
+   主要内容：孙学写作法 SKILL.md（v1.4.0）+ references/style-anatomy.md
+   + references/background.md + references/x-field-notes.md
+
+2. gehao628 (https://github.com/gehao628)
+   Copyright (c) 2026 gehao628
+   原作者：gehao628
+   主要内容：sun-writing/SKILL.md（v1.2） + references/anatomy.md
+   + references/checklist.md + sun-judgment/SKILL.md + references/corpus.md
+   + 示例输出/sun-writing_巴菲特午餐.md + 示例输出/sun-judgment_老客户账期.md
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+附加声明 / Additional Notices:
+
+1. 原文版权归原作者 / Source Material Copyright
+   - 《我的女友景甜》全文版权归原作者孙宇晨所有，本 skill 仅摘引片段作
+     技法分析。完整原文请前往 https://github.com/HEJustinSun/my-girlfriend-jingtian-latex
+     阅读。
+   - 引用孙宇晨本人公开发言（推文、采访、起诉书）部分，版权归原作者
+     孙宇晨所有；本 skill 仅作研究引用。
+   - 引用景甜、曾颖、张起淮等第三方公开发言部分，版权归原作者所有；
+     本 skill 仅作研究引用。
+
+2. 双源合并不修改原始内容 / Dual-source Merge Preserves Original Content
+   - 本 skill 的所有 reference 文件均原样保留来源仓库的内容，仅在文件
+     顶部添加版权与来源注释块。
+   - SKILL.md 改造（三模式合并、13 技法去重等）由合并团队独立完成，
+     详细对应关系见 references/ 与 README.md。
+
+3. 商业判断免责声明 / No Investment Advice
+   - references/judgment-corpus.md 中整理的孙宇晨本人公开语料与商业动
+     作，仅作为方法论研究的样本。skill 的输出不构成任何投资建议或法
+     律建议。用户在套用判断规则前应自行评估自身风险承受能力。

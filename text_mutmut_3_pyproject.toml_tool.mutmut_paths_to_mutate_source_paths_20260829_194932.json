@@ -1,0 +1,32 @@
+[
+  {
+    "title": "mutmut · PyPI",
+    "href": "https://pypi.org/project/mutmut/",
+    "body": "Mutmut keeps the data of what it has done and the mutants in the mutants/ directory. If you want to make sure you run a full mutmut run you can delete this directory to start from scratch. Contributing to Mutmut If you wish to contribute to Mutmut, please see our contributing guide."
+  },
+  {
+    "title": "mutmut - python mutation tester — mutmut documentation",
+    "href": "https://mutmut.readthedocs.io/en/latest/index.html",
+    "body": "Configuration ¶ In setup.cfg in the root of your project you can configure mutmut if you need to: ... If you use pyproject.toml, you must specify the paths as array in a tool.mutmut section: ... See below for more options for configuring mutmut. \"also copy\" files ¶ To run the full test suite some files are often needed above the tests and ..."
+  },
+  {
+    "title": "GitHub - boxed/mutmut: Mutation testing system",
+    "href": "https://github.com/boxed/mutmut",
+    "body": "Configuration In setup.cfg in the root of your project you can configure mutmut if you need to: ... If you use pyproject.toml, you must specify the paths as array in a tool.mutmut section: ... See below for more options for configuring mutmut."
+  },
+  {
+    "title": "GitHub - woshidsqj/mutmutmut: Mutation testing system",
+    "href": "https://github.com/woshidsqj/mutmutmut",
+    "body": "To work with the results, use mutmut browse where you can see the mutants, retest them when you've updated your tests. You can also write a mutant to disk from the browse interface, or via mutmut apply . You should REALLY have the file you mutate under source code control and committed before you apply a mutant!"
+  },
+  {
+    "title": "Installation and Configuration | boxed/mutmut | DeepWiki",
+    "href": "https://deepwiki.com/boxed/mutmut/3.1-installation-and-configuration",
+    "body": "Without any arguments, mutmut will attempt to: Find your source code (in \"src/\" or the current directory) Find your tests (in \"tests/\" or \"test/\") Run a mutation testing session If you've configured everything correctly, mutmut will start creating mutations and testing them against your test suite. ... Sources: README.rst 40-52 Common ..."
+  },
+  {
+    "title": "mutmut | leynos/python-skill Agent Skill | SkillsMP",
+    "href": "https://skillsmp.com/creators/leynos/python-skill/skills-mutmut",
+    "body": "In pyproject.toml, mutmut v3 requires path-shaped settings to be arrays. paths_to_mutate = \"src/\" (a scalar string) is accepted in setup.cfg but rejected or silently ignored under [tool.mutmut]; keep the brackets."
+  }
+]
