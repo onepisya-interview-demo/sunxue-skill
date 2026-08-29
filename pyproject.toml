@@ -38,12 +38,13 @@ addopts = "-ra --strict-markers"
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+extend-exclude = ["mutants"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["E402"]
+"tests/**/*.py" = ["E402", "B010"]
 
 [tool.basedpyright]
 typeCheckingMode = "standard"
@@ -53,6 +54,9 @@ include = ["src", "tests"]
 
 [tool.ty.environment]
 root = ["src"]
+
+[tool.ty.src]
+exclude = ["mutants"]
 
 [tool.coverage.run]
 branch = true
