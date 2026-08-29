@@ -1,0 +1,66 @@
+[project]
+name = "sunxue-gates"
+version = "1.1.0"
+description = "Six-layer gate harness for the sunxue skill (lint, security, regression, token budget, injection drill, mutation drill)."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "sunxue-gates", email = "gates@sunxue.local" }]
+dependencies = []
+
+[project.scripts]
+gates = "sunxue_gates.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sunxue_gates"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.7",
+    "basedpyright>=1.14",
+    "coverage[toml]>=7.6",
+    "diff-cover>=9.2",
+    "mutmut>=3.0",
+    "hypothesis>=6.112",
+    "ty==0.0.75",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["E402"]
+
+[tool.basedpyright]
+typeCheckingMode = "standard"
+include = ["src", "tests"]
+
+[tool.ty]
+
+[tool.ty.environment]
+root = ["src"]
+
+[tool.coverage.run]
+branch = true
+source = ["sunxue_gates"]
+omit = ["*/__main__.py"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+
+[tool.mutmut]
+source_paths = ["src/sunxue_gates"]
