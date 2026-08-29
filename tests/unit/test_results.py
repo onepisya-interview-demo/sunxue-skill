@@ -5,6 +5,8 @@ Covers the dataclass shapes and the ``merge_passed`` aggregator.
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 from sunxue_gates.results import CheckResult, GateResult, merge_passed
 
 
@@ -13,13 +15,38 @@ def _check(name: str, passed: bool, msg: str = "") -> CheckResult:
 
 
 class TestCheckResult:
-    def test_frozen_immutable(self) -> None:
+    def test_frozen_instance_blocks_mutation(self) -> None:
+        # ``CheckResult`` is a frozen dataclass — any attempt to set
+        # an attribute must raise ``dataclasses.FrozenInstanceError``.
+        # We use ``setattr`` (not ``c.passed = …``) because ty 0.0.75
+        # flags read-only property writes even inside a ``try/except``
+        # — ``setattr`` is the ty-clean equivalent.
+        import dataclasses
+
         c = _check("a", True)
+        raised: type[BaseException] | None = None
         try:
-            c.passed = False  # type: ignore[misc]
-        except Exception:
-            return
-        raise AssertionError("CheckResult should be frozen")
+            setattr(c, "passed", False)
+        except BaseException as exc:  # noqa: BLE001 — explicitly broad
+            raised = type(exc)
+        assert raised is dataclasses.FrozenInstanceError, (
+            f"expected FrozenInstanceError, got {raised!r}"
+        )
+        # The original instance is unchanged.
+        assert c.passed is True
+
+    def test_replace_returns_a_new_instance_with_overrides(self) -> None:
+        # ``dataclasses.replace()`` is the ty-clean way to produce a
+        # modified copy of a frozen dataclass. Verify it works AND that
+        # it returns a NEW instance (not a mutation of the original).
+        c = _check("a", True, "ok")
+        flipped = replace(c, passed=False)
+        assert flipped is not c
+        assert flipped.passed is False
+        assert flipped.name == "a"
+        assert flipped.message == "ok"
+        # Original is untouched.
+        assert c.passed is True
 
     def test_default_detail_is_empty_dict(self) -> None:
         c = _check("a", True)
