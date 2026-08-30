@@ -78,7 +78,7 @@ uv run basedpyright                                                  # Types（�
 uv run ty check .                                                    # Types（速度）
 uv run ruff check . && uv run ruff format .                          # Lint + format
 uv run pytest --cov=sunxue_gates --cov-branch --cov-fail-under=90    # Coverage
-uv run diff-cover coverage.xml --compare-branch gate-baseline --fail-under=100  # 变更行
+uv run diff-cover coverage.xml --compare-branch gate-baseline --fail-under=100  # 变更行（详见 §8.4）
 uv run mutmut run                                                    # Mutation（生成 triage）
 
 # 对任意目录跑门禁（root 可参数化；__main__ 默认当前 repo 根）
@@ -211,5 +211,32 @@ uv run gates --all
 | 本地全链（一键验收） | `uv run gates --all` |
 | CI 全链 | `uv run gates --all`（workflow 自动） |
 | 机器可读结果 | `uv run gates --json`（六 GateResult JSON 数组） |
+
+### 8.4 diff-cover 基线 tag（plan 2.3）
+
+`diff-cover --compare-branch` 不再固定指向历史一次性 tag `gate-baseline`；
+**改成跟随当前发布版本**——每个 release 都打 `gate-vX.Y.Z` 形式的 annotated
+tag，下一次发版前的 `diff-cover` 用上一版 tag 作为对比基线：
+
+```bash
+# 上一版对比基线（v1.1.0 起）
+uv run diff-cover coverage.xml --compare-branch gate-v1.1.0 --fail-under=100
+
+# 发版时（annotated tag）：
+git tag -a gate-v1.1.0 -m "v1.1.0 — 七层 Python 门禁工程化 (plan 1.2)"
+
+# 下一版对比基线会变成 gate-v1.2.0，依此类推。
+```
+
+**为什么这样改**：原 `gate-baseline` tag 是 v1.1.0 升级一次性锚定的，再没动过；
+随着门禁代码自身被修改（claims-lint 加进第 7 位预算 / 性能预算 / token
+精算），变更行永远在涨——`diff-cover` 对的基线必须随版本前进，否则 gate
+意义递减。`claims-lint` 的 uv-commands 子检查已经会扫到 `--compare-branch`
+后跟随的参数，所以一旦发版流程跑起来，命令行错位会立即报警。
+
+**手工迁移说明**：仓库当前 `__main__.py` 与 `tests/README.md` 仍引用
+`gate-baseline` 是 v1.1.0 一次性历史的残留——**下一个 release tag（v1.2.0）
+落盘时**会把 `--compare-branch` 切到 `gate-v1.1.0`。本次 v1.1.0 的发版
+gate 文档先行记录策略，不改既有命令。
 | 单独跑某条 | `uv run ruff check .` 等（§4 表） |
 
