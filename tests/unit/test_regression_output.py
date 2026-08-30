@@ -6,6 +6,7 @@ the actual example files is exercised in ``tests/test_gates_live.py``.
 
 from __future__ import annotations
 
+from collections.abc import Generator
 from pathlib import Path
 
 import pytest
@@ -583,18 +584,21 @@ class TestSampleFileDiscovery:
 
         real_glob = Path.glob
 
-        def fake_glob(self: Path, pattern: str) -> list[Path]:
+        def fake_glob(self: Path, pattern: str) -> Generator[Path, None, None]:
             # Only patch the examples dir's glob; leave everything else
             # alone so ``.exists()`` etc. on unrelated paths still work.
             if self != examples:
-                return real_glob(self, pattern)
+                yield from real_glob(self, pattern)
+                return
             if pattern == "writing-*.md":
-                return [keep]
+                yield from iter([keep])
+                return
             if pattern == "judgment-*.md":
                 # Second glob re-emits ``keep`` as if it matched both
                 # patterns. The dedup ``if path in seen`` must skip it.
-                return [keep]
-            return []
+                yield from iter([keep])
+                return
+            return
 
         monkeypatch.setattr(Path, "glob", fake_glob)
 
