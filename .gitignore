@@ -13,3 +13,6 @@ htmlcov/
 text_*.json
 mutants/
 .cache/
+
+# local-only planning archive
+PLAN.md
