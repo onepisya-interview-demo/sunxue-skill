@@ -124,7 +124,9 @@ def _detect_mutmut_version() -> str:
     return proc.stdout.strip() or "mutmut (version unknown)"
 
 
-def _render(counts: Counter[str], exemptions: list[dict[str, str]], version: str, cicd: dict[str, int]) -> str:
+def _render(
+    counts: Counter[str], exemptions: list[dict[str, str]], version: str, cicd: dict[str, int]
+) -> str:
     """Render the markdown body for ``tests/mutation-report.md``."""
     # Prefer CICD stats for the totals (these are the source of truth that
     # includes the killed tally); fall back to the parsed Counter for any
