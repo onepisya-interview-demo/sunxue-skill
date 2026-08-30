@@ -384,3 +384,189 @@ class TestRunGateFailSummary:
         # MISS-included wording.
         assert "失败" in gr.summary
         assert "文件缺失" not in gr.summary
+
+
+# ---------------------------------------------------------------------------
+# Plan 3.1 second half — mode-aware EXPECT tiers
+# ---------------------------------------------------------------------------
+
+
+class TestModeInference:
+    """``writing-*`` and ``judgment-*`` filenames map to their tiers.
+
+    ``meta-*`` is supported in the machinery (a future tester may ship a
+    meta sample); an unknown prefix falls back to ``writing`` so new
+    samples default to the strict tier instead of silently passing.
+    """
+
+    def test_writing_prefix_maps_to_writing(self) -> None:
+        assert regression_output._mode_for_label("writing-巴菲特午餐") == "writing"
+
+    def test_judgment_prefix_maps_to_judgment(self) -> None:
+        assert regression_output._mode_for_label("judgment-老客户账期") == "judgment"
+
+    def test_meta_prefix_maps_to_meta(self) -> None:
+        assert regression_output._mode_for_label("meta-whatever") == "meta"
+
+    def test_unknown_prefix_falls_back_to_writing(self) -> None:
+        assert regression_output._mode_for_label("totally-unknown") == "writing"
+
+
+class TestExpectByMode:
+    """Per-mode EXPECT tables are well-formed."""
+
+    def test_three_modes_defined(self) -> None:
+        assert set(regression_output.EXPECT_BY_MODE) == {"writing", "judgment", "meta"}
+
+    def test_writing_tier_is_empty_so_writing_default_applies(self) -> None:
+        # Writing tier is empty by design: ``_merge_expect('writing')``
+        # returns the original 17-entry EXPECT. We verify the empty dict
+        # rather than the merged result so the contract is explicit.
+        assert regression_output.EXPECT_BY_MODE["writing"] == {}
+
+    def test_judgment_tier_relaxes_writing_specific_metrics(self) -> None:
+        j = regression_output.EXPECT_BY_MODE["judgment"]
+        for relaxed_metric in (
+            "程度副词",
+            "「我说好」类",
+            "「我沉默了」类",
+            "服务者复调",
+            "物件 callback 标记",
+            "闭环句候选",
+            "场景切换",
+        ):
+            assert relaxed_metric in j, f"missing {relaxed_metric} relaxation"
+            assert j[relaxed_metric][2] == "info", f"{relaxed_metric} not relaxed"
+
+    def test_judgment_tier_keeps_structural_close_strict(self) -> None:
+        # 结尾直接提问 is not in EXPECT_BY_MODE["judgment"]; the
+        # judgment tier inherits the strict == 1 rule from the
+        # writing tier via _merge_expect. We verify via the merged
+        # table so the test reflects the actual behavior.
+        merged = regression_output._merge_expect("judgment")
+        assert merged["结尾直接提问"] == ("number", 1, "==")
+
+    def test_judgment_tier_relaxes_digit_floor(self) -> None:
+        j = regression_output.EXPECT_BY_MODE["judgment"]
+        assert j["数字"][1] == 10
+        assert j["数字"][2] == ">="
+
+    def test_meta_tier_keeps_parallelism_and_rhetorical_strict(self) -> None:
+        m = regression_output.EXPECT_BY_MODE["meta"]
+        assert m["排比"][2] == "=="
+        assert m["排比"][1] == 0
+        assert m["反问"][2] == "=="
+        assert m["反问"][1] == 0
+
+    def test_meta_tier_relaxes_everything_else(self) -> None:
+        m = regression_output.EXPECT_BY_MODE["meta"]
+        for metric in m:
+            if metric in {"排比", "反问"}:
+                continue
+            assert m[metric][2] == "info", f"{metric} not relaxed in meta"
+
+
+class TestMergeExpect:
+    """``_merge_expect(mode)`` overlays ``EXPECT_BY_MODE[mode]`` on ``EXPECT``."""
+
+    def test_writing_merge_returns_full_expect(self) -> None:
+        merged = regression_output._merge_expect("writing")
+        assert merged == regression_output.EXPECT
+        assert len(merged) == 17
+
+    def test_judgment_merge_drops_digit_threshold(self) -> None:
+        merged = regression_output._merge_expect("judgment")
+        assert merged["数字"] == ("number", 10, ">=")
+        assert merged["「我说好」类"] == ("number", 0, "info")
+        assert merged["结尾直接提问"] == ("number", 1, "==")
+
+    def test_meta_merge_relaxes_everything_except_parallelism(self) -> None:
+        merged = regression_output._merge_expect("meta")
+        assert merged["排比"] == ("number", 0, "==")
+        assert merged["反问"] == ("number", 0, "==")
+        relaxed_count = sum(1 for v in merged.values() if v[2] == "info")
+        strict_count = sum(1 for v in merged.values() if v[2] in {"==", ">=", "<="})
+        assert strict_count == 2
+        assert relaxed_count == len(merged) - 2
+
+
+class TestCheckTextModeDetail:
+    """Each emitted CheckResult carries the sample's mode in its detail."""
+
+    def test_mode_recorded_on_header_check(self, tmp_path: Path) -> None:
+        sample = tmp_path / "writing-x.md"
+        sample.write_text("", encoding="utf-8")
+        gr = regression_output.run(tmp_path, samples=[("writing-x", sample)])
+        header = next(c for c in gr.details if c.name == "writing-x")
+        assert header.detail.get("mode") == "writing"
+
+    def test_mode_recorded_on_header_for_judgment_sample(self, tmp_path: Path) -> None:
+        sample = tmp_path / "judgment-x.md"
+        sample.write_text("一二三四五六七八九十一二三四五六七八九十", encoding="utf-8")
+        gr = regression_output.run(tmp_path, samples=[("judgment-x", sample)])
+        header = next(c for c in gr.details if c.name == "judgment-x")
+        assert header.detail.get("mode") == "judgment"
+
+    def test_info_check_carries_relaxed_flag(self) -> None:
+        text = "这是一段文本，包含许多程度副词，非常地很特别极其。"
+        checks = regression_output._check_text(
+            "label",
+            text,
+            expect=regression_output._merge_expect("judgment"),
+            mode="judgment",
+        )
+        relaxed = [c for c in checks if c.name == "label.程度副词"]
+        assert len(relaxed) == 1
+        assert relaxed[0].passed is True
+        assert "[INFO]" in relaxed[0].message
+        assert "relaxed" in relaxed[0].message
+        assert relaxed[0].detail.get("relaxed") is True
+
+    def test_strict_check_records_op_and_mode(self) -> None:
+        text = "一段普通的句子，里面没有任何特殊的写作技巧。"
+        checks = regression_output._check_text(
+            "label",
+            text,
+            expect=regression_output._merge_expect("judgment"),
+            mode="judgment",
+        )
+        strict = [c for c in checks if c.name == "label.排比"]
+        assert len(strict) == 1
+        assert strict[0].passed is True
+        assert "[OK]" in strict[0].message
+        assert strict[0].detail.get("mode") == "judgment"
+
+
+class TestGateRunWithModes:
+    """``run()`` applies per-sample modes end-to-end against tmp_path."""
+
+    def test_meta_mode_treats_everything_as_info(self, tmp_path: Path) -> None:
+        sample = tmp_path / "meta-z.md"
+        sample.write_text(
+            "任意内容。带很多程度副词，非常地很特别极其。我说好。我说好。",
+            encoding="utf-8",
+        )
+        gr = regression_output.run(tmp_path, samples=[("meta-z", sample)])
+        assert gr.passed is True
+        meta_checks = [c for c in gr.details if c.detail.get("mode") == "meta"]
+        assert len(meta_checks) >= 17
+
+
+class TestLiveRepoModeRouting:
+    """The live regression gate routes samples to their tier."""
+
+    def test_judgment_samples_carry_judgment_mode(self) -> None:
+        from pathlib import Path as _P
+
+        gr = regression_output.run(_P("."))
+        for c in gr.details:
+            if c.name.startswith("judgment-") and c.detail.get("mode") != "judgment":
+                raise AssertionError(f"{c.name} mode={c.detail.get('mode')}")
+
+    def test_writing_samples_carry_writing_mode(self) -> None:
+        from pathlib import Path as _P
+
+        gr = regression_output.run(_P("."))
+        for c in gr.details:
+            if c.name.startswith("writing-") and c.detail.get("mode") != "writing":
+                raise AssertionError(f"{c.name} mode={c.detail.get('mode')}")

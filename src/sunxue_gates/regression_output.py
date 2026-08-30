@@ -1,8 +1,24 @@
 """Gate 3: output regression — verifies the 15 hard metrics in examples/.
 
-Each example under ``examples/`` is checked against a fixed table of
-``(kind, expected, op)`` rules. Pure counter functions are exposed so a
-future worker.test can property-test them with Hypothesis.
+Each example under ``examples/`` is checked against a tier-specific
+EXPECT table. Three modes are supported (plan 3.1 second half):
+
+- ``writing``: the original 17 EXPECT entries, all strict. Applied
+  to samples whose filename starts with ``writing-``.
+- ``judgment``: writing-specific counters
+  (``「我说好」类`` / ``「我沉默了」类`` / ``服务者复调`` /
+  ``物件 callback 标记`` / ``闭环句候选`` / ``场景切换`` / ``程度副词``)
+  are relaxed to ``info`` (recorded but never failing). Judgment-relevant
+  checks (``数字 >= 10``, ``结尾直接提问 == 1``, plus the universal
+  zero-leak lint for 排比/反问/比喻/感叹号/省略号/破折号/引号/情绪直述)
+  stay strict. Applied to ``judgment-*`` samples.
+- ``meta``: minimum structural lint (排比 == 0, 反问 == 0 strict);
+  every other counter is informational. No ``meta-*`` sample ships on
+  disk; the mode is wired in for future meta samples.
+
+Each ``CheckResult`` returned by :func:`run` carries the sample's
+mode in its ``detail`` mapping so downstream consumers can attribute
+failures correctly. ``GateResult.shape`` is unchanged.
 
 The literal DEG_ADV / EMO_DIRECT / SERVER_POLYPHONY_WORDS tables live
 in :mod:`sunxue_gates.tables` (plan 2.1); this module re-exports them
@@ -16,6 +32,7 @@ import re
 from collections import Counter
 from collections.abc import Callable
 from pathlib import Path
+from typing import Literal
 
 from .results import CheckResult, GateResult
 
@@ -26,10 +43,14 @@ from .results import CheckResult, GateResult
 # (see comment there for why the literal is duplicated).
 from .tables import DEG_ADV, EMO_DIRECT, SERVER_POLYPHONY_WORDS  # noqa: F401
 
+Mode = Literal["writing", "judgment", "meta"]
+
 __all__ = [
     "DEG_ADV",
     "EMO_DIRECT",
     "EXPECT",
+    "EXPECT_BY_MODE",
+    "Mode",
     "count_numbers",
     "count_pai_bi",
     "count_fan_wen",
@@ -48,7 +69,10 @@ __all__ = [
     "run",
 ]
 
-# (metric_label) -> (kind, expected, op)
+# Default tier = writing (the original 17 EXPECT entries, all strict).
+# Kept under the original name ``EXPECT`` for backward-compat: callers
+# that pass ``expect=EXPECT`` (e.g. the test suite) still see the same
+# dict shape; the gate's ``run`` uses the mode-aware merge below.
 EXPECT: dict[str, tuple[str, int, str]] = {
     "数字": ("number", 15, ">="),
     "程度副词": ("number", 0, "=="),
@@ -68,6 +92,93 @@ EXPECT: dict[str, tuple[str, int, str]] = {
     "场景切换": ("number", 6, "<="),
     "结尾直接提问": ("number", 1, "=="),
 }
+
+# Per-mode overrides keyed by the same metric labels as EXPECT.
+# A value with ``op == 'info'`` is recorded in the CheckResult stream
+# but never fails the gate (treated as a passing "INFO" line by
+# :func:`_check_text`). Any metric *absent* from the tier dict inherits
+# the value from ``EXPECT`` (writing tier) — this keeps tier tables
+# small while making the relaxation explicit.
+_INFO_OP = "info"
+
+EXPECT_BY_MODE: dict[Mode, dict[str, tuple[str, int, str]]] = {
+    # Writing tier is the explicit truth; we don't duplicate the 17
+    # entries — falling through to EXPECT for any unspecified metric
+    # means a single source of truth.
+    "writing": {},
+    # Judgment tier: writing-specific technique counters become INFO;
+    # the structural close + the digit floor + the universal zero-leak
+    # lint remain strict. ``数字`` drops to ``>= 10`` because judgment
+    # samples don't pack the same density of facts as writing samples.
+    "judgment": {
+        "数字": ("number", 10, ">="),
+        "程度副词": ("number", 0, _INFO_OP),
+        "「我说好」类": ("number", 0, _INFO_OP),
+        "「我沉默了」类": ("number", 0, _INFO_OP),
+        "服务者复调": ("number", 0, _INFO_OP),
+        "物件 callback 标记": ("number", 0, _INFO_OP),
+        "闭环句候选": ("number", 0, _INFO_OP),
+        "场景切换": ("number", 0, _INFO_OP),
+        # 结尾直接提问 stays strict — judgment must close with a concrete
+        # ask. ``结尾提问`` only becomes INFO under meta (below).
+    },
+    # Meta tier: minimum structural lint; almost everything is INFO.
+    "meta": {
+        "数字": ("number", 0, _INFO_OP),
+        "程度副词": ("number", 0, _INFO_OP),
+        "情绪直述": ("number", 0, _INFO_OP),
+        "感叹号": ("number", 0, _INFO_OP),
+        "省略号": ("number", 0, _INFO_OP),
+        "破折号": ("number", 0, _INFO_OP),
+        "引号": ("number", 0, _INFO_OP),
+        "排比": ("number", 0, "=="),  # STRICT — no parallelism
+        "反问": ("number", 0, "=="),  # STRICT — no rhetorical questions
+        "比喻": ("number", 0, _INFO_OP),
+        "「我说好」类": ("number", 0, _INFO_OP),
+        "「我沉默了」类": ("number", 0, _INFO_OP),
+        "服务者复调": ("number", 0, _INFO_OP),
+        "物件 callback 标记": ("number", 0, _INFO_OP),
+        "闭环句候选": ("number", 0, _INFO_OP),
+        "场景切换": ("number", 0, _INFO_OP),
+        "结尾直接提问": ("number", 0, _INFO_OP),
+    },
+}
+
+# Each sample's mode is derived from its filename prefix. The lookup is
+# local to the gate so future samples (e.g. ``meta-*`` once tester-3
+# lands them) can be added without touching the four parent gates.
+_PREFIX_TO_MODE: tuple[tuple[str, Mode], ...] = (
+    ("writing-", "writing"),
+    ("judgment-", "judgment"),
+    ("meta-", "meta"),
+)
+
+
+def _mode_for_label(label: str) -> Mode:
+    """Return the tier mode for a sample label (filename stem).
+
+    Unknown prefixes fall back to ``"writing"`` so newly-named
+    samples default to the strict tier instead of silently passing.
+    """
+    for prefix, mode in _PREFIX_TO_MODE:
+        if label.startswith(prefix):
+            return mode
+    return "writing"
+
+
+def _merge_expect(mode: Mode) -> dict[str, tuple[str, int, str]]:
+    """Build the per-mode EXPECT table by overlaying ``EXPECT_BY_MODE[mode]``
+    on top of the writing-tier :data:`EXPECT`.
+
+    A metric missing from the tier dict inherits from the writing tier;
+    a metric present in the tier dict *overrides* it (threshold change
+    OR relaxation to ``info``). The merged dict is what ``_check_text``
+    sees.
+    """
+    merged: dict[str, tuple[str, int, str]] = dict(EXPECT)
+    for metric, spec in EXPECT_BY_MODE[mode].items():
+        merged[metric] = spec
+    return merged
 
 
 def cmp(actual: int, expected: int, op: str) -> bool:
@@ -230,16 +341,28 @@ def _check_text(
     label: str,
     text: str,
     expect: dict[str, tuple[str, int, str]] | None = None,
+    mode: Mode = "writing",
 ) -> list[CheckResult]:
     """Run every metric in ``expect`` against ``text``; return per-metric checks.
 
-    ``expect`` defaults to the module-level :data:`EXPECT` table. Pass a
-    custom dict (plan 2.2 dependency injection) to exercise alternate
-    rule sets without monkey-patching the module global.
+    ``expect`` defaults to the writing-tier :data:`EXPECT` (the original
+    17 entries). Pass a custom dict (plan 2.2 dependency injection)
+    to exercise alternate rule sets without monkey-patching the module
+    global. ``mode`` is recorded on every check's ``detail`` so the
+    caller can attribute the result back to its tier.
+
+    An entry with ``op == 'info'`` produces a passing ``[INFO]`` line
+    rather than a strict pass/fail check — this is how plan 3.1's
+    judgment + meta tiers express "record but don't fail".
     """
     table = EXPECT if expect is None else expect
     checks: list[CheckResult] = [
-        CheckResult(name=label, passed=True, message=f"=== {label} (chars={len(text)}) ===")
+        CheckResult(
+            name=label,
+            passed=True,
+            message=f"=== {label} (chars={len(text)}, mode={mode}) ===",
+            detail={"mode": mode},
+        )
     ]
 
     def record(metric: str, actual: int) -> None:
@@ -247,18 +370,40 @@ def _check_text(
         if spec is None:
             checks.append(
                 CheckResult(
-                    name=f"{label}.{metric}", passed=True, message=f"  [INFO] {metric}: {actual}"
+                    name=f"{label}.{metric}",
+                    passed=True,
+                    message=f"  [INFO] {metric}: {actual}",
+                    detail={"actual": actual, "mode": mode, "info": "metric not in tier table"},
                 )
             )
             return
         _kind, expected, op = spec
+        if op == _INFO_OP:
+            # Relaxed tier entry: record, never fail. The "ok" below is
+            # unconditional so downstream consumers can rely on a
+            # well-formed CheckResult for every expected metric.
+            checks.append(
+                CheckResult(
+                    name=f"{label}.{metric}",
+                    passed=True,
+                    message=f"  [INFO] {metric}: {actual}  (tier {mode}, relaxed)",
+                    detail={
+                        "actual": actual,
+                        "expected": expected,
+                        "op": op,
+                        "mode": mode,
+                        "relaxed": True,
+                    },
+                )
+            )
+            return
         ok = cmp(actual, expected, op)
         checks.append(
             CheckResult(
                 name=f"{label}.{metric}",
                 passed=ok,
                 message=f"  [{'OK' if ok else 'FAIL'}] {metric}: {actual}  (期望 {op} {expected})",
-                detail={"actual": actual, "expected": expected, "op": op},
+                detail={"actual": actual, "expected": expected, "op": op, "mode": mode},
             )
         )
 
@@ -288,14 +433,26 @@ _MetricFn = Callable[[str], int]
 def run(
     root: Path,
     expect: dict[str, tuple[str, int, str]] | None = None,
+    samples: list[tuple[str, Path]] | None = None,
 ) -> GateResult:
     """Run the output-regression gate against ``root``.
 
-    ``expect`` defaults to the module-level :data:`EXPECT` table. Pass a
-    custom dict (plan 2.2 dependency injection) to exercise alternate
-    rule sets without monkey-patching the module global.
+    ``expect`` defaults to the writing-tier :data:`EXPECT` table (a
+    custom dict passed here skips the mode-aware merge entirely and
+    applies the same rules to every sample — useful for property
+    tests that want to drive a synthetic scenario without going
+    through the tier machinery). The normal mode-aware path uses
+    :func:`_merge_expect` to overlay the writing tier with the
+    per-mode ``EXPECT_BY_MODE`` overrides.
+
+    ``samples`` defaults to :func:`sample_files` (the canonical 5
+    hardcoded stems under ``examples/``). Tests may pass a custom
+    list to drive synthetic scenarios with new stems or alternate
+    modes — the gate still routes each entry through the mode-aware
+    expect merge via the stem prefix.
     """
-    samples = sample_files(root)
+    if samples is None:
+        samples = sample_files(root)
     all_checks: list[CheckResult] = []
     miss = 0
 
@@ -310,13 +467,17 @@ def run(
         miss = 1
 
     for label, path in samples:
+        mode = _mode_for_label(label)
+        tier_expect = _merge_expect(mode) if expect is None else expect
         if not path.exists():
             all_checks.append(
                 CheckResult(name=label, passed=False, message=f"\n[MISS] {label}: {path} 不存在")
             )
             miss += 1
             continue
-        all_checks.extend(_check_text(label, path.read_text(encoding="utf-8"), expect=expect))
+        all_checks.extend(
+            _check_text(label, path.read_text(encoding="utf-8"), expect=tier_expect, mode=mode)
+        )
 
     failures = sum(1 for c in all_checks if not c.passed)
     passed = failures == 0
