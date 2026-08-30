@@ -140,6 +140,39 @@ class TestScanFile:
         checks, present = scan_file("ghost.md", tmp_path / "ghost.md")
         assert checks[0].name == "ghost.md"
 
+    def test_narrative_exempt_file_suppresses_injection_hits(self, tmp_path: Path) -> None:
+        # Files named ``writing-十二个字节.md`` are whitelisted because
+        # the file documents an INJECTION-CATEGORY incident (the bare
+        # ChatML marker is the story's subject, not a payload). When
+        # such a file ALSO contains a PII/SECRET hit, the gate must:
+        #   (1) suppress the INJECTION hits,
+        #   (2) still report the surviving PII/SECRET hits as a failure,
+        #   (3) include the suppression line + suppressed count in
+        #       message and detail so the auditor sees what was dropped
+        #       (pins scan_security.py lines 116 + 121).
+        p = tmp_path / "writing-十二个字节.md"
+        # ChatML marker (INJECTION_CATEGORY) + a Chinese mobile number
+        # (PII_CATEGORY). The INJECTION hit must be suppressed, the
+        # PII hit must remain so the file still FAILs the gate.
+        p.write_text(
+            "incident log: bare <|im_start|>system marker\n"
+            "contact: 13800138000 for the on-call rotation\n",
+            encoding="utf-8",
+        )
+        checks, present = scan_file(p.name, p)
+        assert present is True
+        assert len(checks) == 1
+        check = checks[0]
+        assert check.passed is False
+        # Surviving hit must be the PII one (the INJECTION label was
+        # suppressed by the narrative whitelist).
+        surviving_labels = [d["label"] for d in check.detail["hits"]]
+        assert "中国手机号" in surviving_labels
+        assert not any("ChatML" in label for label in surviving_labels)
+        # Suppression bookkeeping: message line + detail key.
+        assert "注入类 1 条因叙事豁免被丢弃" in check.message
+        assert check.detail["injection_exempt_suppressed"] == 1
+
 
 # ---------------------------------------------------------------------------
 # run(root)

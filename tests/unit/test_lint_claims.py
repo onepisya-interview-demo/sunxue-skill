@@ -20,6 +20,7 @@ from sunxue_gates.lint_claims import (
     _check_thresholds,
     _check_uv_commands,
     _check_version_match,
+    _disk_count,
     run,
 )
 from sunxue_gates.results import GateResult
@@ -149,6 +150,20 @@ class TestVersionMatch:
         assert check.passed is False
         assert check.detail["present"] is False
 
+    def test_fail_when_pyproject_missing(self, tmp_path: Path) -> None:
+        # ``_check_version_match`` reads ``pyproject.toml`` to get the
+        # declared project version. When the file is absent, the helper
+        # catches the ``FileNotFoundError`` raised by ``_load_pyproject``
+        # and surfaces it as a structured failure with ``detail.err``
+        # rather than letting the exception escape (pins lines 126-127).
+        _write_minimal_skill(tmp_path)
+        (tmp_path / "pyproject.toml").unlink()
+        check = _check_version_match(tmp_path)
+        assert check.passed is False
+        assert check.name == "version_match"
+        assert "pyproject.toml" in check.detail["err"]
+        assert "[FAIL]" in check.message
+
 
 class TestSkillFreeze:
     def test_pass_when_annotation_and_v10_present(self, tmp_path: Path) -> None:
@@ -172,6 +187,20 @@ class TestSkillFreeze:
         check = _check_skill_freeze(tmp_path)
         assert check.passed is False
         assert check.detail["skill_metadata_v10"] is False
+
+    def test_fail_when_skill_md_missing(self, tmp_path: Path) -> None:
+        # ``_check_skill_freeze`` first checks the README's freeze
+        # annotation, then opens SKILL.md to verify the v1.0 marker
+        # text is still present. When SKILL.md is absent the helper
+        # must short-circuit with a structured failure (pins line 171)
+        # instead of raising FileNotFoundError on the read.
+        _write_minimal_skill(tmp_path)
+        (tmp_path / "SKILL.md").unlink()
+        check = _check_skill_freeze(tmp_path)
+        assert check.passed is False
+        assert check.name == "skill_freeze"
+        assert check.detail == {"present": False}
+        assert "不存在" in check.message
 
 
 class TestDirectoryCounts:
@@ -204,6 +233,25 @@ class TestDirectoryCounts:
         assert check.passed is False
         assert check.detail["references"]["claimed"] == 5
         assert check.detail["references"]["disk"] == 0
+
+    def test_disk_count_returns_zero_for_missing_dir(self, tmp_path: Path) -> None:
+        # ``_disk_count`` is the helper that powers directory-count checks.
+        # When the target directory does not exist, the helper must
+        # return 0 rather than raising — the gate's report then records
+        # ``disk=0`` for that subdir and the README's claimed count is
+        # compared against zero. Pins the early-return branch (line 88).
+        assert _disk_count("references", tmp_path) == 0
+        assert _disk_count("examples", tmp_path) == 0
+        # Sanity: an existing empty directory also counts as zero.
+        (tmp_path / "empty_dir").mkdir()
+        assert _disk_count("empty_dir", tmp_path) == 0
+        # Sanity: a non-empty directory counts the .md files inside.
+        d = tmp_path / "full_dir"
+        d.mkdir()
+        (d / "a.md").write_text("x", encoding="utf-8")
+        (d / "b.md").write_text("x", encoding="utf-8")
+        (d / "c.txt").write_text("x", encoding="utf-8")  # non-.md is ignored
+        assert _disk_count("full_dir", tmp_path) == 2
 
 
 class TestThresholds:
