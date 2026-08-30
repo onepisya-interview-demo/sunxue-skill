@@ -51,5 +51,5 @@
 
 - Python 门禁工程：`src/sunxue_gates`（七门禁）+ `tests/` + `SKILL.md` / `references` / `examples`
 - 一键验收：`uv run gates --all`；本地快速层 pre-commit 需 `git config core.hooksPath .githooks` 手动启用
-- Git 身份：一律使用全局身份（onepisYa <pis1@qq.com>）；禁止在本仓库 local config 配置任何假身份
+- Git 身份：提交者使用**自己环境**的全局 git 身份，规范中不写死任何个人邮箱；本仓库 local config 禁止配置假身份 / 占位身份（如 `gates@sunxue.local` 这类机器身份）
 - 历史改写（message / 身份）需连带重写 tags（`--tag-name-filter cat`）并清理 `refs/original` + reflog + gc，确保旧对象物理清除
