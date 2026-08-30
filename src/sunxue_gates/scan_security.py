@@ -116,7 +116,7 @@ def scan_file(label: str, path: Path) -> tuple[list[CheckResult], bool]:
             messages.append(f"  (注入类 {suppressed} 条因叙事豁免被丢弃)")
         messages.extend(f"  - {label_}: {val!r}" for label_, val in hits)
         hit_detail = [{"label": hit_label, "value": hit_val} for hit_label, hit_val in hits]
-        detail = {"hits": hit_detail}
+        detail: dict[str, object] = {"hits": hit_detail}
         if suppressed:
             detail["injection_exempt_suppressed"] = suppressed
         check = CheckResult(

@@ -19,6 +19,7 @@ from __future__ import annotations
 import re
 import tomllib
 from pathlib import Path
+from typing import Any
 
 from .results import CheckResult, GateResult
 
@@ -67,8 +68,13 @@ _GATES_FLAGS: frozenset[str] = frozenset({"--all", "--json"})
 # ---------------------------------------------------------------------------
 
 
-def _load_pyproject(root: Path) -> dict[str, object]:
-    """Return the parsed ``[tool.*]`` tables from pyproject.toml."""
+def _load_pyproject(root: Path) -> dict[str, Any]:
+    """Return the parsed ``[tool.*]`` tables from pyproject.toml.
+
+    Annotated as ``dict[str, Any]`` so callers can drill into nested
+    tables (``cfg["project"]["scripts"]["gates"]`` etc.) without
+    ``dict[str, object]`` blocking attribute access under basedpyright / ty.
+    """
     path = root / _PYPROJECT
     if not path.exists():
         raise FileNotFoundError(f"pyproject.toml missing: {path}")
