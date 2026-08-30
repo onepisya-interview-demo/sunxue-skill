@@ -1,7 +1,7 @@
 [project]
 name = "sunxue-gates"
 version = "1.1.0"
-description = "Six-layer gate harness for the sunxue skill (lint, security, regression, token budget, injection drill, mutation drill)."
+description = "Seven-layer gate harness for the sunxue skill (lint, security, regression, token budget, injection drill, mutation drill, claims-lint)."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -44,6 +44,13 @@ extend-exclude = ["mutants"]
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.ruff.lint.per-file-ignores]
+# Plan 2.2 review: B010 is still used by tests/unit/test_results.py
+# (setattr on CheckResult to verify it is frozen). The two monkey-patch
+# tests we refactored (test_record_info_branch_when_metric_missing_from_expect
+# + test_failures_incremented_when_mutator_drops_all_hits) no longer use
+# B010 patterns, but the per-file-ignore stays because test_results.py
+# still needs it. E402 stays — module-level conftest sys.path setup
+# needs to run before some imports in the test files.
 "tests/**/*.py" = ["E402", "B010"]
 
 [tool.basedpyright]

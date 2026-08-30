@@ -85,12 +85,23 @@ MUTATORS: tuple[tuple[str, Callable[[str], str]], ...] = (
 )
 
 
-def extract_key_sentences(text: str, max_n: int = 5) -> list[str]:
-    """Return up to ``max_n`` sentences from ``text`` containing :data:`KEY_PHRASES`."""
+def extract_key_sentences(
+    text: str,
+    max_n: int = 5,
+    key_phrases: tuple[str, ...] | None = None,
+) -> list[str]:
+    """Return up to ``max_n`` sentences from ``text`` containing key phrases.
+
+    ``key_phrases`` defaults to the module-level :data:`KEY_PHRASES`
+    tuple. Pass a custom tuple (plan 2.2 dependency injection) to
+    exercise alternate anchor sets without monkey-patching the
+    module global.
+    """
+    phrases = KEY_PHRASES if key_phrases is None else key_phrases
     sents = re.split(r"(?<=[。！？\n])\s*", text)
     out: list[str] = []
     used: set[int] = set()
-    for phrase in KEY_PHRASES:
+    for phrase in phrases:
         for s in sents:
             if phrase in s and 20 <= len(s) <= 200 and id(s) not in used:
                 out.append(s.strip())
@@ -101,13 +112,35 @@ def extract_key_sentences(text: str, max_n: int = 5) -> list[str]:
     return out
 
 
-def hit_count(text: str) -> int:
-    """Return how many :data:`HARD_KEYWORDS` appear in ``text`` (deduped)."""
-    return sum(1 for kw in HARD_KEYWORDS if kw in text)
+def hit_count(text: str, hard_keywords: tuple[str, ...] | None = None) -> int:
+    """Return how many hard keywords appear in ``text`` (deduped).
+
+    ``hard_keywords`` defaults to :data:`HARD_KEYWORDS`. Pass a custom
+    tuple (plan 2.2 dependency injection) to exercise alternate
+    keyword sets without monkey-patching the module global.
+    """
+    kws = HARD_KEYWORDS if hard_keywords is None else hard_keywords
+    return sum(1 for kw in kws if kw in text)
 
 
-def run(root: Path) -> GateResult:
-    """Run the mutation-drill gate against ``root``."""
+def run(
+    root: Path,
+    mutators: tuple[tuple[str, Callable[[str], str]], ...] | None = None,
+    key_phrases: tuple[str, ...] | None = None,
+    hard_keywords: tuple[str, ...] | None = None,
+) -> GateResult:
+    """Run the mutation-drill gate against ``root``.
+
+    ``mutators`` defaults to the module-level :data:`MUTATORS` triple
+    (each entry: ``(label, callable)``). ``key_phrases`` defaults to
+    :data:`KEY_PHRASES`; ``hard_keywords`` defaults to
+    :data:`HARD_KEYWORDS`. Pass any of these to exercise alternate
+    operator / anchor / keyword sets (plan 2.2 dependency injection)
+    without monkey-patching module globals.
+    """
+    mtable = MUTATORS if mutators is None else mutators
+    kp = KEY_PHRASES if key_phrases is None else key_phrases
+    hk = HARD_KEYWORDS if hard_keywords is None else hard_keywords
     skill_md = root / "SKILL.md"
 
     if not skill_md.exists():
@@ -121,7 +154,7 @@ def run(root: Path) -> GateResult:
         )
 
     text = skill_md.read_text(encoding="utf-8")
-    sentences = extract_key_sentences(text, max_n=5)
+    sentences = extract_key_sentences(text, max_n=5, key_phrases=kp)
 
     all_checks: list[CheckResult] = [
         CheckResult(
@@ -133,8 +166,8 @@ def run(root: Path) -> GateResult:
         CheckResult(
             name="base_hits",
             passed=True,
-            message=f"基线硬指标关键词命中数: {hit_count(text)}",
-            detail={"base_hits": hit_count(text)},
+            message=f"基线硬指标关键词命中数: {hit_count(text, hard_keywords=hk)}",
+            detail={"base_hits": hit_count(text, hard_keywords=hk)},
         ),
     ]
 
@@ -156,7 +189,7 @@ def run(root: Path) -> GateResult:
 
     failures = 0
     for i, sent in enumerate(sentences, 1):
-        sent_hits = hit_count(sent)
+        sent_hits = hit_count(sent, hard_keywords=hk)
         sent_preview = sent[:120]
         sent_suffix = "..." if len(sent) > 120 else ""
         all_checks.append(
@@ -167,9 +200,9 @@ def run(root: Path) -> GateResult:
                 detail={"sentence": sent, "hits": sent_hits},
             )
         )
-        for mname, mfunc in MUTATORS:
+        for mname, mfunc in mtable:
             mutated = mfunc(sent)
-            m_hits = hit_count(mutated)
+            m_hits = hit_count(mutated, hard_keywords=hk)
             ok = m_hits >= 1 or sent_hits == 0
             if not ok:
                 failures += 1

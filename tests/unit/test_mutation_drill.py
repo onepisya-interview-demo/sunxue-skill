@@ -275,9 +275,10 @@ class TestRunGateEmptyAndFullBranches:
         # produces 0 hard-keyword hits AND the original sentence had
         # >= 1 hit. The shipped mutators don't structurally destroy
         # HARD_KEYWORDS (they only touch their own tables), so we
-        # monkey-patch :data:`MUTATORS` to add a "drop everything"
-        # mutator and assert the FAIL is recorded.
-        import sunxue_gates.mutation_drill as md
+        # inject a "drop everything" mutator via plan 2.2 dependency
+        # injection (no module-global monkey-patching, no try/finally
+        # restore).
+        from sunxue_gates import mutation_drill as md
 
         # Build an SKILL.md whose key sentence contains BOTH a key phrase
         # and a hard keyword. The shipped mutators preserve the hard
@@ -288,19 +289,23 @@ class TestRunGateEmptyAndFullBranches:
         assert "必须" in sent
         assert "数字" in sent and "服务者" in sent
 
-        saved_mutators = md.MUTATORS
-        try:
-            # Inject a mutator that drops EVERY hard keyword.
-            md.MUTATORS = (("M_drop", lambda text: "完全没有任何关键词的纯文字"),)
-            (tmp_path / "SKILL.md").write_text(
-                "---\nname: x\ndescription: y\n---\n" + sent + "\n",
-                encoding="utf-8",
-            )
-            gr = md.run(tmp_path)
-        finally:
-            md.MUTATORS = saved_mutators
+        # Inject a mutator that drops EVERY hard keyword via the
+        # ``mutators`` parameter — the module-global :data:`MUTATORS`
+        # is left untouched.
+        drop_everything = (("M_drop", lambda text: "完全没有任何关键词的纯文字"),)
+        (tmp_path / "SKILL.md").write_text(
+            "---\nname: x\ndescription: y\n---\n" + sent + "\n",
+            encoding="utf-8",
+        )
+        gr = md.run(tmp_path, mutators=drop_everything)
 
         # The mutator dropped the hard keywords → at least one FAIL.
         assert gr.passed is False
+        # The module-global :data:`MUTATORS` is unchanged.
+        assert md.MUTATORS == (
+            ("M1 同义词", md.mutate_synonym),
+            ("M2 拆句", md.mutate_split),
+            ("M3 软化", md.mutate_soften),
+        )
         # And the summary mentions "破坏硬约束".
         assert "破坏硬约束" in gr.summary

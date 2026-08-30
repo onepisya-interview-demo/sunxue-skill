@@ -312,19 +312,17 @@ class TestCheckTextDefensiveBranches:
 
     def test_record_info_branch_when_metric_missing_from_expect(self) -> None:
         text = "我说好，咱们继续。"
-        # Temporarily remove a metric so the INFO branch fires.
-        saved = regression_output.EXPECT.copy()
-        try:
-            regression_output.EXPECT.pop("「我说好」类", None)
-            checks = regression_output._check_text("label", text)
-        finally:
-            regression_output.EXPECT.clear()
-            regression_output.EXPECT.update(saved)
+        # Build a custom expect dict that omits the metric — exercises the
+        # INFO branch via plan 2.2 dependency injection (no module-global
+        # monkey-patching, no try/finally restore).
+        partial = {k: v for k, v in regression_output.EXPECT.items() if k != "「我说好」类"}
+        checks = regression_output._check_text("label", text, expect=partial)
         # The INFO check must be present for the missing metric.
         info_checks = [c for c in checks if "[INFO]" in c.message]
         assert len(info_checks) >= 1
         assert any("「我说好」类" in c.message for c in info_checks)
-        # The restored EXPECT must be intact for subsequent tests.
+        # The module-level EXPECT must still contain the metric — DI
+        # does not touch it.
         assert "「我说好」类" in regression_output.EXPECT
 
 
@@ -363,7 +361,7 @@ class TestRunGateFailSummary:
     """Drive the ``elif passed`` branch (samples present but a metric FAILs)."""
 
     def test_fail_summary_when_metric_breaks(self, tmp_path: Path) -> None:
-        # Create ALL four sample files so no MISS is reported, but make
+        # Create ALL five sample files so no MISS is reported, but make
         # one of them break a metric (e.g. 程度副词 > 0, expected == 0).
         # This drives the FAIL summary branch (line 325) because the
         # gate fails but there is no MISS.
@@ -373,6 +371,7 @@ class TestRunGateFailSummary:
             "writing-巴菲特午餐",
             "writing-示例2-被割版",
             "writing-示例3-AI时代前端",
+            "writing-十二个字节",
             "judgment-老客户账期",
         )
         bad = "这一段非常地长，特别冷。\n也有一些数字 123 和 456 等等。\n"

@@ -218,6 +218,7 @@ def sample_files(root: Path) -> list[tuple[str, Path]]:
         "writing-巴菲特午餐",
         "writing-示例2-被割版",
         "writing-示例3-AI时代前端",
+        "writing-十二个字节",
         "judgment-老客户账期",
     )
     for stem in candidates:
@@ -225,14 +226,24 @@ def sample_files(root: Path) -> list[tuple[str, Path]]:
     return samples
 
 
-def _check_text(label: str, text: str) -> list[CheckResult]:
-    """Run every metric in :data:`EXPECT` against ``text``; return per-metric checks."""
+def _check_text(
+    label: str,
+    text: str,
+    expect: dict[str, tuple[str, int, str]] | None = None,
+) -> list[CheckResult]:
+    """Run every metric in ``expect`` against ``text``; return per-metric checks.
+
+    ``expect`` defaults to the module-level :data:`EXPECT` table. Pass a
+    custom dict (plan 2.2 dependency injection) to exercise alternate
+    rule sets without monkey-patching the module global.
+    """
+    table = EXPECT if expect is None else expect
     checks: list[CheckResult] = [
         CheckResult(name=label, passed=True, message=f"=== {label} (chars={len(text)}) ===")
     ]
 
     def record(metric: str, actual: int) -> None:
-        spec = EXPECT.get(metric)
+        spec = table.get(metric)
         if spec is None:
             checks.append(
                 CheckResult(
@@ -274,8 +285,16 @@ def _check_text(label: str, text: str) -> list[CheckResult]:
 _MetricFn = Callable[[str], int]
 
 
-def run(root: Path) -> GateResult:
-    """Run the output-regression gate against ``root``."""
+def run(
+    root: Path,
+    expect: dict[str, tuple[str, int, str]] | None = None,
+) -> GateResult:
+    """Run the output-regression gate against ``root``.
+
+    ``expect`` defaults to the module-level :data:`EXPECT` table. Pass a
+    custom dict (plan 2.2 dependency injection) to exercise alternate
+    rule sets without monkey-patching the module global.
+    """
     samples = sample_files(root)
     all_checks: list[CheckResult] = []
     miss = 0
@@ -297,7 +316,7 @@ def run(root: Path) -> GateResult:
             )
             miss += 1
             continue
-        all_checks.extend(_check_text(label, path.read_text(encoding="utf-8")))
+        all_checks.extend(_check_text(label, path.read_text(encoding="utf-8"), expect=expect))
 
     failures = sum(1 for c in all_checks if not c.passed)
     passed = failures == 0
