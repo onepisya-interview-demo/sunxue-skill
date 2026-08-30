@@ -93,6 +93,15 @@ mutmut = 30
 
 [tool.mutmut]
 source_paths = ["src/sunxue_gates"]
+# Plan 2.2: these two test files contain multi-line f-strings whose
+# libcst-based mutation collector cannot parse (SyntaxError on collection).
+# mutmut 3.7.0 documented pytest_add_cli_args_test_selection key
+# passes these args to every pytest invocation mutmut makes.
+pytest_add_cli_args_test_selection = [
+    "--ignore=tests/unit/test_golden_literals.py",
+    "--ignore=tests/unit/test_lint_claims.py",
+]
+
 # Plan 2.1: tables.py is pure data (keyword/pattern tokens) — mutating
 # every literal is noise, not signal. Excluded via mutmut 3.x's documented
 # ``do_not_mutate`` glob (empirically verified on mutmut 3.7.0: with this
