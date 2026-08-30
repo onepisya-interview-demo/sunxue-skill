@@ -565,6 +565,46 @@ class TestSampleFileDiscovery:
         assert "writing-景甜-原文片段" not in stems
         assert "judgment-quote-引用片段" not in stems
 
+    def test_dedup_branch_is_covered_via_glob_injection(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # ``sample_files`` globs ``writing-*.md`` then ``judgment-*.md``;
+        # in normal usage the two globs return disjoint paths so the
+        # ``if path in seen: continue`` True arm (line 353) is unreachable.
+        # Patch ``Path.glob`` on the examples dir so the second glob
+        # returns a duplicate of a path the first glob already added to
+        # ``seen`` — this drives the dedup True arm and verifies the
+        # exact filter behavior: dedup keeps the first-seen entry, the
+        # duplicate is silently dropped.
+        examples = tmp_path / "examples"
+        examples.mkdir()
+        keep = examples / "writing-real.md"
+        keep.write_text("一段普通的叙述文字", encoding="utf-8")
+
+        real_glob = Path.glob
+
+        def fake_glob(self: Path, pattern: str) -> list[Path]:
+            # Only patch the examples dir's glob; leave everything else
+            # alone so ``.exists()`` etc. on unrelated paths still work.
+            if self != examples:
+                return real_glob(self, pattern)
+            if pattern == "writing-*.md":
+                return [keep]
+            if pattern == "judgment-*.md":
+                # Second glob re-emits ``keep`` as if it matched both
+                # patterns. The dedup ``if path in seen`` must skip it.
+                return [keep]
+            return []
+
+        monkeypatch.setattr(Path, "glob", fake_glob)
+
+        samples = regression_output.sample_files(tmp_path)
+        stems = [s[0] for s in samples]
+        # ``keep`` is in exactly one sample — the dedup ``continue``
+        # dropped the duplicate emission from the judgment-* glob.
+        assert stems == ["writing-real"]
+        assert samples == [("writing-real", keep)]
+
 
 class TestGateRunWithModes:
     """``run()`` applies per-sample modes end-to-end against tmp_path."""
