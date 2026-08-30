@@ -13,6 +13,11 @@ total wall time are printed at the end; the ``mutants/`` directory created by
 mutmut is removed afterwards. Useful for CI and the one-command local
 acceptance check described in PLAN §1.3.
 
+Performance budgets (plan 3.4) are read from ``[tool.sunxue.budgets]`` in
+``pyproject.toml`` (keys: ``gates_all``, ``pytest``, ``mutmut``; seconds).
+If a stage exceeds its budget, the chain fails with a budget-exceeded
+message and the operator gets a stage-table row marked ``OVER``.
+
 ``gates --json`` prints the seven ``GateResult`` objects as a JSON array (one
 object per gate: ``name``, ``passed``, ``summary``, ``failure_count``,
 ``details``) — machine-readable output for CI dashboards. Exit code mirrors
@@ -26,6 +31,7 @@ import shutil
 import subprocess
 import sys
 import time
+import tomllib
 from pathlib import Path
 
 from . import GATE_NAMES, run_all
@@ -39,14 +45,18 @@ def default_root() -> Path:
     return Path(__file__).resolve().parent.parent.parent
 
 
-# Eight-stage acceptance chain (PLAN §1.3). Each entry: (label, argv).
-# Args are run verbatim through ``subprocess.run``; cwd is the repo root.
-_ALL_CHAIN: tuple[tuple[str, tuple[str, ...]], ...] = (
-    ("ruff check", ("ruff", "check", ".")),
-    ("ruff format --check", ("ruff", "format", "--check", ".")),
-    ("basedpyright", ("basedpyright",)),
-    ("ty check .", ("ty", "check", ".")),
-    ("pytest", ("pytest",)),
+# Eight-stage acceptance chain (PLAN §1.3). Each entry:
+#   (label, argv, budget_key)
+# ``budget_key`` is one of the keys in ``[tool.sunxue.budgets]``
+# (``gates_all`` / ``pytest`` / ``mutmut``); ``gates_all`` is the default for
+# stages that don't have a dedicated budget. Args are run verbatim through
+# ``subprocess.run``; cwd is the repo root.
+_ALL_CHAIN: tuple[tuple[str, tuple[str, ...], str], ...] = (
+    ("ruff check", ("ruff", "check", "."), "gates_all"),
+    ("ruff format --check", ("ruff", "format", "--check", "."), "gates_all"),
+    ("basedpyright", ("basedpyright",), "gates_all"),
+    ("ty check .", ("ty", "check", "."), "gates_all"),
+    ("pytest", ("pytest",), "pytest"),
     (
         "pytest --cov (>=90%)",
         (
@@ -56,6 +66,7 @@ _ALL_CHAIN: tuple[tuple[str, tuple[str, ...]], ...] = (
             "--cov-report=xml",
             "--cov-fail-under=90",
         ),
+        "pytest",
     ),
     (
         "diff-cover (>=100%)",
@@ -66,15 +77,52 @@ _ALL_CHAIN: tuple[tuple[str, tuple[str, ...]], ...] = (
             "gate-baseline",
             "--fail-under=100",
         ),
+        "gates_all",
     ),
-    ("mutmut run", ("mutmut", "run")),
+    ("mutmut run", ("mutmut", "run"), "mutmut"),
 )
 
 
+def _load_budgets(root: Path) -> dict[str, float]:
+    """Read ``[tool.sunxue.budgets]`` from ``root/pyproject.toml``.
+
+    Missing keys fall back to safe defaults (plan 3.4): 60s for the overall
+    chain, 5s for pytest, 30s for mutmut. The defaults are identical to
+    ``pyproject.toml`` so a missing table does not silently relax the gates.
+    """
+    defaults: dict[str, float] = {"gates_all": 60.0, "pytest": 5.0, "mutmut": 30.0}
+    pyproject = root / "pyproject.toml"
+    if not pyproject.exists():
+        return defaults
+    try:
+        cfg = tomllib.loads(pyproject.read_text(encoding="utf-8"))
+    except (OSError, tomllib.TOMLDecodeError):  # pragma: no cover - defensive
+        return defaults
+    raw = cfg.get("tool", {}).get("sunxue", {}).get("budgets", {})
+    out = dict(defaults)
+    if isinstance(raw, dict):
+        for k, v in raw.items():
+            try:
+                out[str(k)] = float(v)  # type: ignore[arg-type]
+            except (TypeError, ValueError):
+                continue
+    return out
+
+
 def _run_chain(root: Path) -> int:
-    """Execute the eight-stage acceptance chain; stop at first failure."""
+    """Execute the eight-stage acceptance chain; stop at first failure.
+
+    Each stage is timed and compared to the matching budget from
+    ``[tool.sunxue.budgets]`` (plan 3.4). A stage that exceeds its budget
+    is recorded as ``OVER`` in the stage table; the chain fails with a
+    ``budget-exceeded`` exit code if any budget was violated, even if the
+    stage itself exited cleanly. ``mutants/`` is removed after the chain
+    in all cases.
+    """
+    budgets = _load_budgets(root)
+    budget_summary = ", ".join(f"{k}={int(v)}s" for k, v in sorted(budgets.items()))
     print("=" * 78)
-    print(f"sunxue gates --all ({len(_ALL_CHAIN)} stages)")
+    print(f"sunxue gates --all ({len(_ALL_CHAIN)} stages; budgets: {budget_summary})")
     print("=" * 78)
     print(f"repo root: {root}")
     print()
@@ -83,21 +131,38 @@ def _run_chain(root: Path) -> int:
     overall_start = time.perf_counter()
     cumulative = 0.0
     failed_stage: tuple[str, int] | None = None
+    budget_violations: list[tuple[str, float, float]] = []  # (label, elapsed, budget)
 
-    for index, (label, argv) in enumerate(_ALL_CHAIN, start=1):
+    for index, (label, argv, budget_key) in enumerate(_ALL_CHAIN, start=1):
         stage_start = time.perf_counter()
         # Stream child stdout/stderr straight to the parent terminal so the
         # operator sees the same output as running the command by hand.
         proc = subprocess.run(argv, cwd=str(root))  # noqa: S603 — argv is a fixed tuple
         stage_elapsed = time.perf_counter() - stage_start
         cumulative += stage_elapsed
-        status = "PASS" if proc.returncode == 0 else f"FAIL(exit={proc.returncode})"
+        # Compare elapsed to the per-stage budget. The ``gates_all`` budget
+        # is also enforced against the cumulative wall clock at the end.
+        stage_budget = budgets.get(budget_key, budgets.get("gates_all", 60.0))
+        over_budget = stage_elapsed > stage_budget
+        if proc.returncode == 0 and over_budget:
+            budget_violations.append((label, stage_elapsed, stage_budget))
+        if proc.returncode != 0:
+            status = f"FAIL(exit={proc.returncode})"
+            failed_stage = (label, proc.returncode)
+        elif over_budget:
+            status = f"OVER ({stage_elapsed:.1f}s > {stage_budget:.0f}s)"
+        else:
+            status = "PASS"
         rows.append((str(index), label, f"{stage_elapsed:6.2f}s", status))
         if proc.returncode != 0:
-            failed_stage = (label, proc.returncode)
             break
 
     total = time.perf_counter() - overall_start
+    # Enforce ``gates_all`` against the cumulative wall clock as well — the
+    # whole-chain budget is the union of all stage budgets in spirit.
+    gates_all_budget = budgets.get("gates_all", 60.0)
+    if failed_stage is None and total > gates_all_budget:
+        budget_violations.append(("total", total, gates_all_budget))
 
     # Cleanup: remove mutants/ directory if mutmut created it. Done after the
     # chain (success or failure) so the post-condition always holds.
@@ -110,10 +175,10 @@ def _run_chain(root: Path) -> int:
     print("=" * 78)
     print("Stage table")
     print("-" * 78)
-    print(f"{'#':>3}  {'stage':<28}  {'time':>8}  {'status':<16}")
+    print(f"{'#':>3}  {'stage':<28}  {'time':>8}  {'status':<24}")
     print("-" * 78)
     for n, label, t, status in rows:
-        print(f"{n:>3}  {label:<28}  {t:>8}  {status:<16}")
+        print(f"{n:>3}  {label:<28}  {t:>8}  {status:<24}")
     print("-" * 78)
     print(f"{'total':<32}  {total:>8.2f}s")
     print("=" * 78)
@@ -122,6 +187,14 @@ def _run_chain(root: Path) -> int:
         label, code = failed_stage
         print(f"总结: FAIL — stage {label!r} exited with code {code}")
         return code if code != 0 else 1
+    if budget_violations:
+        # Exit code 75 is EX_TEMPFAIL on BSD/macOS — used here as a sentinel
+        # for "budget exceeded but stages themselves were green". CI can
+        # surface this distinctly from a test FAIL.
+        print("总结: FAIL — budget exceeded:")
+        for label, elapsed, budget in budget_violations:
+            print(f"  - {label}: {elapsed:.2f}s > {budget:.0f}s")
+        return 75
     print(f"总结: PASS — {len(_ALL_CHAIN)}/{len(_ALL_CHAIN)} stages green in {total:.2f}s")
     return 0
 

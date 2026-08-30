@@ -27,7 +27,7 @@ from pathlib import Path
 import pytest
 
 from sunxue_gates import GATE_NAMES, run, run_all
-from sunxue_gates.__main__ import default_root, main
+from sunxue_gates.__main__ import _ALL_CHAIN, _load_budgets, default_root, main
 
 _SKIP_PATH_TESTS_UNDER_MUTMUT = "MUTANT_UNDER_TEST" in os.environ
 skip_path = pytest.mark.skipif(
@@ -109,3 +109,75 @@ class TestMain:
         # SKILL.md is missing → lint_structure / token_budget / injection_drill /
         # mutation_drill FAIL → overall FAIL.
         assert rc == 1
+
+
+class TestLoadBudgets:
+    """_load_budgets reads [tool.sunxue.budgets] with safe defaults."""
+
+    def test_loads_from_real_pyproject(self, skill_root: Path) -> None:
+        budgets = _load_budgets(skill_root)
+        assert set(budgets.keys()) >= {"gates_all", "pytest", "mutmut"}
+        assert budgets["gates_all"] == 60
+        assert budgets["pytest"] == 5
+        assert budgets["mutmut"] == 30
+
+    def test_defaults_when_no_budgets_table(self, tmp_path: Path) -> None:
+        (tmp_path / "pyproject.toml").write_text(
+            '[project]\nname = "x"\nversion = "0"\n', encoding="utf-8"
+        )
+        budgets = _load_budgets(tmp_path)
+        assert budgets == {"gates_all": 60.0, "pytest": 5.0, "mutmut": 30.0}
+
+    def test_defaults_when_pyproject_missing(self, tmp_path: Path) -> None:
+        budgets = _load_budgets(tmp_path)
+        assert budgets == {"gates_all": 60.0, "pytest": 5.0, "mutmut": 30.0}
+
+    def test_defaults_when_pyproject_malformed(self, tmp_path: Path) -> None:
+        (tmp_path / "pyproject.toml").write_text("not = valid toml [[[", encoding="utf-8")
+        budgets = _load_budgets(tmp_path)
+        assert budgets == {"gates_all": 60.0, "pytest": 5.0, "mutmut": 30.0}
+
+    def test_partial_table_falls_back_per_key(self, tmp_path: Path) -> None:
+        (tmp_path / "pyproject.toml").write_text(
+            "[tool.sunxue.budgets]\npytest = 7\n", encoding="utf-8"
+        )
+        budgets = _load_budgets(tmp_path)
+        assert budgets["pytest"] == 7
+        assert budgets["gates_all"] == 60
+        assert budgets["mutmut"] == 30
+
+    def test_non_numeric_values_are_ignored(self, tmp_path: Path) -> None:
+        (tmp_path / "pyproject.toml").write_text(
+            '[tool.sunxue.budgets]\npytest = "oops"\nmutmut = 25\n',
+            encoding="utf-8",
+        )
+        budgets = _load_budgets(tmp_path)
+        assert budgets["pytest"] == 5
+        assert budgets["mutmut"] == 25
+
+
+class TestChainHasBudgetKeys:
+    """Every chain entry carries a budget_key that _load_budgets knows about."""
+
+    def test_every_stage_has_a_known_budget_key(self, skill_root: Path) -> None:
+        budgets = _load_budgets(skill_root)
+        for label, _argv, budget_key in _ALL_CHAIN:
+            assert budget_key in budgets, (
+                f"stage {label!r} uses budget_key {budget_key!r} "
+                "which is missing from [tool.sunxue.budgets]"
+            )
+
+    def test_chain_length_is_eight(self) -> None:
+        assert len(_ALL_CHAIN) == 8
+
+    def test_mutmut_stage_uses_mutmut_budget(self) -> None:
+        labels = [entry[0] for entry in _ALL_CHAIN]
+        assert "mutmut run" in labels
+        for label, _argv, budget_key in _ALL_CHAIN:
+            if label == "mutmut run":
+                assert budget_key == "mutmut"
+
+    def test_pytest_stages_use_pytest_budget(self) -> None:
+        for label, _argv, budget_key in _ALL_CHAIN:
+            if label.startswith("pytest"):
+                assert budget_key == "pytest"

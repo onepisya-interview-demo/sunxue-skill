@@ -11,6 +11,14 @@ dependencies = []
 [project.scripts]
 gates = "sunxue_gates.__main__:main"
 
+# Plan 3.3 — precise token counting (tiktoken). Install via:
+#   uv sync --extra precise
+# When installed, ``SUNXUE_PRECISE=1`` switches the token_budget gate to
+# tiktoken cl100k_base encoding; without it the gate falls back to the
+# chars/3 heuristic with an ``estimate=heuristic`` tag on every line.
+[project.optional-dependencies]
+precise = ["tiktoken"]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -73,6 +81,15 @@ omit = ["*/__main__.py"]
 [tool.coverage.report]
 fail_under = 90
 show_missing = true
+
+# Plan 3.4 — performance budgets for the eight-stage acceptance chain.
+# ``gates --all`` reads these (in seconds) and FAILS with a budget-exceeded
+# message when any stage exceeds its cap. Defaults are conservative; tighten
+# them as the suite stabilizes.
+[tool.sunxue.budgets]
+gates_all = 60
+pytest = 5
+mutmut = 30
 
 [tool.mutmut]
 source_paths = ["src/sunxue_gates"]
