@@ -184,12 +184,15 @@ sunxue/
 │   ├── background.md                 # bayshier 孙宇晨其人 + 事件脉络
 │   ├── jingtian-essay-7000.md        # 孙宇晨原作《我的女友景甜》原文片段（v1.0 起存在，v1.1 README 首次登记）
 │   └── merge-map.md                  # 22 条 → 13 条去重映射表（v1.1.0 从 SKILL.md 外迁，plan 3.2）
-├── examples/                         # 6 个真实样本（无占位）
+├── examples/                         # 9 个真实样本（无占位）
 │   ├── writing-巴菲特午餐.md         # gehao628：用孙文体写孙本人
 │   ├── writing-示例2-被割版.md       # 真实完整稿（v1.0 误标占位，v1.1 更正）
 │   ├── writing-示例3-AI时代前端.md   # regression_output 真实样本（v1.0 起存在，v1.1 README 首次登记）
 │   ├── writing-景甜-原文片段.md       # 孙宇晨原作引用片段（v1.0 起存在，v1.1 README 首次登记）
 │   ├── writing-十二个字节.md          # v2 门禁实战样本
+│   ├── writing-七年通勤.md           # 通勤七年账本（plan 3.1 sample-expansion）
+│   ├── writing-五次打印机.md         # 五次打印机报价单（plan 3.1 sample-expansion）
+│   ├── writing-清仓大甩卖.md         # 清仓大甩卖话术（plan 3.1 sample-expansion）
 │   └── judgment-老客户账期.md         # gehao628：账期四波
 ├── assets/                           # 推广海报
 │   ├── promo-1.jpg

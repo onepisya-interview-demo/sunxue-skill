@@ -319,21 +319,42 @@ def count_punct(text: str) -> dict[str, int]:
     }
 
 
+# Reference-quote filenames whose name contains ``原文片段`` /
+# ``引用片段`` are excluded from the regression scan: they are
+# quoted source material, not original-composition samples, so the
+# writing-tier counter checks would false-positive on them. The
+# exclusion is filename-based (a stable convention carried since
+# v1.0.0 baseline) rather than path-based so that future
+# testers can drop a new quote file into ``examples/`` without
+# touching this gate.
+_REFERENCE_QUOTE_MARKERS: tuple[str, ...] = ("原文片段", "引用片段")
+
+
 def sample_files(root: Path) -> list[tuple[str, Path]]:
-    """Return the list of example files this gate scans."""
+    """Return the list of example files this gate scans.
+
+    Auto-discovery (plan 3.1 sample-expansion downstream): glob
+    ``examples/writing-*.md`` and ``examples/judgment-*.md`` so that any
+    new sample tester-2 ships under one of those prefixes is
+    picked up automatically. ``meta-*`` and other prefixes are not
+    scanned by the regression gate — meta samples have their own
+    minimal-lint tier and a future tester-3 will wire them in.
+    Files are returned sorted by stem for deterministic gate output
+    regardless of filesystem ordering.
+    """
     examples = root / "examples"
     samples: list[tuple[str, Path]] = []
     if not examples.exists():
         return samples
-    candidates = (
-        "writing-巴菲特午餐",
-        "writing-示例2-被割版",
-        "writing-示例3-AI时代前端",
-        "writing-十二个字节",
-        "judgment-老客户账期",
-    )
-    for stem in candidates:
-        samples.append((stem, examples / f"{stem}.md"))
+    seen: set[Path] = set()
+    for pattern in ("writing-*.md", "judgment-*.md"):
+        for path in sorted(examples.glob(pattern)):
+            if path in seen:
+                continue
+            if any(marker in path.name for marker in _REFERENCE_QUOTE_MARKERS):
+                continue
+            seen.add(path)
+            samples.append((path.stem, path))
     return samples
 
 

@@ -335,18 +335,23 @@ class TestRunGateMissingSamples:
     """Drive the ``samples`` MISS branch of ``regression_output.run``."""
 
     def test_missing_example_file_reports_miss(self, tmp_path: Path) -> None:
-        # Create an examples/ directory with a stem that sample_files
-        # looks for, but DON'T create the file. The run() should emit a
-        # MISS check and a "FAIL (... 含 N 个文件缺失)" summary.
-        (tmp_path / "examples").mkdir()
-        # Note: the implementation uses a fixed list of sample stems
-        # (writing-巴菲特午餐, writing-示例2-被割版, …). We create only
-        # a dummy directory tree and rely on all four stems being absent.
-        gr = regression_output.run(tmp_path)
-        # The gate MUST fail because none of the sample files exist.
+        # Drive the MISS branch inside the for-loop by passing a
+        # ``samples`` list whose Path points at a file that does not
+        # exist. The auto-discovery glob would return [] here, so the
+        # for-loop never runs — we exercise the loop's MISS branch
+        # explicitly via the ``samples`` parameter.
+        missing = tmp_path / "writing-not-here.md"
+        gr = regression_output.run(
+            tmp_path,
+            samples=[("writing-not-here", missing)],
+        )
+        # The gate fails because the sample file does not exist.
         assert gr.passed is False
         # And the summary must contain the "文件缺失" wording.
         assert "文件缺失" in gr.summary
+        # The MISS check itself is recorded in details.
+        miss_checks = [c for c in gr.details if c.name == "writing-not-here" and not c.passed]
+        assert len(miss_checks) == 1
 
     def test_examples_directory_missing(self, tmp_path: Path) -> None:
         # No examples/ at all → samples() returns []. run() must still
@@ -535,6 +540,30 @@ class TestCheckTextModeDetail:
         assert strict[0].passed is True
         assert "[OK]" in strict[0].message
         assert strict[0].detail.get("mode") == "judgment"
+
+
+class TestSampleFileDiscovery:
+    """The glob-based auto-discovery in ``sample_files`` excludes
+    reference-quote filenames (anything containing ``原文片段`` /
+    ``引用片段``). These are quoted source material, not
+    original-composition samples, so the writing-tier counter
+    checks would false-positive on them.
+    """
+
+    def test_quote_filenames_are_excluded(self, tmp_path: Path) -> None:
+        examples = tmp_path / "examples"
+        examples.mkdir()
+        # Counter sample - must be picked up.
+        (examples / "writing-real.md").write_text("一段普通的叙述文字", encoding="utf-8")
+        # Reference quote - must be excluded.
+        (examples / "writing-景甜-原文片段.md").write_text("原文片段内容", encoding="utf-8")
+        # Another quote - also excluded.
+        (examples / "judgment-quote-引用片段.md").write_text("引用片段内容", encoding="utf-8")
+        samples = regression_output.sample_files(tmp_path)
+        stems = [s[0] for s in samples]
+        assert "writing-real" in stems
+        assert "writing-景甜-原文片段" not in stems
+        assert "judgment-quote-引用片段" not in stems
 
 
 class TestGateRunWithModes:
