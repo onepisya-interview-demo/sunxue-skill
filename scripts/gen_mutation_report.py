@@ -30,6 +30,8 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 EXEMPTIONS_PATH = REPO_ROOT / "tests" / "mutation-exemptions.json"
 REPORT_PATH = REPO_ROOT / "tests" / "mutation-report.md"
+MUTANTS_DIR = REPO_ROOT / "mutants"
+CICD_STATS_PATH = MUTANTS_DIR / "mutmut-cicd-stats.json"
 MUTMUT_BIN = "mutmut"
 
 
@@ -56,12 +58,17 @@ def _run_mutmut_results() -> str:
 
 
 _STATUS_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
-    # Order matters: more-specific first. mutmut prefixes the id with a
-    # status emoji; we strip the emoji and keep the id + status label.
-    ("Killed", re.compile(r"^\s*\U0001f389\s+(\S+)\s+Killed\s*$")),
-    ("Survived", re.compile(r"^\s*\U0001f616\s+(\S+)\s+Survived\s*$")),
-    ("NoTests", re.compile(r"^\s*\U0001fae5\s+(\S+)\s+no.*tests.*$", re.IGNORECASE)),
-    ("Timeout", re.compile(r"^\s*\u23f0\s+(\S+)\s+Timeout\s*$")),
+    # Order matters: more-specific first. mutmut 3.7.x prints plain-text
+    # rows like "    <id>: survived" / "    <id>: no tests" / "    <id>:
+    # killed" / "    <id>: timeout" — no emoji prefix. Earlier versions
+    # used emoji prefixes; this script was written against that older
+    # output. W3 patch: switch to trailing-status matching.
+    ("NoTests", re.compile(r"^\s*(\S+):\s+no\s+tests\s*$", re.IGNORECASE)),
+    ("Killed", re.compile(r"^\s*(\S+):\s+killed\s*$", re.IGNORECASE)),
+    ("Survived", re.compile(r"^\s*(\S+):\s+survived\s*$", re.IGNORECASE)),
+    ("Timeout", re.compile(r"^\s*(\S+):\s+timeout\s*$", re.IGNORECASE)),
+    ("Suspicious", re.compile(r"^\s*(\S+):\s+suspicious\s*$", re.IGNORECASE)),
+    ("Skipped", re.compile(r"^\s*(\S+):\s+skipped\s*$", re.IGNORECASE)),
 )
 
 
@@ -87,6 +94,24 @@ def _load_exemptions() -> list[dict[str, str]]:
     return data
 
 
+def _load_cicd_stats() -> dict[str, int]:
+    """Load ``mutmut export-cicd-stats`` JSON output (killed + total counts).
+
+    The plain-text ``mutmut results`` output only lists mutants that did
+    NOT get killed — so the killed count is invisible there. The CICD
+    stats JSON gives us the missing "killed by tests" tally plus the
+    true total, which lets the survivor-rate denominator be honest.
+    """
+    if not CICD_STATS_PATH.exists():
+        return {}
+    try:
+        with CICD_STATS_PATH.open(encoding="utf-8") as fh:
+            data = json.load(fh)
+        return {k: int(v) for k, v in data.items() if isinstance(v, (int, float))}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
 def _detect_mutmut_version() -> str:
     """Return ``mutmut --version`` output (e.g. ``mutmut, version 3.7.0``)."""
     proc = subprocess.run(
@@ -99,13 +124,23 @@ def _detect_mutmut_version() -> str:
     return proc.stdout.strip() or "mutmut (version unknown)"
 
 
-def _render(counts: Counter[str], exemptions: list[dict[str, str]], version: str) -> str:
+def _render(counts: Counter[str], exemptions: list[dict[str, str]], version: str, cicd: dict[str, int]) -> str:
     """Render the markdown body for ``tests/mutation-report.md``."""
-    killed = counts.get("Killed", 0)
+    # Prefer CICD stats for the totals (these are the source of truth that
+    # includes the killed tally); fall back to the parsed Counter for any
+    # missing fields.
+    cicd_total = cicd.get("total", 0)
+    cicd_killed = cicd.get("killed", 0)
     survived = counts.get("Survived", 0)
     no_tests = counts.get("NoTests", 0)
     timeout = counts.get("Timeout", 0)
-    total = killed + survived + no_tests + timeout
+    # If CICD stats present, use them; else derive from Counter.
+    if cicd_total:
+        total = cicd_total
+        killed = cicd_killed
+    else:
+        killed = counts.get("Killed", 0)
+        total = killed + survived + no_tests + timeout
 
     exempt_total = sum(int(e.get("count", 0)) for e in exemptions)
 
@@ -196,7 +231,8 @@ def main(argv: list[str] | None = None) -> int:
     counts = _parse_results(raw)
     exemptions = _load_exemptions()
     version = _detect_mutmut_version()
-    body = _render(counts, exemptions, version)
+    cicd = _load_cicd_stats()
+    body = _render(counts, exemptions, version, cicd)
 
     if args.check:
         sys.stdout.write(body)
