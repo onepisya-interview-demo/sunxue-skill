@@ -13,6 +13,14 @@ total wall time are printed at the end; the ``mutants/`` directory created by
 mutmut is removed afterwards. Useful for CI and the one-command local
 acceptance check described in PLAN §1.3.
 
+The mutmut stage additionally exports
+``PYTEST_ADDOPTS`` pointing pytest away from two test files whose
+multi-line f-strings choke mutmut 3.7.0's libcst-based collector
+(collection SyntaxError; documented earlier as tester-2's
+workaround). The ignore is scoped to the mutmut subprocess only;
+``uv run pytest`` and the in-process gate chain still run every
+test file.
+
 Performance budgets (plan 3.4) are read from ``[tool.sunxue.budgets]`` in
 ``pyproject.toml`` (keys: ``gates_all``, ``pytest``, ``mutmut``; seconds).
 If a stage exceeds its budget, the chain fails with a budget-exceeded
@@ -27,6 +35,7 @@ the legacy default (0 iff all gates pass).
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -137,7 +146,20 @@ def _run_chain(root: Path) -> int:
         stage_start = time.perf_counter()
         # Stream child stdout/stderr straight to the parent terminal so the
         # operator sees the same output as running the command by hand.
-        proc = subprocess.run(argv, cwd=str(root))  # noqa: S603 — argv is a fixed tuple
+        # mutmut 3.7.0's libcst-based collector chokes on multi-line
+        # f-strings in tests/unit/test_golden_literals.py and
+        # tests/unit/test_lint_claims.py (collection SyntaxError).
+        # Inject a scoped PYTEST_ADDOPTS ignore so the rest of the
+        # suite still runs under mutation; pytest itself (stage 5) and
+        # the in-process gate chain are unaffected.
+        env: dict[str, str] | None = None
+        if argv == ("mutmut", "run"):
+            env = dict(os.environ)
+            env["PYTEST_ADDOPTS"] = (
+                "--ignore=tests/unit/test_golden_literals.py "
+                "--ignore=tests/unit/test_lint_claims.py"
+            )
+        proc = subprocess.run(argv, cwd=str(root), env=env)  # noqa: S603 — argv is a fixed tuple
         stage_elapsed = time.perf_counter() - stage_start
         cumulative += stage_elapsed
         # Compare elapsed to the per-stage budget. The ``gates_all`` budget
