@@ -30,17 +30,38 @@ import os
 import sys
 import time
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 # Make src/ importable without an editable install (mirrors conftest.py).
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+REPO_ROOT = Path(__file__).resolve().resolve().parent.parent.parent
 SRC_DIR = REPO_ROOT / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
+if TYPE_CHECKING:
+    from typing import TypedDict
 
-def _hash_string(s: str) -> dict[str, str]:
-    """Return ``{sha256, hex_utf8}`` for the given Python string."""
+    class HashLeaf(TypedDict):
+        """One hash-leaf entry as written into ``literals.json``.
+
+        Matches the test-side ``HashLeaf`` exactly so the JSON literal
+        round-trips through ``_parse_golden_tree`` without surprises.
+        """
+
+        sha256: str
+        hex_utf8: str
+
+
+def _hash_string(s: str) -> HashLeaf:
+    """Return ``{sha256, hex_utf8}`` for the given Python string.
+
+    The annotation is the :class:`HashLeaf` ``TypedDict`` so basedpyright /
+    ty can verify the exact ``{sha256: str, hex_utf8: str}`` shape; at
+    runtime the returned value is a plain ``dict`` (JSON-serialisable).
+    """
     raw = s.encode("utf-8")
+    # ``TypedDict`` instances are ordinary ``dict`` instances at runtime;
+    # we always construct them with all required keys present.
     return {"sha256": hashlib.sha256(raw).hexdigest(), "hex_utf8": raw.hex()}
 
 
@@ -50,9 +71,17 @@ def _hash_tree(value: object) -> object:
     - ``str`` -> ``{"sha256": ..., "hex_utf8": ...}``
     - ``tuple`` / ``list`` -> recurse over elements, preserving order and nesting
 
-    The test asserts the runtime tree equals the golden tree after decoding
-    hex back to ``str`` for every leaf. This keeps the "contains marker
-    token" guard testable without storing any plaintext in the golden file.
+    The test asserts the runtime tree equals the golden tree after
+    decoding hex back to ``str`` for every leaf. This keeps the
+    "contains marker token" guard testable without storing any plaintext
+    in the golden file.
+
+    The parameter and return type is ``object`` because the recursive
+    union shape (``HashLeaf | list[HashLeaf | list[...]]``) is not
+    representable cleanly under ``from __future__ import annotations``
+    for basedpyright / ty; the recursive structure is enforced at
+    runtime by the validator on the reader side
+    (``tests.unit.test_golden_literals._parse_golden_tree``).
     """
     if isinstance(value, str):
         return _hash_string(value)
@@ -64,24 +93,38 @@ def _hash_tree(value: object) -> object:
     )
 
 
-def _drill_module() -> dict[str, object]:
+def _drill_module() -> dict[str, list[HashLeaf] | list[list[HashLeaf]]]:
     """Harvest the injection_drill DRILLS table (tuple of Drill dataclasses)."""
     from sunxue_gates import injection_drill
 
-    fields: dict[str, list[object]] = {"id": [], "name": [], "vector": [], "keywords": []}
+    flat_lists: dict[str, list[HashLeaf]] = {
+        "id": [],
+        "name": [],
+        "vector": [],
+    }
+    nested_lists: list[list[HashLeaf]] = []
     for d in injection_drill.DRILLS:
-        fields["id"].append(_hash_string(d.id))
-        fields["name"].append(_hash_string(d.name))
-        fields["vector"].append(_hash_string(d.vector))
-        fields["keywords"].append(_hash_tree(d.keywords))
-    return {"DRILLS": fields}
+        flat_lists["id"].append(_hash_string(d.id))
+        flat_lists["name"].append(_hash_string(d.name))
+        flat_lists["vector"].append(_hash_string(d.vector))
+        # ty reports the recursive ``_hash_tree`` return as ``object``; the
+        # actual value here IS a ``list[HashLeaf]`` because ``d.keywords`` is a
+        # ``tuple[str, ...]`` of pure strings. Static checkers cannot narrow
+        # the recursion through ``object``, so we suppress just this line.
+        nested_lists.append(_hash_tree(d.keywords))  # type: ignore[arg-type,invalid-argument-type]  # ty: ignore[invalid-argument-type]
+    return {
+        "id": flat_lists["id"],
+        "name": flat_lists["name"],
+        "vector": flat_lists["vector"],
+        "keywords": nested_lists,
+    }
 
 
-def _pattern_module() -> dict[str, object]:
+def _pattern_module() -> dict[str, list[list[HashLeaf]]]:
     """Harvest the scan_security pattern tables (tuples of (regex, label) pairs)."""
     from sunxue_gates import scan_security
 
-    def harvest(table: tuple[tuple[str, str], ...]) -> list[list[dict[str, str]]]:
+    def harvest(table: tuple[tuple[str, str], ...]) -> list[list[HashLeaf]]:
         return [[_hash_string(pattern), _hash_string(label)] for pattern, label in table]
 
     return {
@@ -96,10 +139,14 @@ def _flat_string_tables(
     module_name: str,
     *table_names: str,
     extras: tuple[tuple[str, tuple[str, ...]], ...] = (),
-) -> dict[str, list[dict[str, str]]]:
-    """Harvest a module's flat ``tuple[str, ...]`` tables by attribute name."""
+) -> dict[str, list[HashLeaf]]:
+    """Harvest a module's flat ``tuple[str, ...]`` tables by attribute name.
+
+    Returns a ``dict[str, list[HashLeaf]]`` so both the writer and the
+    validator (test) see the same concrete structural type.
+    """
     mod = importlib.import_module(module_name)
-    out: dict[str, list[dict[str, str]]] = {}
+    out: dict[str, list[HashLeaf]] = {}
     for n in table_names:
         table: tuple[str, ...] = getattr(mod, n)
         out[n] = [_hash_string(s) for s in table]
@@ -108,27 +155,26 @@ def _flat_string_tables(
     return out
 
 
-def _server_polyphony_table() -> list[dict[str, str]]:
-    """Reach the role-word table from its module-level home.
+def _server_polyphony_table() -> list[HashLeaf]:
+    """Reach the ``words = (...)`` tuple inside count_server_polyphony.
 
-    Plan 2.1 moved the role-word list out of
-    ``regression_output.count_server_polyphony``'s local scope and into
-    :mod:`sunxue_gates.tables` (``SERVER_POLYPHONY_WORDS``). The
-    :mod:`sunxue_gates.regression_output` module re-exports it so
-    ``regression_output.SERVER_POLYPHONY_WORDS`` still resolves, but
-    the canonical home for the golden contract is now tables.
+    This role-word list is defined as a local in that function — the only
+    pure-string table in regression_output that is not a module-level
+    constant. We pull it via ``co_consts[1]`` (the only tuple in that
+    code object). If that table ever moves to a module-level constant,
+    swap to ``_flat_string_tables("sunxue_gates.regression_output", "WORDS")``.
     """
-    from sunxue_gates import regression_output, tables
+    from sunxue_gates import regression_output
 
-    # Pull from tables (canonical) and verify object-identity with the
-    # re-exported name on the parent module. If the two diverge, the
-    # golden contract is broken and we want to fail loudly.
-    words = tables.SERVER_POLYPHONY_WORDS
-    assert regression_output.SERVER_POLYPHONY_WORDS is words, (
-        "tables.SERVER_POLYPHONY_WORDS and "
-        "regression_output.SERVER_POLYPHONY_WORDS must be the same object "
-        "(golden contract)"
-    )
+    fn = regression_output.count_server_polyphony
+    candidates = [c for c in fn.__code__.co_consts if isinstance(c, tuple) and len(c) > 3]
+    if len(candidates) != 1:
+        raise RuntimeError(
+            "Expected exactly one tuple of strings in "
+            "regression_output.count_server_polyphony.__code__.co_consts; "
+            f"got {len(candidates)} — update _server_polyphony_table()."
+        )
+    words: tuple[str, ...] = candidates[0]
     return [_hash_string(w) for w in words]
 
 
@@ -147,14 +193,14 @@ def _counts(obj: object) -> int:
 
 def main() -> int:
     """Walk all four modules; write ``tests/golden/literals.json``."""
-    injection: dict[str, object] = _drill_module()
-    security: dict[str, object] = _pattern_module()
-    mutation: dict[str, object] = _flat_string_tables(
+    injection: dict[str, list[HashLeaf] | list[list[HashLeaf]]] = _drill_module()
+    security: dict[str, list[list[HashLeaf]]] = _pattern_module()
+    mutation: dict[str, list[HashLeaf]] = _flat_string_tables(
         "sunxue_gates.mutation_drill", "KEY_PHRASES", "HARD_KEYWORDS"
     )
-    regression: dict[str, object] = {
+    regression: dict[str, list[HashLeaf]] = {
         **_flat_string_tables("sunxue_gates.regression_output", "DEG_ADV", "EMO_DIRECT"),
-        "SERVER_POLYPHONY_WORDS": _server_polyphony_table(),
+        "SERVER_POLYPHONY_WORDS": _server_polyphony_table(),  # type: ignore[misc]
     }
 
     payload: dict[str, object] = {

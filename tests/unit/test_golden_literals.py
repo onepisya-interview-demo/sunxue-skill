@@ -15,7 +15,7 @@ this plan exists to catch).
 
 If a future edit transcribes those literals through a language model, the
 model is known to silently strip or rewrite tokens whose shapes it judges
-"unusual" (``<|im_start|>`` → ``<im_start>`` or ``<|im_start>`` → "", etc.).
+"unusual" (``<|im_start|>`` → ``<im_start|>`` or ``<|im_start|>`` → "", etc.).
 A test that re-states the literal as a Python string in
 ``tests/**/*.py`` would therefore suffer from the same vulnerability it is
 trying to detect. This test deliberately does NOT: it compares every
@@ -38,6 +38,16 @@ Discipline: the diff of ``literals.json`` is the audit log of which
 strings moved in the source tables. This is the "regenerating golden is
 part of triage discipline" contract documented in the generator's
 docstring.
+
+Type contract
+=============
+
+The golden JSON has a precise structural contract that the reader side
+enforces through a single validating parser (``_load_golden``). After
+parsing, every keyed lookup is against a typed shape (``HashLeaf``
+``TypedDict`` + concrete ``list[HashLeaf]`` / ``list[list[HashLeaf]]``
+per module table), so basedpyright + ty can catch index-into-``object``
+mistakes without resorting to raw ``Any`` casts.
 """
 
 from __future__ import annotations
@@ -45,22 +55,84 @@ from __future__ import annotations
 import hashlib
 import importlib
 import json
+from collections.abc import Mapping
 from pathlib import Path
+from typing import TYPE_CHECKING, cast
 
 GOLDEN_PATH = Path(__file__).resolve().parent.parent / "golden" / "literals.json"
 
 
 # ---------------------------------------------------------------------------
-# Helpers (intentionally free of any marker-token plaintext)
+# Precise structural types (match tests/golden/gen_golden.py exactly).
 # ---------------------------------------------------------------------------
 
 
-def _decode(leaf: dict[str, str]) -> str:
+if TYPE_CHECKING:
+    from typing import TypedDict
+
+    class HashLeaf(TypedDict):
+        """One hash-leaf entry as parsed from ``literals.json``."""
+
+        sha256: str
+        hex_utf8: str
+
+    class GoldenDRILLS(TypedDict, total=True):
+        """``sunxue_gates.injection_drill.DRILLS`` shape after validation."""
+
+        id: list[HashLeaf]
+        name: list[HashLeaf]
+        vector: list[HashLeaf]
+        keywords: list[list[HashLeaf]]
+
+    class GoldenModule(TypedDict, total=True):
+        """Generic module-table wrapper: ``module_name -> {table_name: ...}``.
+
+        The value types vary per module; concrete narrowing happens in
+        the per-test helpers below.
+        """
+
+    class GoldenTop(TypedDict, total=True):
+        """Top-level golden shape, including the audited ``module`` keys."""
+
+        sunxue_gates_injection_drill: GoldenDRILLS  # actually "sunxue_gates.injection_drill"
+else:
+    HashLeaf = dict
+
+
+MOD_KEYS: tuple[str, ...] = (
+    "sunxue_gates.injection_drill",
+    "sunxue_gates.scan_security",
+    "sunxue_gates.mutation_drill",
+    "sunxue_gates.regression_output",
+)
+SCAN_TABLE_KEYS: tuple[str, ...] = (
+    "PII_PATTERNS",
+    "SECRET_PATTERNS",
+    "INJECTION_PATTERNS",
+    "ITER_PATTERNS",
+)
+REGRESSION_FLAT_KEYS: tuple[str, ...] = ("DEG_ADV", "EMO_DIRECT")
+DRILL_FLAT_KEYS: tuple[str, ...] = ("id", "name", "vector")
+DRILLS_KEY = "DRILLS"
+SERVER_POLYPHONY_KEY = "SERVER_POLYPHONY_WORDS"
+
+
+# ---------------------------------------------------------------------------
+# Leaf decoder + validating loader (single boundary where JSON's loose shape
+# is collapsed into the typed shape the rest of this module uses).
+# ---------------------------------------------------------------------------
+
+
+def _decode(leaf: Mapping[str, str]) -> str:
     """Decode one ``{sha256, hex_utf8}`` leaf back to its plaintext runtime string.
 
     We assert the SHA-256 matches the hex payload BEFORE decoding so a
     rounding bug or bit-flip in the golden does not silently pass.
     """
+    # The walker's leaf branch receives an opaque ``object`` from
+    # ``_assert_tree_equal``; after ``isinstance(golden_tree, dict)`` we
+    # use ``Mapping[str, str]`` (covariant) so the unknown-key dict from
+    # the walker is structurally a valid input here at the static type level.
     raw = bytes.fromhex(leaf["hex_utf8"])
     expected = hashlib.sha256(raw).hexdigest()
     if leaf["sha256"] != expected:
@@ -71,8 +143,183 @@ def _decode(leaf: dict[str, str]) -> str:
     return raw.decode("utf-8")
 
 
-def _assert_tree_equal(runtime_tree: object, golden_tree: object, path: tuple[str, ...]) -> None:
-    """Walk two trees in lockstep; raise with a precise ``path`` on the first mismatch."""
+def _parse_leaf(node: object, path: str) -> HashLeaf:
+    """Validate that ``node`` is exactly ``{sha256: str, hex_utf8: str}`` and return it."""
+    if not isinstance(node, dict):
+        raise AssertionError(f"{path}: expected dict leaf, got {type(node).__name__}")
+    keys = set(node.keys())
+    if keys != {"sha256", "hex_utf8"}:
+        raise AssertionError(f"{path}: unknown leaf shape, keys={sorted(keys)}")
+    s = node["sha256"]
+    h = node["hex_utf8"]
+    if not isinstance(s, str):
+        raise AssertionError(f"{path}.sha256: expected str, got {type(s).__name__}")
+    if not isinstance(h, str):
+        raise AssertionError(f"{path}.hex_utf8: expected str, got {type(h).__name__}")
+    return {"sha256": s, "hex_utf8": h}
+
+
+def _parse_leaf_list(node: object, path: str) -> list[HashLeaf]:
+    """Validate that ``node`` is a ``list[HashLeaf]`` (no nesting)."""
+    if not isinstance(node, list):
+        raise AssertionError(f"{path}: expected list, got {type(node).__name__}")
+    return [_parse_leaf(v, f"{path}[{i}]") for i, v in enumerate(node)]
+
+
+def _parse_leaf_list_list(node: object, path: str) -> list[list[HashLeaf]]:
+    """Validate that ``node`` is a ``list[list[HashLeaf]]`` (one level of nesting)."""
+    if not isinstance(node, list):
+        raise AssertionError(f"{path}: expected list, got {type(node).__name__}")
+    out: list[list[HashLeaf]] = []
+    for i, v in enumerate(node):
+        out.append(_parse_leaf_list(v, f"{path}[{i}]"))
+    return out
+
+
+def _parse_drills(node: object, path: str) -> GoldenDRILLS:
+    """Validate the DRILLS sub-table shape."""
+    if not isinstance(node, dict):
+        raise AssertionError(f"{path}: expected dict, got {type(node).__name__}")
+    expected = {"id", "name", "vector", "keywords"}
+    got = set(node.keys())
+    if got != expected:
+        raise AssertionError(f"{path}: keys={sorted(got)} expected={sorted(expected)}")
+    return {
+        "id": _parse_leaf_list(node["id"], f"{path}.id"),
+        "name": _parse_leaf_list(node["name"], f"{path}.name"),
+        "vector": _parse_leaf_list(node["vector"], f"{path}.vector"),
+        "keywords": _parse_leaf_list_list(node["keywords"], f"{path}.keywords"),
+    }
+
+
+def _parse_pattern_table(node: object, path: str) -> list[list[HashLeaf]]:
+    """Validate that ``node`` is a ``list[list[HashLeaf]]`` of `(pattern, label)` pairs."""
+    if not isinstance(node, list):
+        raise AssertionError(f"{path}: expected list, got {type(node).__name__}")
+    out: list[list[HashLeaf]] = []
+    for i, row in enumerate(node):
+        if not isinstance(row, list):
+            raise AssertionError(f"{path}[{i}]: expected list, got {type(row).__name__}")
+        if len(row) != 2:
+            raise AssertionError(f"{path}[{i}]: expected 2 leaves, got {len(row)}")
+        out.append([_parse_leaf(row[0], f"{path}[{i}][0]"), _parse_leaf(row[1], f"{path}[{i}][1]")])
+    return out
+
+
+def _parse_scan_module(node: object, path: str) -> dict[str, list[list[HashLeaf]]]:
+    """Validate the ``sunxue_gates.scan_security`` shape."""
+    if not isinstance(node, dict):
+        raise AssertionError(f"{path}: expected dict, got {type(node).__name__}")
+    got = set(node.keys())
+    expected = set(SCAN_TABLE_KEYS)
+    if got != expected:
+        raise AssertionError(f"{path}: keys={sorted(got)} expected={sorted(expected)}")
+    return {k: _parse_pattern_table(node[k], f"{path}.{k}") for k in SCAN_TABLE_KEYS}
+
+
+def _parse_flat_string_module(
+    node: object, path: str, table_keys: tuple[str, ...]
+) -> dict[str, list[HashLeaf]]:
+    """Validate modules with flat ``table_name -> list[HashLeaf]`` shape."""
+    if not isinstance(node, dict):
+        raise AssertionError(f"{path}: expected dict, got {type(node).__name__}")
+    got = set(node.keys())
+    expected = set(table_keys)
+    if got != expected:
+        raise AssertionError(f"{path}: keys={sorted(got)} expected={sorted(expected)}")
+    return {k: _parse_leaf_list(node[k], f"{path}.{k}") for k in table_keys}
+
+
+class _ValidatedGoldenShape:
+    """Container for the typed golden payload parsed from ``literals.json``.
+
+    Holds the four validated module sub-tables in attributes typed as
+    the concrete classes the validator produced, so the test classes
+    can index them with full static coverage.
+    """
+
+    def __init__(
+        self,
+        *,
+        drills: GoldenDRILLS,
+        scan: dict[str, list[list[HashLeaf]]],
+        mutation: dict[str, list[HashLeaf]],
+        regression: dict[str, list[HashLeaf] | list[list[HashLeaf]]],
+        meta: dict[str, object],
+    ) -> None:
+        self.drills: GoldenDRILLS = drills
+        self.scan: dict[str, list[list[HashLeaf]]] = scan
+        self.mutation: dict[str, list[HashLeaf]] = mutation
+        # ``regression`` has one nested-list entry (SERVER_POLYPHONY_WORDS);
+        # the other two are flat. Narrowing happens where the value is read.
+        self.regression: dict[str, list[HashLeaf] | list[list[HashLeaf]]] = regression
+        self.meta: dict[str, object] = meta
+
+
+def _load_golden() -> _ValidatedGoldenShape:
+    """Parse ``tests/golden/literals.json`` into the validated typed shape.
+
+    All the untyped ``dict[str, object]`` / ``dict[str, ...]`` indexing
+    that would confuse basedpyright / ty is collapsed into one
+    boundary here; downstream callers see only the typed sub-tables.
+    """
+    assert GOLDEN_PATH.exists(), f"missing golden: {GOLDEN_PATH} — run gen_golden.py first"
+    with GOLDEN_PATH.open(encoding="utf-8") as fh:
+        raw: object = json.load(fh)
+    if not isinstance(raw, dict):
+        raise AssertionError(f"golden root must be dict, got {type(raw).__name__}")
+    root: dict[str, object] = raw
+    meta_obj = root.get("_meta")
+    if not isinstance(meta_obj, dict):
+        raise AssertionError("golden._meta: expected dict")
+    for mod_key in MOD_KEYS:
+        if mod_key not in root:
+            raise AssertionError(f"golden missing module: {mod_key}")
+    return _ValidatedGoldenShape(
+        drills=_parse_drills(
+            root["sunxue_gates.injection_drill"], "$.sunxue_gates.injection_drill"
+        ),
+        scan=_parse_scan_module(root["sunxue_gates.scan_security"], "$.sunxue_gates.scan_security"),
+        mutation=_parse_flat_string_module(
+            root["sunxue_gates.mutation_drill"],
+            "$.sunxue_gates.mutation_drill",
+            ("KEY_PHRASES", "HARD_KEYWORDS"),
+        ),
+        # ``_parse_flat_string_module`` returns ``dict[str, list[HashLeaf]]``,
+        # but ``SERVER_POLYPHONY_WORDS`` is actually a flat string list, so
+        # the dict invariance rule for ``_ValidatedGoldenShape`` needs
+        # widening via ``cast`` (the runtime shape is checked by the
+        # per-table test below).
+        regression=cast(  # type: ignore[arg-type]
+            "dict[str, list[HashLeaf] | list[list[HashLeaf]]]",
+            _parse_flat_string_module(
+                root["sunxue_gates.regression_output"],
+                "$.sunxue_gates.regression_output",
+                REGRESSION_FLAT_KEYS + (SERVER_POLYPHONY_KEY,),
+            ),
+        ),
+        meta=meta_obj,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Tree-equality walker: runtime tree (object) vs golden tree (leaf-typed).
+# ---------------------------------------------------------------------------
+
+
+def _assert_tree_equal(
+    runtime_tree: object,
+    golden_tree: object,
+    path: tuple[str, ...],
+) -> None:
+    """Walk two trees in lockstep; raise with a precise ``path`` on the first mismatch.
+
+    The ``golden_tree`` parameter is structurally the same recursive
+    shape as ``runtime_tree`` (e.g. ``list[HashLeaf]`` / ``list[list[HashLeaf]]``)
+    but at the static type level we type it as ``object`` because the
+    shape varies between callsites (the per-test helpers below narrow
+    the static type at each callsite, before this generic walk).
+    """
     if isinstance(golden_tree, list):
         if not isinstance(runtime_tree, (list, tuple)):
             raise AssertionError(
@@ -115,6 +362,11 @@ def _assert_tree_equal(runtime_tree: object, golden_tree: object, path: tuple[st
     )
 
 
+# ---------------------------------------------------------------------------
+# Runtime-side probes (mirror the src tables exactly).
+# ---------------------------------------------------------------------------
+
+
 def _runtime_drills() -> tuple[list[str], list[str], list[str], list[tuple[str, ...]]]:
     """Return ``(ids, names, vectors, keywords)`` for the runtime DRILLS table."""
     inj = importlib.import_module("sunxue_gates.injection_drill")
@@ -130,14 +382,14 @@ def _runtime_drills() -> tuple[list[str], list[str], list[str], list[tuple[str, 
     return ids, names, vectors, keywords
 
 
-def _runtime_patterns(mod_name: str, *names: str) -> dict[str, tuple[tuple[str, str], ...]]:
+def _runtime_patterns(mod_name: str, name: str) -> tuple[tuple[str, str], ...]:
     mod = importlib.import_module(mod_name)
-    return {n: tuple(getattr(mod, n)) for n in names}
+    return tuple(getattr(mod, name))
 
 
-def _runtime_flat(mod_name: str, *names: str) -> dict[str, tuple[str, ...]]:
+def _runtime_flat(mod_name: str, name: str) -> tuple[str, ...]:
     mod = importlib.import_module(mod_name)
-    return {n: tuple(getattr(mod, n)) for n in names}
+    return tuple(getattr(mod, name))
 
 
 def _runtime_server_polyphony_words() -> tuple[str, ...]:
@@ -151,12 +403,6 @@ def _runtime_server_polyphony_words() -> tuple[str, ...]:
     return tuple(candidates[0])
 
 
-def _load_golden() -> dict[str, object]:
-    assert GOLDEN_PATH.exists(), f"missing golden: {GOLDEN_PATH} — run gen_golden.py first"
-    with GOLDEN_PATH.open(encoding="utf-8") as fh:
-        return json.load(fh)
-
-
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
@@ -167,19 +413,16 @@ class TestGoldenFileShape:
 
     def test_meta_present(self) -> None:
         g = _load_golden()
-        assert "_meta" in g
-        assert g["_meta"]["generator"] == "tests/golden/gen_golden.py"
-        assert g["_meta"]["schema_version"] == 1
+        assert g.meta["generator"] == "tests/golden/gen_golden.py"
+        assert g.meta["schema_version"] == 1
 
     def test_all_four_modules_present(self) -> None:
         g = _load_golden()
-        for mod in (
-            "sunxue_gates.injection_drill",
-            "sunxue_gates.scan_security",
-            "sunxue_gates.mutation_drill",
-            "sunxue_gates.regression_output",
-        ):
-            assert mod in g, f"golden missing module {mod}"
+        # All four modules already validated by ``_load_golden``.
+        assert g.drills["id"]
+        assert g.scan["PII_PATTERNS"]
+        assert g.mutation["KEY_PHRASES"]
+        assert g.regression["DEG_ADV"]
 
     def test_no_plaintext_in_golden(self) -> None:
         """Every golden leaf under the four module tables MUST be the ``{sha256, hex_utf8}`` shape.
@@ -190,112 +433,104 @@ class TestGoldenFileShape:
         transcribing a marker token like ``<|im_start|>`` — the test goes
         RED with the exact path.
         """
+        # Validation already enforces this: any deviation raises during
+        # ``_load_golden``. The remaining self-check is that we do not
+        # accidentally accept a leaf whose keys differ from the canonical
+        # pair. Round-trip walking confirms the leaf shape everywhere.
         g = _load_golden()
-        bad: list[str] = []
-        MODULE_KEYS = {
-            "sunxue_gates.injection_drill",
-            "sunxue_gates.scan_security",
-            "sunxue_gates.mutation_drill",
-            "sunxue_gates.regression_output",
-        }
 
-        def walk(node: object, path: str) -> None:
-            if isinstance(node, dict):
-                keys = set(node.keys())
-                if keys == {"sha256", "hex_utf8"}:
-                    return  # hash-leaf
-                # Otherwise structural container; recurse.
-                for k, v in node.items():
-                    walk(v, f"{path}.{k}")
+        def walk(obj: object, path: tuple[str, ...]) -> None:
+            if isinstance(obj, dict):
+                if set(obj.keys()) == {"sha256", "hex_utf8"}:
+                    return  # canonical hash leaf
+                # Otherwise structural container; recurse into each field.
+                for k, v in obj.items():
+                    walk(v, path + (str(k),))
                 return
-            if isinstance(node, list):
-                for i, v in enumerate(node):
-                    walk(v, f"{path}[{i}]")
+            if isinstance(obj, list):
+                for i, v in enumerate(obj):
+                    walk(v, path + (f"[{i}]",))
                 return
-            bad.append(f"{path}: raw {type(node).__name__} at non-leaf position")
+            raise AssertionError(f"non-leaf at {'/'.join(path)}: type={type(obj).__name__}")
 
-        # Only audit the module tables — _meta is generator bookkeeping by
-        # design and is exempt from the "hash-leaf only" rule.
-        for mod_key in MODULE_KEYS:
-            walk(g[mod_key], f"$.{mod_key}")
-        assert not bad, "golden contains non-hash leaves under a module table:\n" + "\n".join(bad)
+        # The four module tables only (the meta block is exempt).
+        walk(g.drills, ("drills",))
+        walk(g.scan, ("scan",))
+        walk(g.mutation, ("mutation",))
+        walk(g.regression, ("regression",))
 
 
 class TestInjectionDrillGolden:
     def test_drills_field_by_field(self) -> None:
         g = _load_golden()
-        golden: dict[str, list[dict[str, str]]] = g["sunxue_gates.injection_drill"]["DRILLS"]
+        drills: GoldenDRILLS = g.drills
         ids, names, vectors, keywords = _runtime_drills()
 
         # ids/name/vector are flat string-list; keywords is list of (tuple of strings).
-        _assert_tree_equal(ids, golden["id"], ("DRILLS", "id"))
-        _assert_tree_equal(names, golden["name"], ("DRILLS", "name"))
-        _assert_tree_equal(vectors, golden["vector"], ("DRILLS", "vector"))
-        _assert_tree_equal(keywords, golden["keywords"], ("DRILLS", "keywords"))
+        _assert_tree_equal(ids, drills["id"], ("DRILLS", "id"))
+        _assert_tree_equal(names, drills["name"], ("DRILLS", "name"))
+        _assert_tree_equal(vectors, drills["vector"], ("DRILLS", "vector"))
+        _assert_tree_equal(keywords, drills["keywords"], ("DRILLS", "keywords"))
 
 
 class TestScanSecurityGolden:
     def test_pii_patterns(self) -> None:
         g = _load_golden()
-        golden = g["sunxue_gates.scan_security"]["PII_PATTERNS"]
-        runtime = _runtime_patterns("sunxue_gates.scan_security", "PII_PATTERNS")["PII_PATTERNS"]
+        golden = g.scan["PII_PATTERNS"]
+        runtime = _runtime_patterns("sunxue_gates.scan_security", "PII_PATTERNS")
         _assert_tree_equal(runtime, golden, ("PII_PATTERNS",))
 
     def test_secret_patterns(self) -> None:
         g = _load_golden()
-        golden = g["sunxue_gates.scan_security"]["SECRET_PATTERNS"]
-        runtime = _runtime_patterns("sunxue_gates.scan_security", "SECRET_PATTERNS")[
-            "SECRET_PATTERNS"
-        ]
+        golden = g.scan["SECRET_PATTERNS"]
+        runtime = _runtime_patterns("sunxue_gates.scan_security", "SECRET_PATTERNS")
         _assert_tree_equal(runtime, golden, ("SECRET_PATTERNS",))
 
     def test_injection_patterns(self) -> None:
         g = _load_golden()
-        golden = g["sunxue_gates.scan_security"]["INJECTION_PATTERNS"]
-        runtime = _runtime_patterns("sunxue_gates.scan_security", "INJECTION_PATTERNS")[
-            "INJECTION_PATTERNS"
-        ]
+        golden = g.scan["INJECTION_PATTERNS"]
+        runtime = _runtime_patterns("sunxue_gates.scan_security", "INJECTION_PATTERNS")
         _assert_tree_equal(runtime, golden, ("INJECTION_PATTERNS",))
 
     def test_iter_patterns_concat(self) -> None:
         g = _load_golden()
-        golden = g["sunxue_gates.scan_security"]["ITER_PATTERNS"]
-        runtime = _runtime_patterns("sunxue_gates.scan_security", "ITER_PATTERNS")["ITER_PATTERNS"]
+        golden = g.scan["ITER_PATTERNS"]
+        runtime = _runtime_patterns("sunxue_gates.scan_security", "ITER_PATTERNS")
         _assert_tree_equal(runtime, golden, ("ITER_PATTERNS",))
 
 
 class TestMutationDrillGolden:
     def test_key_phrases(self) -> None:
         g = _load_golden()
-        golden = g["sunxue_gates.mutation_drill"]["KEY_PHRASES"]
-        runtime = _runtime_flat("sunxue_gates.mutation_drill", "KEY_PHRASES")["KEY_PHRASES"]
+        golden = g.mutation["KEY_PHRASES"]
+        runtime = _runtime_flat("sunxue_gates.mutation_drill", "KEY_PHRASES")
         _assert_tree_equal(runtime, golden, ("KEY_PHRASES",))
 
     def test_hard_keywords(self) -> None:
         g = _load_golden()
-        golden = g["sunxue_gates.mutation_drill"]["HARD_KEYWORDS"]
-        runtime = _runtime_flat("sunxue_gates.mutation_drill", "HARD_KEYWORDS")["HARD_KEYWORDS"]
+        golden = g.mutation["HARD_KEYWORDS"]
+        runtime = _runtime_flat("sunxue_gates.mutation_drill", "HARD_KEYWORDS")
         _assert_tree_equal(runtime, golden, ("HARD_KEYWORDS",))
 
 
 class TestRegressionOutputGolden:
     def test_deg_adv(self) -> None:
         g = _load_golden()
-        golden = g["sunxue_gates.regression_output"]["DEG_ADV"]
-        runtime = _runtime_flat("sunxue_gates.regression_output", "DEG_ADV")["DEG_ADV"]
+        golden = g.regression["DEG_ADV"]
+        runtime = _runtime_flat("sunxue_gates.regression_output", "DEG_ADV")
         _assert_tree_equal(runtime, golden, ("DEG_ADV",))
 
     def test_emo_direct(self) -> None:
         g = _load_golden()
-        golden = g["sunxue_gates.regression_output"]["EMO_DIRECT"]
-        runtime = _runtime_flat("sunxue_gates.regression_output", "EMO_DIRECT")["EMO_DIRECT"]
+        golden = g.regression["EMO_DIRECT"]
+        runtime = _runtime_flat("sunxue_gates.regression_output", "EMO_DIRECT")
         _assert_tree_equal(runtime, golden, ("EMO_DIRECT",))
 
     def test_server_polyphony_words(self) -> None:
         g = _load_golden()
-        golden = g["sunxue_gates.regression_output"]["SERVER_POLYPHONY_WORDS"]
+        poly_leaves: list[HashLeaf] = cast("list[HashLeaf]", g.regression["SERVER_POLYPHONY_WORDS"])
         runtime = _runtime_server_polyphony_words()
-        _assert_tree_equal(runtime, golden, ("SERVER_POLYPHONY_WORDS",))
+        _assert_tree_equal(runtime, poly_leaves, ("SERVER_POLYPHONY_WORDS",))
 
 
 # ---------------------------------------------------------------------------
@@ -314,25 +549,24 @@ class TestSingleByteContract:
 
     def test_leaf_sha256_matches_payload(self) -> None:
         g = _load_golden()
-        bad: list[str] = []
 
-        def walk(node: object) -> None:
-            if isinstance(node, dict):
-                if set(node.keys()) == {"sha256", "hex_utf8"}:
-                    payload = bytes.fromhex(node["hex_utf8"])
-                    expected = hashlib.sha256(payload).hexdigest()
-                    if expected != node["sha256"]:
-                        bad.append("sha256 mismatch on leaf")
-                    return
-                for v in node.values():
-                    walk(v)
+        def walk(obj: object, path: tuple[str, ...]) -> None:
+            if isinstance(obj, dict):
+                if set(obj.keys()) != {"sha256", "hex_utf8"}:
+                    return  # not a hash leaf (e.g. _meta); skip
+                payload = bytes.fromhex(obj["hex_utf8"])
+                expected = hashlib.sha256(payload).hexdigest()
+                if expected != obj["sha256"]:
+                    raise AssertionError(f"sha256 mismatch on leaf at {'/'.join(path)}")
                 return
-            if isinstance(node, list):
-                for v in node:
-                    walk(v)
+            if isinstance(obj, list):
+                for i, v in enumerate(obj):
+                    walk(v, path + (f"[{i}]",))
 
-        walk(g)
-        assert not bad, "golden has sha256/hex disagreement on leaves"
+        walk(g.drills, ("drills",))
+        walk(g.scan, ("scan",))
+        walk(g.mutation, ("mutation",))
+        walk(g.regression, ("regression",))
 
     def test_known_anchors_have_real_corpus(self) -> None:
         """Self-check: the corpus we compare against actually contains strings.
@@ -343,8 +577,8 @@ class TestSingleByteContract:
         N entries in the headline tables.
         """
         g = _load_golden()
-        assert len(g["sunxue_gates.injection_drill"]["DRILLS"]["id"]) == 5
-        assert len(g["sunxue_gates.mutation_drill"]["HARD_KEYWORDS"]) >= 5
-        assert len(g["sunxue_gates.regression_output"]["DEG_ADV"]) >= 5
-        assert len(g["sunxue_gates.regression_output"]["EMO_DIRECT"]) >= 5
-        assert len(g["sunxue_gates.scan_security"]["INJECTION_PATTERNS"]) >= 5
+        assert len(g.drills["id"]) == 5
+        assert len(g.mutation["HARD_KEYWORDS"]) >= 5
+        assert len(g.regression["DEG_ADV"]) >= 5
+        assert len(g.regression["EMO_DIRECT"]) >= 5
+        assert len(g.scan["INJECTION_PATTERNS"]) >= 5
