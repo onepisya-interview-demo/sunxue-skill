@@ -13,6 +13,9 @@ htmlcov/
 text_*.json
 mutants/
 .cache/
+.env
+.env.*
+!.env.example
 
 # local-only planning archive
 PLAN.md
