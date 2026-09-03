@@ -296,6 +296,14 @@ def main(argv: list[str] | None = None) -> int:
         print()
         print(f"coherence_gate FAIL: {len(issues)} issue(s)")
         print("  返回 SKILL.md 第 6 步(写)修订,再重跑 coherence_gate + writing_gate")
+        # Stderr carries the human/hook-readable failure summary
+        # (aligned with writing_gate.py exit 2 contract).
+        sys.stderr.write(
+            f"\ncoherence_gate FAIL: {len(issues)} issue(s) failed.\n"
+            f"  Return to SKILL.md step 6 (写) and address each issue above.\n"
+        )
+        for issue in issues:
+            sys.stderr.write(f"  - {issue.strip()}\n")
         return 2
 
     print("  [OK] 数字交叉验证通过")
