@@ -5,7 +5,7 @@ description = "Seven-layer gate harness for the sunxue skill (lint, security, re
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
-authors = [{ name = "sunxue-gates", email = "gates@sunxue.local" }]
+authors = [{ name = "onepisYa" }]
 dependencies = []
 
 [project.scripts]
