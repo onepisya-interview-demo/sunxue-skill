@@ -51,5 +51,6 @@
 
 - Python 门禁工程：`src/sunxue_gates`（七门禁）+ `tests/` + `SKILL.md` / `references` / `examples`
 - 一键验收：`uv run gates --all`；本地快速层 pre-commit 需 `git config core.hooksPath .githooks` 手动启用（激活与跳过步骤见 tests/README §8.1）
+- Skill 自身门禁：SKILL.md 写作引擎第 7 步为「门禁回环（gate loop）」硬约束——写完自动跑 `references/writing-checklist.md` 的 15 项硬自检，任何一项不过 → 回炉 → 再跑，全部通过才交付。详见 `SKILL.md` §七步写作流程。
 - Git 身份：提交者使用**自己环境**的全局 git 身份，规范中不写死任何个人邮箱；本仓库 local config 禁止配置假身份 / 占位身份（即无主人的机器占位地址，形如「用户名 + @ + 本地域名」——为免触发 scan_security 邮箱硬规则，此处不书写字面量）
 - 历史改写（message / 身份）需连带重写 tags（`--tag-name-filter cat`）并清理 `refs/original` + reflog + gc，确保旧对象物理清除
