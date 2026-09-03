@@ -192,6 +192,11 @@ def collect_lint_files(root: Path) -> list[tuple[str, Path]]:
     two gates agree on the scan surface — but adds ``.py`` and ``.toml``
     because placeholder identities have historically appeared in
     ``pyproject.toml``'s ``authors`` list.
+
+    The scan surface deliberately excludes ``src/`` (this gate's own
+    package source): the regex patterns and their labels live there in
+    source-code form, so a self-scan would always false-positive on
+    every pattern's documentation.
     """
     files: list[tuple[str, Path]] = []
     for sub in _SCAN_SUBDIRS:
@@ -200,11 +205,6 @@ def collect_lint_files(root: Path) -> list[tuple[str, Path]]:
             continue
         for glob in _SCAN_GLOBS:
             for p in sorted(base.glob(glob)):
-                # Skip the package source itself — it is the gate code,
-                # not content.  This gate is a guardrail, not a guard
-                # against itself.
-                if "src/sunxue_gates" in str(p):
-                    continue
                 label = (sub + "/") + p.name if sub else p.name
                 files.append((label, p))
     return files
