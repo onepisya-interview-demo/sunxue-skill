@@ -39,7 +39,7 @@
 
 ## 安装
 
-### Mavis（推荐）
+### 启动器同步（推荐）
 
 skill 目录已就位（按实际安装路径替换）：
 
@@ -47,7 +47,7 @@ skill 目录已就位（按实际安装路径替换）：
 <skill-install-path>/sunxue/
 ```
 
-Mavis 在启动时会自动同步 `.skills/` 下的 skill。无需额外步骤。
+启动器在启动时会自动同步 `.skills/` 下的 skill。无需额外步骤。
 
 ### 手工拷贝到其他框架
 
@@ -156,7 +156,7 @@ ls <skill-install-path>/sunxue/
 
 ```
 sunxue/
-├── SKILL.md                          # 三模式入口（v1.0 起冻结于 24,981 字符）
+├── SKILL.md                          # 三模式入口（元信息冻结；v1.1 减重后 23,865 字符）
 ├── VERSION                           # 1.1.0
 ├── LICENSE                           # MIT + 双源版权声明
 ├── README.md                         # 本文件
@@ -164,7 +164,7 @@ sunxue/
 ├── pyproject.toml                    # uv 配置 + dev 工具链
 ├── uv.lock                           # 锁定依赖图
 ├── src/
-│   └── sunxue_gates/                 # 门禁包（六门禁 + 共享解析 + 结果类型）
+│   └── sunxue_gates/                 # 门禁包（七门禁 + 共享解析 + 结果类型）
 │       ├── __init__.py               # GATES 元组 + run() / run_all()
 │       ├── __main__.py               # `python -m sunxue_gates` 串跑入口
 │       ├── results.py                # CheckResult / GateResult dataclass
@@ -174,7 +174,9 @@ sunxue/
 │       ├── regression_output.py      # Gate 3
 │       ├── token_budget.py           # Gate 4
 │       ├── injection_drill.py        # Gate 5
-│       └── mutation_drill.py         # Gate 6
+│       ├── mutation_drill.py         # Gate 6
+│       ├── lint_claims.py             # Gate 7
+│       └── tables.py                  # 关键词/模式纯数据表（golden 契约锁定）
 ├── references/                       # 8 个 reference（原样搬运 + 技法注解）
 │   ├── style-anatomy.md              # bayshier 原文例证 10 技法（与 gehao628 合并去重后形成 SKILL.md 的 13 条核心技法）
 │   ├── x-field-notes.md              # bayshier X 舆论场 + 曾颖讲义 + 三层孙学
@@ -182,28 +184,34 @@ sunxue/
 │   ├── writing-checklist.md          # gehao628 sun-writing（17 项硬计数自检）
 │   ├── judgment-corpus.md            # gehao628 sun-judgment（核实语料 + 禁用清单）
 │   ├── background.md                 # bayshier 孙宇晨其人 + 事件脉络
-│   ├── jingtian-essay-7000.md        # 孙宇晨原作《我的女友景甜》原文片段（v1.0 起存在，v1.1 README 首次登记）
+│   ├── jingtian-essay-7000.md        # 孙宇晨原作《我的女友景甜》原文片段
 │   └── merge-map.md                  # 22 条 → 13 条去重映射表（v1.1.0 从 SKILL.md 外迁，plan 3.2）
 ├── examples/                         # 9 个真实样本（无占位）
 │   ├── writing-巴菲特午餐.md         # gehao628：用孙文体写孙本人
 │   ├── writing-示例2-被割版.md       # 真实完整稿（v1.0 误标占位，v1.1 更正）
-│   ├── writing-示例3-AI时代前端.md   # regression_output 真实样本（v1.0 起存在，v1.1 README 首次登记）
-│   ├── writing-景甜-原文片段.md       # 孙宇晨原作引用片段（v1.0 起存在，v1.1 README 首次登记）
+│   ├── writing-示例3-AI时代前端.md   # regression_output 真实样本
+│   ├── writing-景甜-原文片段.md       # 孙宇晨原作引用片段
 │   ├── writing-十二个字节.md          # v2 门禁实战样本
 │   ├── writing-七年通勤.md           # 通勤七年账本（plan 3.1 sample-expansion）
 │   ├── writing-五次打印机.md         # 五次打印机报价单（plan 3.1 sample-expansion）
 │   ├── writing-清仓大甩卖.md         # 清仓大甩卖话术（plan 3.1 sample-expansion）
 │   └── judgment-老客户账期.md         # gehao628：账期四波
+├── notes/                               # 开发笔记（踩坑 / 手册 / 学习 / 测试思路）
+│   ├── pitfalls.md                      # 踩坑记录（10 条实战坑）
+│   ├── runbook.md                       # 操作手册（搭建 / 日常 / 发版 / 受限环境）
+│   ├── learning.md                      # 学习笔记（门禁分层设计理念）
+│   └── testing.md                       # 测试思路（五层金字塔与豁免政策）
 ├── assets/                           # 推广海报
 │   ├── promo-1.jpg
 │   └── promo-2.jpg
+├── scripts/                             # 辅助脚本（gen_mutation_report.py）
 └── tests/                            # pytest 测试树（unit + property + live）
-    ├── README.md                     # 六层门禁命令表 + 质量五维映射
+    ├── README.md                     # 七层门禁命令表 + 质量五维映射 + 测试思路指针
     ├── conftest.py                   # 共享 fixtures
     ├── unit/                         # 纯函数单元测试
     ├── property/                     # hypothesis 属性测试
-    ├── test_gates_live.py            # 对当前仓库跑六个 run()，断言 PASS（旧行为回归）
-    └── mutation-report.md            # mutmut 3.x triage（821 killed / 623 exempted）
+    ├── test_gates_live.py            # 对当前仓库跑七门禁 run()，断言 PASS（旧行为回归）
+    └── mutation-report.md            # mutmut 3.x triage 报告（豁免台账见 mutation-exemptions.json）
 ```
 
 ---
