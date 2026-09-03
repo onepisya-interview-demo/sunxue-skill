@@ -22,6 +22,8 @@
 > 成功判据：上表所有命令退出码 0（变异层允许有书面豁免的幸存者，记录在
 > `tests/mutation-report.md`）。
 
+> diff-cover 的 `--compare-branch` 基线滚动策略与切换时点见 §8.3。
+
 ---
 
 ## 2. 质量五维映射（本项目版）
@@ -57,8 +59,8 @@ tests/
 │   ├── test_pii_secret.py              # 假数据命中 / 随机安全文本不误报
 │   ├── test_mutation_operators.py      # 变异算子不变量（输≠入 / 确定性 / M3 软化强度词消失）
 │   └── test_hard_metric_permutation.py # 硬指标与句序无关
-├── test_gates_live.py          # 对当前仓库跑 6 个 run()，断言 PASS（v1.0 行为回归）
-└── mutation-report.md          # mutmut 3.x triage（821 killed / 623 exempted 字面字符串幸存者）
+├── test_gates_live.py          # 对当前仓库跑七门禁 run()，断言 PASS（v1.0 行为回归）
+└── mutation-report.md          # mutmut 3.x triage（豁免台账见 mutation-exemptions.json）
 ```
 
 ---
@@ -69,16 +71,16 @@ tests/
 # uv 缓存路径覆盖（本机 sandbox 限制；按需删去前缀）
 export UV_CACHE_DIR=.cache/uv
 
-# 一行串跑六个门禁（旧脚本的串跑契约保留为 console script `gates`）
+# 一行串跑七门禁（旧脚本的串跑契约保留为 console script `gates`）
 uv run gates              # 等价于：uv run python -m sunxue_gates
 
-# 全套六层门禁
+# 全套七层门禁
 uv run pytest                                                       # Tests
 uv run basedpyright                                                  # Types（深度）
 uv run ty check .                                                    # Types（速度）
 uv run ruff check . && uv run ruff format .                          # Lint + format
 uv run pytest --cov=sunxue_gates --cov-branch --cov-fail-under=90    # Coverage
-uv run diff-cover coverage.xml --compare-branch gate-baseline --fail-under=100  # 变更行（详见 §8.4）
+uv run diff-cover coverage.xml --compare-branch gate-baseline --fail-under=100  # 变更行（基线滚动策略见 §8.3）
 uv run mutmut run                                                    # Mutation（生成 triage）
 
 # 对任意目录跑门禁（root 可参数化；__main__ 默认当前 repo 根）
@@ -148,12 +150,12 @@ dataclass，至少包含：
 
 | 判据 | 对应命令 |
 |------|----------|
-| 202 个 pytest 用例全过 | `uv run pytest` exit 0 |
+| 全部 pytest 用例通过 | `uv run pytest` exit 0 |
 | 双类型门禁清零 | `uv run basedpyright` + `uv run ty check .` 双 0 errors |
 | ruff 风格一致 | `uv run ruff check .` exit 0 |
 | 覆盖率达标 | `uv run pytest --cov-fail-under=90` exit 0（实际 100%） |
-| 变更行全覆盖 | `uv run diff-cover coverage.xml --compare-branch gate-baseline --fail-under=100` exit 0 |
-| 六门禁串跑 | `uv run gates` exit 0（6/6 PASS） |
+| 变更行全覆盖 | `uv run diff-cover coverage.xml --compare-branch gate-baseline --fail-under=100` exit 0（基线滚动见 §8.3） |
+| 七门禁串跑 | `uv run gates` exit 0（7/7 PASS） |
 
 ---
 
@@ -203,16 +205,7 @@ uv run gates --all
 的五条，正好八条。CI 的 stage table + total wall time 会写入工作流日志，
 失败时定位到具体 stage 与 exit code。
 
-### 8.3 命令速查
-
-| 场景 | 命令 |
-|------|------|
-| 本地快门禁（提交前） | `.githooks/pre-commit`（启用见 8.1） |
-| 本地全链（一键验收） | `uv run gates --all` |
-| CI 全链 | `uv run gates --all`（workflow 自动） |
-| 机器可读结果 | `uv run gates --json`（六 GateResult JSON 数组） |
-
-### 8.4 diff-cover 基线 tag（plan 2.3）
+### 8.3 diff-cover 基线 tag（plan 2.3）
 
 `diff-cover --compare-branch` 不再固定指向历史一次性 tag `gate-baseline`；
 **改成跟随当前发布版本**——每个 release 都打 `gate-vX.Y.Z` 形式的 annotated
@@ -238,5 +231,4 @@ git tag -a gate-v1.1.0 -m "v1.1.0 — 七层 Python 门禁工程化 (plan 1.2)"
 `gate-baseline` 是 v1.1.0 一次性历史的残留——**下一个 release tag（v1.2.0）
 落盘时**会把 `--compare-branch` 切到 `gate-v1.1.0`。本次 v1.1.0 的发版
 gate 文档先行记录策略，不改既有命令。
-| 单独跑某条 | `uv run ruff check .` 等（§4 表） |
 
