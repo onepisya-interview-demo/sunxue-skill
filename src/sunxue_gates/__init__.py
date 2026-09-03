@@ -31,6 +31,7 @@ __all__ = [
 from . import (
     injection_drill,
     lint_claims,
+    lint_pii,
     lint_structure,
     mutation_drill,
     regression_output,
@@ -40,7 +41,10 @@ from . import (
 
 # Execution order matches the original test/ scripts; lint_claims (gate 7)
 # is appended at the end since it is a documentation / cross-check gate
-# that does not touch the skill body.
+# that does not touch the skill body. lint_pii is appended as gate 8 —
+# it is a documentation-only PII guard that runs after every content
+# gate has had its say, so a hit here points unambiguously at a leak
+# rather than at a side-effect of another gate's pass/fail message.
 GATES = (
     lint_structure,
     scan_security,
@@ -49,6 +53,7 @@ GATES = (
     injection_drill,
     mutation_drill,
     lint_claims,
+    lint_pii,
 )
 
 GATE_NAMES: tuple[str, ...] = tuple(m.__name__.split(".")[-1] for m in GATES)
