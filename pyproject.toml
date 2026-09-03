@@ -86,10 +86,16 @@ show_missing = true
 # ``gates --all`` reads these (in seconds) and FAILS with a budget-exceeded
 # message when any stage exceeds its cap. Defaults are conservative; tighten
 # them as the suite stabilizes.
+#
+# mutmut budget was bumped 30→45 in the lint_pii gate addition (档 ①
+# of the enforcement design): the new src/ surface added ~280 LoC to
+# the mutation scan, which pushed the previous 30s cap over the edge
+# on a clean run. 45s leaves ~10s headroom for the synthesis-deferred
+# counters that 档 ② will introduce without needing another bump.
 [tool.sunxue.budgets]
 gates_all = 60
 pytest = 5
-mutmut = 30
+mutmut = 45
 
 [tool.mutmut]
 source_paths = ["src/sunxue_gates"]

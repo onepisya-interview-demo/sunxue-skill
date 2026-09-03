@@ -98,7 +98,7 @@ def _load_budgets(root: Path) -> dict[str, float]:
     chain, 5s for pytest, 30s for mutmut. The defaults are identical to
     ``pyproject.toml`` so a missing table does not silently relax the gates.
     """
-    defaults: dict[str, float] = {"gates_all": 60.0, "pytest": 5.0, "mutmut": 30.0}
+    defaults: dict[str, float] = {"gates_all": 60.0, "pytest": 5.0, "mutmut": 45.0}
     pyproject = root / "pyproject.toml"
     if not pyproject.exists():
         return defaults
