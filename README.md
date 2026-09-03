@@ -236,15 +236,16 @@ sunxue/
 │       ├── mutation_drill.py         # Gate 6
 │       ├── lint_claims.py             # Gate 7
 │       └── tables.py                  # 关键词/模式纯数据表（golden 契约锁定）
-├── references/                       # 8 个 reference（原样搬运 + 技法注解）
+├── references/                       # 9 个 reference（原样搬运 + 技法注解 + 门禁契约）
 │   ├── style-anatomy.md              # bayshier 原文例证 10 技法（与 gehao628 合并去重后形成 SKILL.md 的 13 条核心技法）
 │   ├── x-field-notes.md              # bayshier X 舆论场 + 曾颖讲义 + 三层孙学
 │   ├── writing-anatomy.md            # gehao628 sun-writing（五幕骨架 + 数字骨架）
-│   ├── writing-checklist.md          # gehao628 sun-writing（17 项硬计数自检）
+│   ├── writing-checklist.md          # gehao628 sun-writing（17 项硬计数自检）— 16 项硬指标的真源
 │   ├── judgment-corpus.md            # gehao628 sun-judgment（核实语料 + 禁用清单）
 │   ├── background.md                 # bayshier 孙宇晨其人 + 事件脉络
 │   ├── jingtian-essay-7000.md        # 孙宇晨原作《我的女友景甜》原文片段
-│   └── merge-map.md                  # 22 条 → 13 条去重映射表（v1.1.0 从 SKILL.md 外迁，plan 3.2）
+│   ├── merge-map.md                  # 22 条 → 13 条去重映射表（v1.1.0 从 SKILL.md 外迁，plan 3.2）
+│   └── enforcement.md                # 交付期门禁契约 + 跨宿主诚实声明（synthesis 档 ① 外置）
 ├── examples/                         # 9 个真实样本（无占位）
 │   ├── writing-巴菲特午餐.md         # gehao628：用孙文体写孙本人
 │   ├── writing-示例2-被割版.md       # 真实完整稿（v1.0 误标占位，v1.1 更正）
