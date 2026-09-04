@@ -1,6 +1,6 @@
 <!--
 Source: sunxue-skill v1.2.0 外化
-Original path: SKILL.md L55-110, L585-615
+Original path: SKILL.md（v1.0 时代行号 L55-110 / L585-615，现行 SKILL.md 已重组）
 Original license: MIT
 Copyright (c) 2026 bayshier + gehao628 + onepiSya (合并源)
 来源仓库: 本地 sunxue-skill 仓库(原始来自 bayshier/sunxue v1.4.0 + gehao628/sunxue v1.2 sun-writing/sun-judgment)

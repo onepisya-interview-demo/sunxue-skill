@@ -110,6 +110,27 @@ class TestMain:
         # mutation_drill FAIL → overall FAIL.
         assert rc == 1
 
+    def test_main_rejects_unknown_flag(self, capsys) -> None:
+        # audit-v4 N4: unknown flags are rejected against the canonical set
+        # from get_gates_flags(); the error message lists the known set.
+        rc = main(["--bogus"])
+        assert rc == 2
+        err = capsys.readouterr().err
+        assert "unknown flag: --bogus" in err
+        assert "--all" in err and "--json" in err
+
+    def test_main_rejects_registered_but_unwired_flag(self, monkeypatch, capsys) -> None:
+        # audit-v4 N4: a flag registered in get_gates_flags() without a
+        # dispatch branch in main() must alarm instead of being silently
+        # ignored — keeps the canonical set honest.
+        monkeypatch.setattr(
+            "sunxue_gates.__main__.get_gates_flags",
+            lambda: frozenset({"--all", "--json", "--future"}),
+        )
+        rc = main(["--future"])
+        assert rc == 2
+        assert "registered but not wired" in capsys.readouterr().err
+
 
 class TestLoadBudgets:
     """_load_budgets reads [tool.sunxue.budgets] with safe defaults."""

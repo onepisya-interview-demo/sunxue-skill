@@ -116,12 +116,12 @@ python3 scripts/writing_gate.py <draft.md> [--mode writing|judgment|meta]
 
 ---
 
-## 6. 两引擎绝对禁令(来自 SKILL.md L325-339 + L452-460,v1.2.0 外化)
+## 6. 两引擎绝对禁令(来自 SKILL.md,v1.2.0 外化)（行号为 v1.0 时代锚点，现行 SKILL.md 已重组）
 
 > 本节是 v1.2.0 外化时从 SKILL.md 整段搬入的写作/判断两套"绝对禁令"。SKILL.md 重写后只保留精简版(写作 3-4 条 + 判断 2-3 条最关键),完整清单见本节。
 > 与上文"工程契约/门禁脚本"互补:本节是"输出内容的禁止项",不是"脚本行为的禁止项"。
 
-### 6.1 写作模式绝对禁令(来自 SKILL.md L325-339)
+### 6.1 写作模式绝对禁令(来自 SKILL.md,v1.2.0 外化)（行号为 v1.0 时代锚点，现行 SKILL.md 已重组）
 
 ### 绝对禁令（writing 模式）
 
@@ -139,7 +139,7 @@ python3 scripts/writing_gate.py <draft.md> [--mode writing|judgment|meta]
 - ❌ 为了像原文而编造数字或场景
 
 
-### 6.2 判断模式绝对禁令(来自 SKILL.md L452-460)
+### 6.2 判断模式绝对禁令(来自 SKILL.md,v1.2.0 外化)（行号为 v1.0 时代锚点，现行 SKILL.md 已重组）
 
 ### 绝对禁令（judgment 模式）
 
@@ -150,3 +150,9 @@ python3 scripts/writing_gate.py <draft.md> [--mode writing|judgment|meta]
 - ❌ 不要因为"孙宇晨这么干过"就推荐一个用户承受不起后果的动作——他能承受 SEC 起诉，你的用户不能
 
 **孙学是关于怎么给注意力定价，不是关于怎么突破底线。** 越线的建议一律不给，直接告诉用户为什么不能这么做。
+
+## 7. regression 覆盖与豁免口径(audit-v4 EQ-03①/PE-10,v1.3.1)
+
+- **机械覆盖**: `sample_files` 扫 `examples/` 全部四模式前缀(writing/judgment/meta/yingxue,v1.3.1 接线 meta/yingxue);文件名含豁免 marker(原文片段 / 引用片段 / 实战范例 / 反例 / 范例)的样本不入扫描——它们是原文对照件或元数据教学件,非模式散文。当前 marker 豁免计 5 文件: writing-景甜-原文片段 / judgment-面馆-范例 / judgment-行业B端-范例 / judgment-全球IP-范例 / judgment-律师函反例。
+- **marker 豁免的理由**: 4 篇 judgment 范例/反例各含 20-25 个弯引号(引述与用户对话的问答体),若强扫 judgment tier 的「引号 == 0」strict 项必假 FAIL;故以 marker 豁免而非把 strict 放宽——strict 语义对真正的判断交付稿保持不变。
+- **examples 元数据**: examples 不要求 frontmatter;唯一带 frontmatter 的 writing-景甜-原文片段 其头部字段为历史留档,不构成 schema 先例(audit-v4 PE-10)。

@@ -3,7 +3,7 @@ source: "原文 Justin Sun @justinsuntron X 2026-08-27；仿写基于 sunxue SKI
 title: "景甜原文片段 vs sunxue 仿写"
 type: 对照样本
 purpose: 让用户看到"原文是什么样 + sunxue 体怎么仿写"
-length: 总计约 2000-3000 字
+length: 总计约 5200 字（audit-v4 EQ-12 勘误：原记 2000-3000 与实测 5225 字符不符）
 copyright: 原文版权归孙宇晨所有；仿写版权归本 skill 项目
 ---
 
