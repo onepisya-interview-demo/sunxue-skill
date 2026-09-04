@@ -8,7 +8,7 @@
 **版本**：v1.3.0（命名/常量清理 7 项 P2/P3 + tests/integration helper 抽取 + mutmut 51.5% 真实数留档 + yingxue-anatomy 6 技法卡片 + 我沉默了 ≥ 5 强示范 example）
 **License**：MIT（双源版权 + 原文版权归原作者，详见 [LICENSE](./LICENSE)）
 
-> **元信息冻结**：SKILL.md 自 v1.0 起冻结（字符数顶在 lint 门禁上限）。
+> **元信息冻结**：SKILL.md 结构冻结（H1 标记 + frontmatter 不动）；事实数字与指针随版本同步（audit-v4 D1③，口径见 AGENTS.md）。
 > `references/jingtian-essay-7000.md` 与 `examples/writing-示例3-AI时代前端.md`、
 > `examples/writing-景甜-原文片段.md` 自 v1.0 起已存在于仓库但未列入 v1.0 README 树，
 > 详见本 README 与 [CHANGELOG.md 1.1.0 条目](./CHANGELOG.md#110---2026-08-30)。
@@ -250,7 +250,7 @@ ls $HOME/.agents/skills/sunxue/
 
 ```
 sunxue/
-├── SKILL.md                          # 四模式入口（元信息冻结；v1.2.0 外化后 12,606 chars；v1.2.1+ 不动）
+├── SKILL.md                          # 四模式入口（结构冻结；事实数字随版本同步 D1③；v1.3.1 实测 13,068 chars）
 ├── VERSION                           # 1.3.0
 ├── LICENSE                           # MIT + 双源版权声明
 ├── README.md                         # 本文件

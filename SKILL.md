@@ -14,11 +14,11 @@ description: |
 
 > 蒸馏自孙宇晨的四种能力:**写作**(克制白描长文)+ **判断**(注意力定价)+ **meta**(三层反思)+ **yingxue**(曾颖镜像)。
 > 一份文档管四个子模式。每个模式入口只放极简卡片,完整定义与长篇语料在 `references/`。
-> 实质版本 v1.2.0(本次 SKILL.md 外化重组,首纳 yingxue 镜像学科);SKILL.md 元信息依 `lint_claims.skill_freeze` 冻结在 v1.0,版本号演化记录于 `VERSION` + `CHANGELOG.md`。
+> SKILL.md 结构自 v1.2.0 外化重组后冻结(H1 标记与 frontmatter 不动);事实数字与指针(计数/清单/版本叙述)随 `VERSION` 演化同步(audit-v4 D1③),演化记录于 `CHANGELOG.md`。
 
 ## 元信息
 
-- **版本**:1.2.0(本次 SKILL.md 外化重组)
+- **版本**:见 `VERSION`;SKILL.md 结构自 v1.2.0 外化重组,事实数字随版本同步
 - **License**:MIT(双源版权与原作者署名见 `LICENSE`;原文版权归原作者)
 - **合并来源**:
   - `bayshier/sunxue` v1.4.0(写作心法 + 三层孙学 + 仿写公式 + 镜像识别 + **颖学镜像学科**)
@@ -26,8 +26,8 @@ description: |
   - `gehao628/sunxue` v1.2(写作机械结构 + 12 硬规则 + 15 项硬自检 + 判断引擎)
     - 注意:gehao628 名下只有 1 个 `sunxue` 仓库,sun-writing + sun-judgment 是其子目录
 - **加载顺序**:description 命中子模式 → 只加载 `<!-- @mode:writing|judgment|meta|yingxue -->` 对应章节
-- **字符预算**:`lint_structure` 门禁硬上限 SKILL.md ≤ 25,000 / reference ≤ 12,000;v1.2.0 目标 SKILL.md = **18,000-20,000 chars**(留 5,000-7,000 余量)
-- **完整 reference 列表**(字符数按 v1.2.0 重写后):
+- **字符预算**:`lint_structure` 门禁硬上限 SKILL.md ≤ 25,000 / reference ≤ 12,000;v1.3.1 实测 SKILL.md = 13,068 chars
+- **完整 reference 列表**:
   - `references/writing-essence.md` — 写作总纲(第一原则 + 第零关 + 仿写公式 + 镜像识别)
   - `references/style-anatomy.md` — 13 技法完整定义 + 原文例证(bayshier 原版 + 本地合并)
   - `references/writing-anatomy.md` — 7 步流程逐幕机械做法(gehao628 原版 + SKILL.md 合并)
@@ -40,8 +40,11 @@ description: |
   - `references/jingtian-essay-7000.md` — 原文 8 段参照样本(bayshier 原版)
   - `references/merge-map.md` — 22→13 去重映射表(本地 v1.1.0 增补)
   - `references/yingxue-corpus.md` — 颖学语料:曾颖四篇文章 + 词源(bayshier 原版,v1.2.0 首次纳入)
-  - `examples/writing-*.md` — 8 个写作样本(7 本地新增 + 1 gehao628 巴菲特午餐)
-  - `examples/judgment-*.md` — 5 个判断样本(1 gehao628 老客户账期 + 4 本地拆分自 SKILL.md)
+  - `references/yingxue-anatomy.md` — 颖学技法解剖 + 四篇骨架表 + 孙颖对照(本地归纳,v1.3.0 新增)
+  - `examples/writing-*.md` — 9 个写作样本(8 本地新增 + 1 gehao628 巴菲特午餐)
+  - `examples/judgment-*.md` — 6 个判断样本(1 gehao628 老客户账期 + 5 本地)
+  - `examples/meta-*.md` — 1 个 meta 真样本(注意力定价三层拆解)
+  - `examples/yingxue-*.md` — 1 个颖学仿写(冻鸡挽歌)
 
 ---
 
@@ -51,8 +54,8 @@ description: |
 |---|---|---|
 | 孙宇晨体 / 景甜式白描 / 冷叙事 / sun-writing / 被割版 | writing | writing-essence → style-anatomy → writing-anatomy → writing-checklist → examples/writing-* |
 | 注意力定价 / sun-judgment / 这钱该怎么花 | judgment | judgment-corpus → enforcement → examples/judgment-* |
-| 三层孙学 / 仿写公式 / 修行层 / 被割 / 爆红 | meta | x-field-notes |
-| 颖学 / 曾颖 / 椰子鸡 / 冻鸡 / 笑完才疼 / @zengying1107 | yingxue | yingxue-corpus → bayshier/sunxue/yingxue/SKILL.md |
+| 三层孙学 / 仿写公式 / 孙学爆红原因 / 修行层 | meta | x-field-notes → examples/meta-* |
+| 颖学 / 曾颖 / 椰子鸡 / 冻鸡 / 笑完才疼 / @zengying1107 | yingxue | yingxue-corpus → yingxue-anatomy → examples/yingxue-* |
 
 **多模式命中**(罕见,通常用户同时需要写作和判断):全部加载,严守共同铁律。
 
@@ -67,7 +70,7 @@ description: |
 2. `references/style-anatomy.md` — 技法展开(13 技法完整定义 + 原文例证)
 3. `references/writing-anatomy.md` — 流程详解(7 步每幕机械做法)
 4. `references/writing-checklist.md` — 交稿前(16 项硬计数自检)
-5. `examples/writing-*.md` — 完整样本(8 个)
+5. `examples/writing-*.md` — 完整样本(9 个)
 
 ### 第一原则:温度计归零(详见 `writing-essence §1`)
 
@@ -133,7 +136,7 @@ description: |
 **使用本引擎前先读**:
 1. `references/judgment-corpus.md` — 7 规则 + 6 步 + 8 节语料 + 防翻车禁用清单
 2. `references/enforcement.md` — 绝对禁令 + 门禁工程契约
-3. `examples/judgment-*.md` — 5 个判断样本
+3. `examples/judgment-*.md` — 6 个判断样本
 
 ### 第一性原理(详见 `judgment-corpus` 附录)
 
@@ -191,7 +194,9 @@ description: |
 
 ## Meta 模式 — 三层孙学反思
 
-**使用本模式前先读**:`references/x-field-notes.md`(三层孙学 + 爆红原因 + 镜像识别 + 舆论场四派)
+**使用本模式前先读**:
+1. `references/x-field-notes.md`(三层孙学 + 爆红原因 + 镜像识别 + 舆论场四派)
+2. `examples/meta-注意力定价-bug-disclosure.md`(三层拆解真样本;背景可选读 `references/background.md`)
 
 ### 三层孙学(一句话)
 
@@ -236,7 +241,7 @@ description: |
 
 **使用本模式前先读**:
 1. `references/yingxue-corpus.md` — 曾颖四篇文章语料 + 词源
-2. 源仓库完整定义:https://github.com/bayshier/sunxue/tree/main/yingxue/SKILL.md(6 技法完整定义 + 流程 + 红线)
+2. `references/yingxue-anatomy.md` — 技法完整展开 + 四篇骨架表 + 孙颖对照(本地归纳;源仓库出处:https://github.com/bayshier/sunxue/tree/main/yingxue/SKILL.md)
 
 ### 心法:笑点在前,痛点在后
 
@@ -246,7 +251,7 @@ description: |
 
 「颖学」一词是孙宇晨本人发明的(2026-07-18)——"有孙学就有颖学……颖学的本质,就是吸血孙学,吸血奋斗者,鸠占鹊巢"。**一门由对手命名的学问,最终由对手前女友的文笔正名**:网友把曾颖的每一次发文都称作"颖学实践",词义从"吸血学"漂移成了"深情喜剧学"。写颖学时记住这层反讽——**你的文体本身,就是对命名者的回答**。
 
-### 6 技法卡片(完整定义见 yingxue-corpus.md + bayshier 源仓库)
+### 6 技法卡片(完整定义见 yingxue-anatomy.md;源仓库: bayshier yingxue/SKILL.md)
 
 | # | 技法 | 核心动作 | 与孙学对照 |
 |---|---|---|---|
@@ -257,7 +262,7 @@ description: |
 | 5 | 养他论三件套 | 最坏铺排 + 矛盾修辞 + 反向记账 | 孙学:记付出的钱 → 颖学:记没拿的钱 |
 | 6 | 讲义体 | 公众议题切换讲义模式(单句成段+二元框架+教学口吻) | 孙学不进入此模式 |
 
-### 5 步流程(见 yingxue-corpus.md + bayshier 源仓库)
+### 5 步流程(见 yingxue-anatomy.md;源仓库: bayshier yingxue/SKILL.md)
 
 取证 → 选物证 → 搭喜剧(前 90% 推到极致) → 落反转(一句"原来…"立刻收笔) → 审读(删直接解释情感的句子)
 
@@ -331,7 +336,8 @@ description: |
 
 ## 版本与变更
 
-- **v1.2.0**(本次,2026-09-04):SKILL.md 外化重组
+- **v1.3.1**(2026-09-04):audit-v4 事实同步(D1③:结构冻结、事实数字随版本同步)——样本计数 8→9 / 5→6、yingxue 必读转本地 `yingxue-anatomy.md`、meta 必读补真样本、路由表 meta 行去「被割/爆红」泛词、版本叙述去「本次」措辞
+- **v1.2.0**(2026-09-04):SKILL.md 外化重组
   - 加 **yingxue 第四模式**(完全集成 bayshier 镜像学科,曾颖四篇语料 → `references/yingxue-corpus.md`)
   - 13 技法完整定义 → `references/style-anatomy.md` 附录
   - 7 步流程完整定义 → `references/writing-anatomy.md` 附录
