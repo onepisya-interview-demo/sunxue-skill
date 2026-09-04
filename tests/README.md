@@ -14,7 +14,7 @@
 | Tests | pytest | `uv run pytest` | 正确性 | 门禁逻辑单元测试 + 属性测试 + 仓库级回归（`test_gates_live.py`） |
 | Types（双门禁） | basedpyright + ty | `uv run basedpyright && uv run ty check .` | 可维护性 | 两个引擎互补：basedpyright 深度规则，ty 快速新锐；任一报错即 FAIL |
 | Lint + format | ruff | `uv run ruff check . && uv run ruff format .` | 可维护性 | 门禁代码风格统一（line-length 100，select [E,F,I,UP,B]） |
-| Changed-line coverage | coverage.py + diff-cover | `uv run pytest --cov=sunxue_gates --cov-branch --cov-report=xml --cov-fail-under=90` + `uv run diff-cover coverage.xml --compare-branch gate-v1.3.0 --fail-under=100` | 可维护性 | 无 fail-under 则该层永不失败；diff-cover 专门卡变更行 |
+| Changed-line coverage | coverage.py + diff-cover | `uv run pytest --cov=sunxue_gates --cov-branch --cov-report=xml --cov-fail-under=90` + `uv run diff-cover coverage.xml --compare-branch gate-v1.3.1 --fail-under=100` | 可维护性 | 无 fail-under 则该层永不失败；diff-cover 专门卡变更行 |
 | Mutation | mutmut 3+ | `uv run mutmut run` | 正确性 | 幸存者 = 弱测试；产出 triage 报告（`tests/mutation-report.md`） |
 | Property-based | hypothesis | `@given(...)` 随 pytest 运行 | 正确性 | 门禁逻辑的真实不变量（`tests/property/`） |
 | Claims-lint（plan 1.2） | `lint_claims.run` | `uv run gates`（内嵌） | 可维护性 | 口径一致性：VERSION ↔ pyproject、README 目录树 ↔ 磁盘、阈值 ↔ tests/README、uv 命令 ↔ 已注册 CLI |
@@ -80,7 +80,7 @@ uv run basedpyright                                                  # Types（�
 uv run ty check .                                                    # Types（速度）
 uv run ruff check . && uv run ruff format .                          # Lint + format
 uv run pytest --cov=sunxue_gates --cov-branch --cov-fail-under=90    # Coverage
-uv run diff-cover coverage.xml --compare-branch gate-v1.3.0 --fail-under=100  # 变更行（基线滚动策略见 §8.3）
+uv run diff-cover coverage.xml --compare-branch gate-v1.3.1 --fail-under=100  # 变更行（基线滚动策略见 §8.3）
 uv run mutmut run                                                    # Mutation（生成 triage）
 
 # 对任意目录跑门禁（root 可参数化；__main__ 默认当前 repo 根）
@@ -154,7 +154,7 @@ dataclass，至少包含：
 | 双类型门禁清零 | `uv run basedpyright` + `uv run ty check .` 双 0 errors |
 | ruff 风格一致 | `uv run ruff check .` exit 0 |
 | 覆盖率达标 | `uv run pytest --cov-fail-under=90` exit 0（实际 100%） |
-| 变更行全覆盖 | `uv run diff-cover coverage.xml --compare-branch gate-v1.3.0 --fail-under=100` exit 0（基线滚动见 §8.3） |
+| 变更行全覆盖 | `uv run diff-cover coverage.xml --compare-branch gate-v1.3.1 --fail-under=100` exit 0（基线滚动见 §8.3） |
 | 八门禁串跑 | `uv run gates` exit 0（8/8 PASS） |
 
 ---
@@ -209,12 +209,11 @@ uv run gates --all
 
 `diff-cover --compare-branch` 跟随当前发布版本——每个 release 都打
 `gate-vX.Y.Z` 形式的 annotated tag，下一次发版前的 `diff-cover` 用上一版
-tag 作为对比基线。当前 v1.3.1 工作的基线 = `gate-v1.3.0`（v1.3.0 release
-时打的 annotated tag）：
+tag 作为对比基线。v1.3.1 release 之后的下一轮工作的基线 = `gate-v1.3.1`：
 
 ```bash
-# 当前对比基线（v1.3.1 起，baseline = v1.3.0）
-uv run diff-cover coverage.xml --compare-branch gate-v1.3.0 --fail-under=100
+# 当前对比基线（v1.3.1 发版后，baseline = v1.3.1）
+uv run diff-cover coverage.xml --compare-branch gate-v1.3.1 --fail-under=100
 
 # 历史 annotated tag（保留供回溯，不作为基线）：
 git tag -a gate-v1.1.0 -m "v1.1.0 — 七层 Python 门禁工程化 (plan 1.2);v1.2.0 八层 (plan 1.4 lint_pii 追加)"
@@ -222,8 +221,9 @@ git tag -a gate-v1.2.0 -m "v1.2.0 — SKILL.md 外化 + yingxue 镜像学科首�
 git tag -a gate-v1.2.1 -m "v1.2.1 — 全面 audit 收口 (12 P0 + 18 P1 全修)"
 git tag -a gate-v1.2.2 -m "v1.2.2 — patch 收口 (audit-v4 H-8 补打, 原漏标)"
 git tag -a gate-v1.3.0 -m "v1.3.0 — 命名/常量清理 + yingxue-anatomy (audit-v4 H-8 补打, 原漏标)"
+git tag -a gate-v1.3.1 -m "v1.3.1 — audit-v4 全面审计收口 (9 维度)"
 
-# 下一版对比基线会变成 gate-v1.3.1，依此类推。
+# 下一版对比基线会变成 gate-v1.4.0，依此类推。
 ```
 
 **为什么这样改**：原 `gate-baseline` tag 是 v1.1.0 升级一次性锚定的，再没动过；

@@ -5,7 +5,7 @@
 > 四个子模式（writing / judgment / meta / **yingxue**）合装在一个 skill 内，
 > 触发词命中哪个子模式就只加载对应章节。
 
-**版本**：v1.3.0（命名/常量清理 7 项 P2/P3 + tests/integration helper 抽取 + mutmut 51.5% 真实数留档 + yingxue-anatomy 6 技法卡片 + 我沉默了 ≥ 5 强示范 example）
+**版本**：v1.3.1（audit-v4 全面审计收口：9 维度 / 90+ findings——文档真源勘误、README 四模式补全、SKILL.md 事实同步 D1③、meta/yingxue 门禁接线、golden 扩五模块、残留物清零；报表见 `notes/audit-v4-*.md`）
 **License**：MIT（双源版权 + 原文版权归原作者，详见 [LICENSE](./LICENSE)）
 
 > **元信息冻结**：SKILL.md 结构冻结（H1 标记 + frontmatter 不动）；事实数字与指针随版本同步（audit-v4 D1③，口径见 AGENTS.md）。
@@ -335,6 +335,7 @@ sunxue/
 
 | 版本 | 日期 | 说明 |
 |---|---|---|
+| 1.3.1 | 2026-09-04 | **audit-v4 全面审计收口**：9 维度正交审计（8 并行 + peer 元审计）P0/P1 修复——文档真源勘误（字节冒充 chars / 7.9% 残留 / 节序）/ README 四模式补全 / SKILL.md 事实同步（D1③ 结构冻结数字同步）/ meta+yingxue 门禁接线（10→12/17）/ golden 扩五模块 / 残留物清零（promo 546KB 删除）/ coherence 星期锚点修复 / gates_all 120→180s / mutmut 50.7% 机渲刷新 |
 | 1.3.0 | 2026-09-04 | **5 集群 patch 收口**：7 项 P2/P3 命名/常量清理（F7/F8/F9/F14/F16/F17/F21，tables.py 真源化）+ tests/integration/_helpers.py 抽公共 helper + mutmut 试探留档（51.5% 1330/2582，未达 ≤ 40% 接受判据）+ yingxue-anatomy 6 技法卡片（references/yingxue-anatomy.md）+ 我沉默了 ≥ 5 强示范 example（17 example / 13 reference）/ 8/8 gates --all 全绿 / 335 tests pass |
 | 1.2.2 | 2026-09-04 | **patch 收口**：5 集群 13 项 P0/P1 全修（数字/路径真源 + 文档补完 + 路由同步 + peer hygiene + mutmut budget 45→120s）/ mutmut 幸存率 51.4%（audit-v4 勘误：发布时描述 7.9% 系 reporter 字段名歧义误读，M-14 未命中）/ 8/8 gates --all 全绿 48.58s |
 | 1.2.1 | 2026-09-04 | **全面 audit 收口**：七→八门禁口径统一 / meta 模式首个真样本 / examples 16 / scripts 3 个 owner 文档 / 16/17 项硬指标口径统一 / 目录树补项 |
