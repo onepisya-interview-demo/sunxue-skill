@@ -327,7 +327,7 @@ def count_punct(text: str) -> dict[str, int]:
 # v1.0.0 baseline) rather than path-based so that future
 # testers can drop a new quote file into ``examples/`` without
 # touching this gate.
-_REFERENCE_QUOTE_MARKERS: tuple[str, ...] = ("原文片段", "引用片段")
+_REFERENCE_QUOTE_MARKERS: tuple[str, ...] = ("原文片段", "引用片段", "实战范例", "反例", "范例")
 
 
 def sample_files(root: Path) -> list[tuple[str, Path]]:

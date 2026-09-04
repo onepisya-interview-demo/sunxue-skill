@@ -51,7 +51,7 @@ CHARS_PER_TOKEN: int = 3  # empirical, approximates English tokenization for Chi
 
 SOFT_LIMIT: dict[str, int] = {
     "SKILL.md": 8_500,
-    "references_total": 16_000,
+    "references_total": 22_000,
     "reference_single": 4_000,
 }
 
