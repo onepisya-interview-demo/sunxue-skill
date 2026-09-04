@@ -297,6 +297,7 @@ sunxue/
 
 | 版本 | 日期 | 说明 |
 |---|---|---|
+| 1.2.2 | 2026-09-04 | **patch 收口**：5 集群 13 项 P0/P1 全修（数字/路径真源 + 文档补完 + 路由同步 + peer hygiene + mutmut budget 45→120s）/ mutmut 幸存率 7.9% 命中 M-14 < 10% 目标 / 8/8 gates --all 全绿 48.58s |
 | 1.2.1 | 2026-09-04 | **全面 audit 收口**：七→八门禁口径统一 / meta 模式首个真样本 / examples 14 / scripts 3 个 owner 文档 / 16/17 项硬指标口径统一 / 目录树补项 |
 | 1.2.0 | 2026-09-04 | SKILL.md 元信息冻结 12,606 chars 外化重组 + yingxue 第四模式首次纳入（曾颖四篇语料 → references/yingxue-corpus.md）|
 | 1.1.0 | 2026-08-30 | 门禁工程化：src/sunxue_gates package + uv scaffold + tests/ 测试树（202 pytest 100% 覆盖） |
