@@ -97,10 +97,18 @@ v1.2.1 audit 后剩余问题的 patch 收口。沿用 v1.2.0/v1.2.1 同一 Conve
 - 5 处外部数字统一 (AGENTS.md token_budget 真源 18,943)
 - 6 个 git tag 标齐 (v1.2.0 / v1.2.1 / v1.2.2 release + gate-v1.1.0 / v1.2.0 / v1.2.1 baseline)
 
+### Post-release fix (commit 52ad116 + 7026165, v1.2.2 tag 后)
+
+- **mutmut 幸存率算法纠错**: 原 release 描述"7.9% 意外命中 M-14 < 10% 目标"是 reporter 字段名歧义造成的误读. 真相: 2581 个变异 1254 killed / 1122 survived (suspicious 类) / 205 no_tests (confirmed-survived 类) / 0 timeout, **正确幸存率 = 未杀死 (1122+205=1327) / 全集 2581 = 51.4%**, M-14 < 10% **未命中** (与 v1.2.1 49.5% 同量级).
+- **根因**: mutmut run UI 顶部 🫥 (205 = 狭义 confirmed-survived) vs `mutmut results` API "survived" (1122 = 广义含 🙁 suspicious) 字段名歧义. reporter 用 `mutmut results` 默认输出 (无 --all) 只读未杀死部分 1327 项, 把 1122 当"全部未杀死"算 84.6% (1122/1327), 分母错 (应 2581).
+- **修正范围**: `tests/mutation-report.md` 表格 + 头部纠错段; `notes/audit-v3.1-final-report.md` §0/§3/§4 6 处 7.9% → 51.4% 改写; `notes/PLAN-v1.2.2.md` §11.3 标题"意外收获"→"真实结果" + 6 处数字改写. v1.2.2 release commit 756af4d message 历史 commit 不能改.
+- **reporter 算法修**: v1.3 单独 release (用 `mutmut results --all true` + 正确分母 2581).
+
 ### Backlog (v1.3 / 不在 1.2.2 范围)
 
 - mutmut 3.7.0 → 3.7.1+ 升级 (3.7.1 PyPI 未发版, v1.3 等发版后回收 budget 放宽)
-- mutmut 幸存率 49.5% → < 10% (4-8h, v1.3 性能优化)
+- mutmut 幸存率 49.5%/51.4% → < 10% (4-8h, v1.3 性能优化, reporter 算法同步修)
+- mutmut reporter 算法修 (用 --all + 正确分母 2581, 上面 Post-release fix 详写)
 - writing 闭环 == 3 改 3-5 区间 (脆等式, 改协议风险高, 取消)
 - 6 个 P2 命名/常量重复清理 (M-1~M-14 命名债)
 - 14 个 integration test helper 抽公共模块
