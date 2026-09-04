@@ -5,7 +5,7 @@
 > 四个子模式（writing / judgment / meta / **yingxue**）合装在一个 skill 内，
 > 触发词命中哪个子模式就只加载对应章节。
 
-**版本**：v1.2.1（八层 Python 门禁工程化 + audit 修复批次 + yingxue 模式首例）
+**版本**：v1.3.0（命名/常量清理 7 项 P2/P3 + tests/integration helper 抽取 + mutmut 51.5% 真实数留档 + yingxue-anatomy 6 技法卡片 + 我沉默了 ≥ 5 强示范 example）
 **License**：MIT（双源版权 + 原文版权归原作者，详见 [LICENSE](./LICENSE)）
 
 > **元信息冻结**：SKILL.md 自 v1.0 起冻结（字符数顶在 lint 门禁上限）。
@@ -220,11 +220,13 @@ ls $HOME/.agents/skills/sunxue/
 ```
 sunxue/
 ├── SKILL.md                          # 四模式入口（元信息冻结；v1.2.0 外化后 12,606 chars；v1.2.1+ 不动）
-├── VERSION                           # 1.2.1
+├── VERSION                           # 1.3.0
 ├── LICENSE                           # MIT + 双源版权声明
 ├── README.md                         # 本文件
 ├── PLAN-audit-v3.md                  # v1.2.1 全面审计计划（已实施归档）
-├── CHANGELOG.md                      # v1.2.1 audit 收口 / v1.2.0 yingxue+SKILL.md 外化 / v1.1.0 门禁工程化 / v1.0.0 合并首发
+├── notes/PLAN-v1.3.md                # v1.3 集群计划（已实施归档）
+├── notes/audit-v3.2-final-report.md  # v1.3 release 最终报告
+├── CHANGELOG.md                      # v1.3.0 命名/常量清理+内容扩 / v1.2.2 patch 收口 / v1.2.1 audit 收口 / v1.2.0 yingxue+SKILL.md 外化 / v1.1.0 门禁工程化 / v1.0.0 合并首发
 ├── pyproject.toml                    # uv 配置 + dev 工具链
 ├── uv.lock                           # 锁定依赖图 (本仓库 tracked, v1.2.1 audit 起入 git)
 ├── src/
@@ -288,7 +290,7 @@ sunxue/
     ├── golden/                       # 字面量金样（literals.json SHA-256 + hex_utf8 双签名，4 门覆盖）
     ├── test_gates_live.py            # 对当前仓库跑八门禁 run()，断言 PASS（旧行为回归）
     ├── mutation-report.md            # mutmut 3.x triage 报告（豁免台账见 mutation-exemptions.json）
-    └── mutation-exemptions.json      # 49.5% 幸存者的豁免理由 JSON
+    └── mutation-exemptions.json      # 51.5% 幸存者的豁免理由 JSON
 ```
 
 ---
@@ -297,6 +299,7 @@ sunxue/
 
 | 版本 | 日期 | 说明 |
 |---|---|---|
+| 1.3.0 | 2026-09-04 | **5 集群 patch 收口**：7 项 P2/P3 命名/常量清理（F7/F8/F9/F14/F16/F17/F21，tables.py 真源化）+ tests/integration/_helpers.py 抽公共 helper + mutmut 试探留档（51.5% 1330/2582，未达 ≤ 40% 接受判据）+ yingxue-anatomy 6 技法卡片（references/yingxue-anatomy.md）+ 我沉默了 ≥ 5 强示范 example（17/16 example / 13 reference）/ 8/8 gates --all 全绿 / 335 tests pass |
 | 1.2.2 | 2026-09-04 | **patch 收口**：5 集群 13 项 P0/P1 全修（数字/路径真源 + 文档补完 + 路由同步 + peer hygiene + mutmut budget 45→120s）/ mutmut 幸存率 7.9% 命中 M-14 < 10% 目标 / 8/8 gates --all 全绿 48.58s |
 | 1.2.1 | 2026-09-04 | **全面 audit 收口**：七→八门禁口径统一 / meta 模式首个真样本 / examples 14 / scripts 3 个 owner 文档 / 16/17 项硬指标口径统一 / 目录树补项 |
 | 1.2.0 | 2026-09-04 | SKILL.md 元信息冻结 12,606 chars 外化重组 + yingxue 第四模式首次纳入（曾颖四篇语料 → references/yingxue-corpus.md）|
