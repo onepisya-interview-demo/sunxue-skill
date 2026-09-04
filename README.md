@@ -5,7 +5,7 @@
 > 四个子模式（writing / judgment / meta / **yingxue**）合装在一个 skill 内，
 > 触发词命中哪个子模式就只加载对应章节。
 
-**版本**：v1.2.1（八层 Python 门禁工程化 + audit 修复批次）
+**版本**：v1.2.1（八层 Python 门禁工程化 + audit 修复批次 + yingxue 模式首例）
 **License**：MIT（双源版权 + 原文版权归原作者，详见 [LICENSE](./LICENSE)）
 
 > **元信息冻结**：SKILL.md 自 v1.0 起冻结（字符数顶在 lint 门禁上限）。
@@ -250,7 +250,7 @@ sunxue/
 │   ├── coherence-checklist.md        # SKILL.md 第 7.2 步内容自洽性扫描 SOP（5 项检查 + 报告格式）
 │   ├── writing-essence.md            # v1.2.0 新增：第一原则 + 第零关 + 仿写公式 + 镜像识别 + 演说体 vs 证词体
 │   └── yingxue-corpus.md             # v1.2.0 新增：曾颖四篇语料（冻鸡/椰子鸡/15688 消息/养他论）+ 词源
-├── examples/                         # 14 个真实样本（v1.2.1 含 1 个 meta 真样本；8 写作 + 5 判断 + 1 meta）
+├── examples/                         # 15 个真实样本（v1.2.1 audit 收口：8 写作 + 5 判断 + 1 meta + 1 yingxue）
 │   ├── writing-巴菲特午餐.md         # gehao628：用孙文体写孙本人
 │   ├── writing-示例2-被割版.md       # 真实完整稿（v1.0 误标占位，v1.1 更正）
 │   ├── writing-示例3-AI时代前端.md   # regression_output 真实样本
@@ -264,7 +264,8 @@ sunxue/
 │   ├── judgment-行业B端-范例.md      # v1.2.0 拆分：B 端借势蹭争议（规则 0/4/5/7 边界三问）
 │   ├── judgment-全球IP-范例.md        # v1.2.0 拆分：500 万买事件（规则 0/1/2/3 强示范）
 │   ├── judgment-律师函反例.md         # v1.2.0 拆分：发律师函的边界失败（规则 4/5/7 反例）
-│   └── meta-注意力定价-bug-disclosure.md  # v1.2.1 收口：注意力定价三层拆解（meta 真样本）
+│   ├── meta-注意力定价-bug-disclosure.md  # v1.2.1 收口：注意力定价三层拆解（meta 真样本）
+│   └── yingxue-冻鸡挽歌-仿写.md      # v1.2.1 收口：曾颖《冻鸡挽歌》200 字仿写（yingxue 模式首例，演示荒诞物证/恍然大悟反转/典故降维/讲义体）
 ├── notes/                               # 开发笔记（踩坑 / 手册 / 学习 / 测试思路）
 │   ├── pitfalls.md                      # 踩坑记录（10 条实战坑）
 │   ├── runbook.md                       # 操作手册（搭建 / 日常 / 发版 / 受限环境）

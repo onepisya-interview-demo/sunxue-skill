@@ -43,7 +43,7 @@ from .results import CheckResult, GateResult
 # (see comment there for why the literal is duplicated).
 from .tables import DEG_ADV, EMO_DIRECT, SERVER_POLYPHONY_WORDS  # noqa: F401
 
-Mode = Literal["writing", "judgment", "meta"]
+Mode = Literal["writing", "judgment", "meta", "yingxue"]
 
 __all__ = [
     "DEG_ADV",
@@ -142,15 +142,39 @@ EXPECT_BY_MODE: dict[Mode, dict[str, tuple[str, int, str]]] = {
         "场景切换": ("number", 0, _INFO_OP),
         "结尾直接提问": ("number", 0, _INFO_OP),
     },
+    # Yingxue tier (v1.2.1 plan-audit-v3 §1 row 4 P0): 继承 meta 的"无
+    # 修辞/无情绪直述"基线，但允许数字 ≥ 5（荒诞物证靠数字驱动），
+    # 并把"结尾直接提问"改 INFO（yingxue 收束靠反转句，不靠提问）。
+    "yingxue": {
+        "数字": ("number", 5, ">="),
+        "程度副词": ("number", 0, _INFO_OP),
+        "情绪直述": ("number", 0, "=="),  # STRICT — yingxue 6 红线之一
+        "感叹号": ("number", 0, "=="),  # STRICT — 不允许深情直说
+        "省略号": ("number", 0, _INFO_OP),
+        "破折号": ("number", 0, _INFO_OP),
+        "引号": ("number", 0, _INFO_OP),
+        "排比": ("number", 0, _INFO_OP),
+        "反问": ("number", 0, _INFO_OP),
+        "比喻": ("number", 0, _INFO_OP),
+        "「我说好」类": ("number", 0, _INFO_OP),
+        "「我沉默了」类": ("number", 0, _INFO_OP),
+        "服务者复调": ("number", 0, _INFO_OP),
+        "物件 callback 标记": ("number", 0, _INFO_OP),
+        "闭环句候选": ("number", 0, _INFO_OP),
+        "场景切换": ("number", 0, _INFO_OP),
+        "结尾直接提问": ("number", 0, _INFO_OP),  # yingxue 收束靠反转句
+    },
 }
 
 # Each sample's mode is derived from its filename prefix. The lookup is
-# local to the gate so future samples (e.g. ``meta-*`` once tester-3
-# lands them) can be added without touching the four parent gates.
+# local to the gate so future samples can be added without touching the
+# four parent gates. v1.2.1 audit added "yingxue-" so 颖学 examples
+# inherit the yingxue tier (数字 ≥ 5, 情绪直述/感叹号 strict).
 _PREFIX_TO_MODE: tuple[tuple[str, Mode], ...] = (
     ("writing-", "writing"),
     ("judgment-", "judgment"),
     ("meta-", "meta"),
+    ("yingxue-", "yingxue"),
 )
 
 
