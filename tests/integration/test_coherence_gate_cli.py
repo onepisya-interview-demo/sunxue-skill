@@ -130,9 +130,7 @@ class TestCliContract:
         assert "draft:" in first_lines[1]
         assert "numbers:" in first_lines[2]
 
-    def test_relative_time_expressions_do_not_trigger_timeline_check(
-        self, tmp_path: Path
-    ) -> None:
+    def test_relative_time_expressions_do_not_trigger_timeline_check(self, tmp_path: Path) -> None:
         """Guard against the 1-2 year false positive that bit the first cut.
 
         Phrases like 「明年」 and 「再撑一年」 are relative-time expressions
@@ -164,9 +162,7 @@ class TestCliContract:
         draft = tmp_path / "timeline_only.md"
         # 2018 + "三年" = 2021 claimed, but 2018 → 2023 = 5 years.
         draft.write_text(
-            "2018 年某个下午,我加了她微信。\n"
-            "2023 年 11 月 9 日,我们分开了。\n"
-            "三年异地。\n",
+            "2018 年某个下午,我加了她微信。\n2023 年 11 月 9 日,我们分开了。\n三年异地。\n",
             encoding="utf-8",
         )
         proc = _run([str(draft)])
