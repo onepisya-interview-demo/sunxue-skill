@@ -1,7 +1,7 @@
-"""Seven-layer gate harness for the sunxue skill.
+"""Eight-layer gate harness for the sunxue skill.
 
 Public API:
-- :func:`run_all` — execute all seven gates against a root directory.
+- :func:`run_all` — execute all eight gates against a root directory.
 - :func:`run` — execute a single gate by name.
 - :class:`~sunxue_gates.results.GateResult` / :class:`~sunxue_gates.results.CheckResult`
 - Individual gate modules (``lint_structure``, ``scan_security``, …) are also importable

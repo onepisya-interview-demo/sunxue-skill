@@ -1,6 +1,6 @@
 """Console entry point: ``python -m sunxue_gates`` or the ``gates`` script.
 
-Default (no flag): run the seven in-process Python gates serially against
+Default (no flag): run the eight in-process Python gates serially against
 the repo root (parent of ``src/sunxue_gates/__main__.py``); exit 0 iff every
 gate PASSES. Preserves the original ``PASS = 0 / FAIL = 1`` contract.
 
@@ -26,7 +26,7 @@ Performance budgets (plan 3.4) are read from ``[tool.sunxue.budgets]`` in
 If a stage exceeds its budget, the chain fails with a budget-exceeded
 message and the operator gets a stage-table row marked ``OVER``.
 
-``gates --json`` prints the seven ``GateResult`` objects as a JSON array (one
+``gates --json`` prints the eight ``GateResult`` objects as a JSON array (one
 object per gate: ``name``, ``passed``, ``summary``, ``failure_count``,
 ``details``) — machine-readable output for CI dashboards. Exit code mirrors
 the legacy default (0 iff all gates pass).
@@ -233,7 +233,7 @@ def _gate_result_to_dict(gr) -> dict:
 
 
 def _emit_json(root: Path) -> int:
-    """Run the seven in-process gates; emit JSON array of GateResults."""
+    """Run the eight in-process gates; emit JSON array of GateResults."""
     results = run_all(root)
     payload = [_gate_result_to_dict(gr) for gr in results]
     json.dump(payload, sys.stdout, ensure_ascii=False, indent=2, sort_keys=False)
@@ -245,8 +245,8 @@ def main(argv: list[str] | None = None) -> int:
     """Dispatch on flags:
 
     - ``--all`` → eight-stage shell chain (PLAN §1.3)
-    - ``--json`` → seven-gate results as JSON array
-    - default → legacy seven-gate serial behavior (byte-compatible)
+    - ``--json`` → eight-gate results as JSON array
+    - default → legacy eight-gate serial behavior (byte-compatible)
 
     A positional argument selects the repo root (default: ``default_root()``).
     """
@@ -265,7 +265,7 @@ def main(argv: list[str] | None = None) -> int:
             print(
                 "usage: gates [--all | --json] [ROOT]",
                 "\n  --all   run the 8-stage acceptance chain (CI / one-command local)",
-                "\n  --json  print seven GateResults as JSON (machine-readable)",
+                "\n  --json  print eight GateResults as JSON (machine-readable)",
                 "\n  ROOT    repo root (default: parent of src/sunxue_gates)",
                 sep="\n",
             )
@@ -283,11 +283,11 @@ def main(argv: list[str] | None = None) -> int:
     if as_json:
         return _emit_json(root)
 
-    # Seven-gate serial path: walk every module in GATES, exit 0 iff every
-    # gate PASSES. The banner says "七层" to reflect the new claims-lint
-    # gate (plan 1.2) added in v1.2.0.
+    # Eight-gate serial path: walk every module in GATES, exit 0 iff every
+    # gate PASSES. The banner says "八层" to reflect the v1.2.0+ gate count
+    # (lint_claims gate 7 added in v1.2.0; lint_pii gate 8 added in v1.2.0).
     print("=" * 70)
-    print(f"sunxue gates — 七层门禁 ({len(GATE_NAMES)} 个)")
+    print(f"sunxue gates — 八层门禁 ({len(GATE_NAMES)} 个)")
     print("=" * 70)
     print(f"skill 根目录: {root}")
 

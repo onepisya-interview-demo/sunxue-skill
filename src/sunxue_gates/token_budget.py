@@ -2,7 +2,7 @@
 
 Soft limits (used as fail thresholds):
 - `SKILL.md` single file ≤ 8_500 tokens.
-- `references/` total ≤ 16_000 tokens.
+- `references/` total ≤ 22_000 tokens (v1.2.0 bump 16_000 → 22_000, CHANGELOG 1.2.0 §34).
 - Single reference ≤ 4_000 tokens.
 
 Examples are reported for information only.

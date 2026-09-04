@@ -1,4 +1,4 @@
-# sunxue skill — 七层 Python 门禁工程
+# sunxue skill — 八层 Python 门禁工程
 
 按 [PLAN.md §0](../PLAN.md#0-背景与目标) 实施。把 v1.0.0 的 6 个 stdlib
 脚本升级为完整 Python 门禁工程，对应质量五维（正确性 / 安全性 /
@@ -7,7 +7,7 @@
 
 ---
 
-## 1. 七层门禁 × 命令 × 质量维度
+## 1. 八层门禁 × 命令 × 质量维度
 
 | Layer | 工具 | 命令 | 质量维度 | 对应本项目 |
 |---|---|---|---|---|
@@ -59,7 +59,7 @@ tests/
 │   ├── test_pii_secret.py              # 假数据命中 / 随机安全文本不误报
 │   ├── test_mutation_operators.py      # 变异算子不变量（输≠入 / 确定性 / M3 软化强度词消失）
 │   └── test_hard_metric_permutation.py # 硬指标与句序无关
-├── test_gates_live.py          # 对当前仓库跑七门禁 run()，断言 PASS（v1.0 行为回归）
+├── test_gates_live.py          # 对当前仓库跑八门禁 run()，断言 PASS（v1.0 行为回归）
 └── mutation-report.md          # mutmut 3.x triage（豁免台账见 mutation-exemptions.json）
 ```
 
@@ -71,10 +71,10 @@ tests/
 # uv 缓存路径覆盖（本机 sandbox 限制；按需删去前缀）
 export UV_CACHE_DIR=.cache/uv
 
-# 一行串跑七门禁（旧脚本的串跑契约保留为 console script `gates`）
+# 一行串跑八门禁（旧脚本的串跑契约保留为 console script `gates`）
 uv run gates              # 等价于：uv run python -m sunxue_gates
 
-# 全套七层门禁
+# 全套八层门禁
 uv run pytest                                                       # Tests
 uv run basedpyright                                                  # Types（深度）
 uv run ty check .                                                    # Types（速度）
@@ -155,7 +155,7 @@ dataclass，至少包含：
 | ruff 风格一致 | `uv run ruff check .` exit 0 |
 | 覆盖率达标 | `uv run pytest --cov-fail-under=90` exit 0（实际 100%） |
 | 变更行全覆盖 | `uv run diff-cover coverage.xml --compare-branch gate-baseline --fail-under=100` exit 0（基线滚动见 §8.3） |
-| 七门禁串跑 | `uv run gates` exit 0（7/7 PASS） |
+| 八门禁串跑 | `uv run gates` exit 0（8/8 PASS） |
 
 ---
 
@@ -216,7 +216,7 @@ tag，下一次发版前的 `diff-cover` 用上一版 tag 作为对比基线：
 uv run diff-cover coverage.xml --compare-branch gate-v1.1.0 --fail-under=100
 
 # 发版时（annotated tag）：
-git tag -a gate-v1.1.0 -m "v1.1.0 — 七层 Python 门禁工程化 (plan 1.2)"
+git tag -a gate-v1.1.0 -m "v1.1.0 — 七层 Python 门禁工程化 (plan 1.2);v1.2.0 八层 (plan 1.4 lint_pii 追加)"
 
 # 下一版对比基线会变成 gate-v1.2.0，依此类推。
 ```
