@@ -95,7 +95,11 @@ show_missing = true
 [tool.sunxue.budgets]
 gates_all = 60
 pytest = 5
-mutmut = 45
+# mutmut budget: v1.2.2 起 45s → 120s。mutmut 3.7.0 跑 13 文件 2581 个
+# 变异实测 ~80s, 旧 45s budget 会撞 exit 75 (用户豁免 'mutmut 时间长一点
+# 没关系')。3.7.1 上游 collection bug 修复未发版, 单纯放宽 budget。
+# v1.3 mutmut 升级 3.7.1+ 后回收此放宽。
+mutmut = 120
 
 [tool.mutmut]
 source_paths = ["src/sunxue_gates"]

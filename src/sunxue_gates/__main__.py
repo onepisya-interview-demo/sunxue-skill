@@ -95,10 +95,16 @@ def _load_budgets(root: Path) -> dict[str, float]:
     """Read ``[tool.sunxue.budgets]`` from ``root/pyproject.toml``.
 
     Missing keys fall back to safe defaults (plan 3.4): 60s for the overall
-    chain, 5s for pytest, 30s for mutmut. The defaults are identical to
+    chain, 5s for pytest, 120s for mutmut. The defaults are identical to
     ``pyproject.toml`` so a missing table does not silently relax the gates.
+
+    v1.2.2 mutmut default raised 45→120s: mutmut 3.7.0 with the
+    13-file surface generates 2581 mutants and empirically needs ~80s
+    on Linux runners, exceeding the v1.1 45s budget. mutmut 3.7.1
+    upstream fix not released; the relaxation is a stop-gap until the
+    upgrade. See ``pyproject.toml [tool.sunxue.budgets]`` for context.
     """
-    defaults: dict[str, float] = {"gates_all": 60.0, "pytest": 5.0, "mutmut": 45.0}
+    defaults: dict[str, float] = {"gates_all": 60.0, "pytest": 5.0, "mutmut": 120.0}
     pyproject = root / "pyproject.toml"
     if not pyproject.exists():
         return defaults
