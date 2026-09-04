@@ -1,4 +1,4 @@
-# 孙学 Skill · sunxue
+# 孙学 Skill · sunxue-skill
 
 > 合并自 [`bayshier/sunxue`](https://github.com/bayshier/sunxue) v1.4.0
 > + [`gehao628`](https://github.com/gehao628) `sun-writing` + `sun-judgment` v1.2。
@@ -45,12 +45,13 @@
 skill 目录已就位（按实际安装路径替换）：
 
 ```
-$HOME/.agents/skills/sunxue/
+$HOME/.agents/skills/sunxue-skill/
 ```
 
-> **注**: `<skill-install-path>` 占位符示意安装根目录。实际路径因启动器而异:
-> ZCode = `$HOME/.zcode/skills/sunxue/`; Claude Code = `$HOME/.claude/skills/sunxue/`;
-> Hermes = `$HOME/.agents/skills/sunxue/`。下面示例用 `$HOME/.agents/skills/sunxue/`。
+> **注**: 实际路径因启动器而异——ZCode = `$HOME/.zcode/skills/sunxue-skill/`;
+> Claude Code = `$HOME/.claude/skills/sunxue-skill/`; Hermes = `$HOME/.agents/skills/sunxue-skill/`。
+> 下面示例用 `$HOME/.agents/skills/sunxue-skill/`。
+> **命名一致性**（官方规范要求目录名与 frontmatter `name` 一致）: 仓库名 = 安装目录名 = `name` = **`sunxue-skill`**（2026-09-04 用户裁决，解决 audit-v4 BP-C1 红线；`skills-ref validate` 通过）。
 
 启动器在启动时会自动同步 `.skills/` 下的 skill。无需额外步骤。
 
@@ -58,19 +59,19 @@ $HOME/.agents/skills/sunxue/
 
 ```bash
 # ZCode / Codex CLI
-cp -r $HOME/.agents/skills/sunxue ~/.zcode/skills/sunxue
+cp -r $HOME/.agents/skills/sunxue-skill ~/.zcode/skills/sunxue-skill
 
 # Claude Code
-cp -r $HOME/.agents/skills/sunxue ~/.claude/skills/sunxue
+cp -r $HOME/.agents/skills/sunxue-skill ~/.claude/skills/sunxue-skill
 
 # 软链
-ln -s $HOME/.agents/skills/sunxue ~/.zcode/skills/sunxue
+ln -s $HOME/.agents/skills/sunxue-skill ~/.zcode/skills/sunxue-skill
 ```
 
 ### 验证安装
 
 ```bash
-ls $HOME/.agents/skills/sunxue/
+ls $HOME/.agents/skills/sunxue-skill/
 # 应该看到：SKILL.md  VERSION  LICENSE  README.md  CHANGELOG.md
 #           references/  examples/  notes/  scripts/  tests/  src/  pyproject.toml
 ```

@@ -108,13 +108,14 @@ audit-v4（PLAN-audit-v4.md，v1.3.0 基线）9 维度正交审计（8 并行子
 ### Post-release fix（v1.3.1 tag 后）
 
 - **mutmut budget 120→180s**：预算收口后三连实测 mutmut 阶段 112.8 / 119.4 / 132.3s 抖动，120s 进入不稳定区；同源累积放宽（2607 变异体），gates_all=180s 维持。复验 `gates --all` 8/8 全绿 143.04s。
+- **BP-C1 目录同名红线解决（用户裁决）**：skill 命名定为 **`sunxue-skill`**——frontmatter `name: sunxue` → `sunxue-skill`（目录/仓库名保持不变），README 标题与 7 处安装路径联动；`skills-ref validate` 由 FAIL 转 PASS，官方规范「name 与目录同名」达成，H1「孙学 Skill v1.0」freeze 子串未动。
 
 ### Backlog（v1.4+ / 不在 1.3.1 范围）
 
 - mutmut 幸存率 50.7% → <10%（长期工程）
 - references >100 行加 TOC + ref→ref 链接标注（BP-C6；预算消耗项，落地后须复测 token_budget）
 - lint_structure 增补官方口径机检：name 格式 / 目录同名 / description ≤1024（BP-C12）；验收链加 `npx -y skills-ref validate .`
-- skills-ref 目录同名红线：仓库名 sunxue-skill vs skill name `sunxue`（BP-C1 用户决策点；现按「安装目录为 sunxue/ 与 name 一致」书面豁免）
+- ~~skills-ref 目录同名红线~~ ✅ 已裁决解决（v1.3.1 post-release：name 定为 `sunxue-skill`，validate 通过）
 - directory_counts 门禁补目录树条目校验（audit-v4 实证只查注释计数）
 - CI actions pin SHA；mutmut 报告 CI diff 守卫设计（N2 方案 a）
 - F15 scan_security → lint_security 改名 / F18 _ALL_CHAIN 外移（延续 v1.4）
