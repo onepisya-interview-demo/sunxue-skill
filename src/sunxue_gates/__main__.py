@@ -110,7 +110,7 @@ def _load_budgets(root: Path) -> dict[str, float]:
     upstream fix not released; the relaxation is a stop-gap until the
     upgrade. See ``pyproject.toml [tool.sunxue.budgets]`` for context.
     """
-    hardcoded_defaults: dict[str, float] = {"gates_all": 120.0, "pytest": 5.0, "mutmut": 120.0}
+    hardcoded_defaults: dict[str, float] = {"gates_all": 180.0, "pytest": 5.0, "mutmut": 120.0}
     pyproject = root / "pyproject.toml"
     if not pyproject.exists():
         return hardcoded_defaults

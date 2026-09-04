@@ -98,12 +98,12 @@ show_missing = true
 # sunxue_gates.__main__._load_budgets). The hard-coded safety net in
 # code mirrors these values; if you change one, change the other.
 [tool.sunxue.defaults]
-gates_all = 120
+gates_all = 180
 pytest = 5
 mutmut = 120
 
 [tool.sunxue.budgets]
-gates_all = 120
+gates_all = 180
 pytest = 5
 # mutmut budget: v1.2.2 起 45s → 120s。mutmut 3.7.0 跑 13 文件 2581 个
 # 变异实测 ~80s (v1.2.2 时点; v1.3 起 14 文件 2582, audit-v4 N11 更新),
@@ -114,6 +114,9 @@ pytest = 5
 # v1.3.0 集群 A 抽常量 + 集群 D 加 1 reference/1 example 表面略增, 累计
 # gates_all 实测 ~108s, 旧 60s budget 会撞 exit 75. gates_all 同步放宽
 # 60 → 120s. 这是 v1.2.2 mutmut budget 放宽的同源累积效应, 不算新债.
+# v1.3.1 (audit-v4): meta/yingxue 接线 + golden 扩五模块后变异体
+# 2582 → 2607, 全链实测 120.42s 顶破 120s gates_all budget (超 0.42s),
+# 同源累积效应再放宽 120 → 180s.
 mutmut = 120
 
 [tool.mutmut]

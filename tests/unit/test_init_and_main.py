@@ -138,7 +138,7 @@ class TestLoadBudgets:
     def test_loads_from_real_pyproject(self, skill_root: Path) -> None:
         budgets = _load_budgets(skill_root)
         assert set(budgets.keys()) >= {"gates_all", "pytest", "mutmut"}
-        assert budgets["gates_all"] == 120
+        assert budgets["gates_all"] == 180
         assert budgets["pytest"] == 5
         assert budgets["mutmut"] == 120
 
@@ -147,16 +147,16 @@ class TestLoadBudgets:
             '[project]\nname = "x"\nversion = "0"\n', encoding="utf-8"
         )
         budgets = _load_budgets(tmp_path)
-        assert budgets == {"gates_all": 120.0, "pytest": 5.0, "mutmut": 120.0}
+        assert budgets == {"gates_all": 180.0, "pytest": 5.0, "mutmut": 120.0}
 
     def test_defaults_when_pyproject_missing(self, tmp_path: Path) -> None:
         budgets = _load_budgets(tmp_path)
-        assert budgets == {"gates_all": 120.0, "pytest": 5.0, "mutmut": 120.0}
+        assert budgets == {"gates_all": 180.0, "pytest": 5.0, "mutmut": 120.0}
 
     def test_defaults_when_pyproject_malformed(self, tmp_path: Path) -> None:
         (tmp_path / "pyproject.toml").write_text("not = valid toml [[[", encoding="utf-8")
         budgets = _load_budgets(tmp_path)
-        assert budgets == {"gates_all": 120.0, "pytest": 5.0, "mutmut": 120.0}
+        assert budgets == {"gates_all": 180.0, "pytest": 5.0, "mutmut": 120.0}
 
     def test_partial_table_falls_back_per_key(self, tmp_path: Path) -> None:
         (tmp_path / "pyproject.toml").write_text(
@@ -164,7 +164,7 @@ class TestLoadBudgets:
         )
         budgets = _load_budgets(tmp_path)
         assert budgets["pytest"] == 7
-        assert budgets["gates_all"] == 120
+        assert budgets["gates_all"] == 180
         assert budgets["mutmut"] == 120
 
     def test_non_numeric_values_are_ignored(self, tmp_path: Path) -> None:
