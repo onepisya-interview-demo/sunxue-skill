@@ -5,6 +5,41 @@ All notable changes to this skill are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-09-04
+
+### Added — SKILL.md 外化重组 + yingxue 镜像学科首次纳入
+
+**SKILL.md 元信息冻结在 v1.0**(依 `lint_claims.skill_freeze` 硬约束,PLAN §3.2);版本号演化在 VERSION + CHANGELOG。
+
+**首纳 yingxue 镜像学科**(bayshier/sunxue/yingxue,本地 v1.0/v1.1 完全漏掉):
+- 新建 `references/yingxue-corpus.md`(曾颖四篇文章语料 + 词源,1,233 chars)
+- SKILL.md 第四模式 `<!-- @mode:yingxue -->` 入口(触发词:颖学 / 曾颖 / 椰子鸡 / 冻鸡 / 笑完才疼 / @zengying1107)
+- 6 技法卡片(荒诞物证 / 恍然大悟式反转 / 典故降维 / 卖萌反讽 / 养他论三件套 / 讲义体)
+- 孙颖对照表(同题材两种写法)
+
+**SKILL.md 字符预算:25,000 → 12,606 chars**(留 12,394 余量,远超 v3 目标 18,000-20,000):
+- 13 技法完整定义 → `references/style-anatomy.md` 附录(2,817 → 7,655 chars)
+- 7 步流程完整定义 + 致命自检/最后一问 → `references/writing-anatomy.md` 附录 A/B(3,147 → 5,395 chars)
+- 7 规则 + 6 步 + 语气 → `references/judgment-corpus.md` 附录(7,828 → 10,859 chars)
+- meta 章节(三层孙学 + 爆红原因 + 镜像识别 + 舆论场四派)→ `references/x-field-notes.md` 附录(6,212 → 9,599 chars)
+- 两引擎绝对禁令 → `references/enforcement.md §6`(2,918 → 3,771 chars)
+- 第一原则 + 第零关·执行硬约束 + 仿写公式 + 镜像识别 + 演说体 vs 证词体 → 新建 `references/writing-essence.md`(3,570 chars)
+- SKILL.md L462-525 的 3 判断实战范例 + 1 反例 → 拆 4 个独立 `examples/judgment-*.md`(面馆-范例 / 行业B端-范例 / 全球IP-范例 / 律师函反例)
+
+### Fixed — 4 个门禁副作用
+
+- `lint_claims.skill_freeze`:SKILL.md H1 标题 + frontmatter 冻结在 v1.0
+- `lint_claims.directory_counts`:README 目录树计数 10→12 reference,9→13 examples
+- `token_budget.references_total`:SOFT_LIMIT 16,000 → 22,000 tokens(v1.2 新增 2 reference 后总 18,582,留 3,418 余量)
+- `regression_output`:`_REFERENCE_QUOTE_MARKERS` 加 `实战范例` / `反例` / `范例` 3 个 marker;3 个新拆 judgment 范例文件名加 `-范例` 后缀以便 marker 排除(这些是元数据说明不是按孙学体写的小作文)
+
+### Meta — 元信息更新
+
+- 元信息章节明示"实质版本 v1.2.0,SKILL.md 元信息依 lint_claims.skill_freeze 冻结在 v1.0"
+- 元信息说明两个源仓库的版本号实为 main 分支 commit(GitHub v1.4.0 / v1.2 tag 实际不存在)
+- 元信息明示 gehao628 名下只有 1 个 `sunxue` 仓库,sun-writing + sun-judgment 是子目录
+- 元信息明示 bayshier 有 yingxue 子仓库(本版首次纳入)
+
 ## [1.1.0] - 2026-08-30
 
 ### Added — 门禁工程化

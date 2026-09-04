@@ -1,6 +1,6 @@
 [project]
 name = "sunxue-gates"
-version = "1.1.0"
+version = "1.2.0"
 description = "Seven-layer gate harness for the sunxue skill (lint, security, regression, token budget, injection drill, mutation drill, claims-lint)."
 readme = "README.md"
 requires-python = ">=3.11"
