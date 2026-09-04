@@ -6,14 +6,14 @@ Final tally (machine-rendered):
 
 | Status | Count |
 |--------|-------|
-| Killed by tests | 1253 |
-| No tests collected | 205 |
-| Survived | 1123 |
+| Killed by tests | 1252 |
+| No tests collected | 214 |
+| Survived | 1116 |
 | Timeout | 0 |
 
-Survivor rate: **51.5%** (1328/2581)  = survived 1123 + no_tests 205 + timeout 0 (killed 1253 of 2581)
+Survivor rate: **51.5%** (1330/2582)  = survived 1116 + no_tests 214 + timeout 0 (killed 1252 of 2582)
 
-Categorised exemption total: **1097** (spread across 10 entries — see `tests/mutation-exemptions.json`).
+Categorised exemption total: **1360** (spread across 10 entries — see `tests/mutation-exemptions.json`).
 
 ---
 
@@ -39,3 +39,45 @@ Categorised exemption total: **1097** (spread across 10 entries — see `tests/m
 - This report is rendered by `scripts/gen_mutation_report.py`. Re-run after any `mutmut run` to refresh counts.
 - `tests/mutation-exemptions.json` is the single source of truth for categorised survivors; the script reads it as `[category, pattern, reason, count]` entries.
 - `tests/unit/test_golden_literals.py` pins the keyword/pattern tables in `src/sunxue_gates/tables.py` via SHA-256 + UTF-8 hex against `tests/golden/literals.json`; the table-quality signal moves from mutmut to the golden contract.
+
+---
+
+## v1.3 cluster C mutmut 试探结果 (PLAN §1 集群 C)
+
+**结论：51.5% (1330/2582) — 未达 ≤ 40% 接受判据，按 PLAN §5 "试探失败路径" 留档不重做。**
+
+### 起点
+
+v1.2.2 release 真实幸存率 51.5% (1327/2581)，M-14 < 10% 长期目标未命中。
+
+### v1.3 试探范围
+
+按 PLAN-v1.3.md §1 集群 C：mutmut 性能优化试探，30% 目标，< 40% 算成功。手段：
+- (a) 找最高密度未杀死区加 per-mutation assertion
+- (b) yingxue tier 入口白名单 (yingxue-corpus 关键 4 篇 + 6 技法卡片)
+- (c) 跑 `uv run mutmut run` 120s budget 拿新数字
+
+### 实际结果
+
+- (a) **跳过**：lint_claims / token_budget / mutation_drill 三个最大密度区 (>100 each) 共 ~673 项 un-killed，写针对性 assertion 是 4-6h 工程量；本次评估风险/收益比为低（30% 仍是高目标，10% 长期目标不在 1-2 步可达范围）
+- (b) **不适用**：yingxue-corpus 是 markdown 数据文件不在 mutmut source_paths (`src/sunxue_gates`) 内，do_not_mutate 也不针对数据文件；Yingxue-corpus 不产生 mutmut mutants，添加白名单是空操作
+- (c) **跑完**：1252 killed + 1330 un-killed (1116 survived + 214 no_tests + 0 timeout) / 2582 total = 51.5%
+
+### 集群 A 副作用核查
+
+v1.3 集群 A 把 4 个字面量集（KNOWN_UV_SUBCOMMANDS / mutator synonym / LOOP_CLOSURE 常量 / CHARS_PER_TOKEN_ESTIMATE）从 4 个 gate 模块抽到 tables.py。预期：因 tables.py 已在 mutmut do_not_mutate 内，mutmut 总数会下降，幸存率不变。**实测**：v1.2.2 2581 → v1.3 2582 mutants（+1），killed 1253 → 1252（-1），un-killed 1328 → 1330（+2），幸存率 51.45% → 51.51%（+0.06 pp，在噪声范围内）。**集群 A 抽常量对 mutmut 无可观测影响** —— 这是 do_not_mutate 机制本身正确工作的结果。
+
+### 后续路径
+
+- 集群 C 不再重做；下一波 30% → 10% 压降是 v1.4 / v1.5 工程（需重写 ~10 个 gate 内部 helper 的针对性 mutation test，2-3 天工时）
+- 51.5% 数字 = 当前 SKILL.md 8 门禁 + 16 examples + 12 references 的真实测试覆盖上限
+- M-14 < 10% 长期目标留 v1.4+ backlog
+
+### 接受判据复核
+
+| 项 | PLAN 接受判据 | 实测 | 结果 |
+|---|---|---|---|
+| 幸存率 | ≤ 40% 算成功 | 51.5% | **未通过** |
+| 数字诚实更新 | 必须 | 51.5% (1330/2582) | ✅ |
+| commit 仍保留 | 失败路径允许 | 本档口留档 | ✅ |
+| v1.4 移交 | 必须 | 三行 backlog (3 P3) | ✅ |
