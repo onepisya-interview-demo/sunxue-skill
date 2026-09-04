@@ -44,8 +44,12 @@
 skill 目录已就位（按实际安装路径替换）：
 
 ```
-<skill-install-path>/sunxue/
+$HOME/.agents/skills/sunxue/
 ```
+
+> **注**: `<skill-install-path>` 占位符示意安装根目录。实际路径因启动器而异:
+> ZCode = `$HOME/.zcode/skills/sunxue/`; Claude Code = `$HOME/.claude/skills/sunxue/`;
+> Hermes = `$HOME/.agents/skills/sunxue/`。下面示例用 `$HOME/.agents/skills/sunxue/`。
 
 启动器在启动时会自动同步 `.skills/` 下的 skill。无需额外步骤。
 
@@ -53,19 +57,19 @@ skill 目录已就位（按实际安装路径替换）：
 
 ```bash
 # ZCode / Codex CLI
-cp -r <skill-install-path>/sunxue ~/.zcode/skills/sunxue
+cp -r $HOME/.agents/skills/sunxue ~/.zcode/skills/sunxue
 
 # Claude Code
-cp -r <skill-install-path>/sunxue ~/.claude/skills/sunxue
+cp -r $HOME/.agents/skills/sunxue ~/.claude/skills/sunxue
 
 # 软链
-ln -s <skill-install-path>/sunxue ~/.zcode/skills/sunxue
+ln -s $HOME/.agents/skills/sunxue ~/.zcode/skills/sunxue
 ```
 
 ### 验证安装
 
 ```bash
-ls <skill-install-path>/sunxue/
+ls $HOME/.agents/skills/sunxue/
 # 应该看到：SKILL.md  VERSION  LICENSE  README.md  CHANGELOG.md
 #           references/  examples/  notes/  scripts/  tests/  src/  pyproject.toml
 ```
@@ -222,7 +226,7 @@ sunxue/
 ├── PLAN-audit-v3.md                  # v1.2.1 全面审计计划（已实施归档）
 ├── CHANGELOG.md                      # v1.2.1 audit 收口 / v1.2.0 yingxue+SKILL.md 外化 / v1.1.0 门禁工程化 / v1.0.0 合并首发
 ├── pyproject.toml                    # uv 配置 + dev 工具链
-├── uv.lock                           # 锁定依赖图
+├── uv.lock                           # 锁定依赖图 (本仓库 tracked, v1.2.1 audit 起入 git)
 ├── src/
 │   └── sunxue_gates/                 # 门禁包（八门禁 + 共享解析 + 结果类型）
 │       ├── __init__.py               # GATES 元组 + run() / run_all()
@@ -311,6 +315,13 @@ sunxue/
 本 skill 仅摘引片段作技法分析与语料研究，不修改、不续写、不商化原始内容。
 
 ---
+
+## 平台限制
+
+- **macOS GitHub Actions runner**: 默认 `macos-14` runner 上 mutmut 阶段会撞 libcst Rust 编译 + fork() 兼容性, 性能约为 Linux runner 的 30-50%。如需在 CI 跑 `gates --all`, 推荐 `ubuntu-latest` 跑 mutation 阶段, macOS 仅跑快速 7 门 (`uv run gates`)。
+- **Windows 原生**: 不支持。mutmut 需要 `fork()`, Windows 必须在 WSL 内运行。
+- **Python 版本**: ≥ 3.10 (mutmut 3.7.x 需要 py3.10+; pyproject.toml `target-version = "py311"`)。
+- **磁盘**: `mutmut` 阶段会临时生成 `mutants/` 目录 (默认几十 MB), `gates --all` 跑完自动清理。
 
 ## 免责声明
 
