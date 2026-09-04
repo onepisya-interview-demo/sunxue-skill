@@ -11,48 +11,16 @@ Covers:
 
 from __future__ import annotations
 
-import subprocess
-import sys
 from pathlib import Path
 
+from ._helpers import REPO_ROOT, run_script
 
-# Repo root — discovered by walking up from this test file until we
-# find a directory that is the *real* sunxue-skill repo root, not a
-# mutmut sandbox.
-#
-# mutmut 3.x's runner copies ``pyproject.toml`` + ``src/`` + ``tests/``
-# under a ``mutants/`` directory and ``chdir``s into it before
-# invoking pytest. A naive ``pyproject.toml + src/`` check would
-# match ``mutants/`` and resolve SCRIPT to the wrong path. The
-# disambiguator is the ``scripts/`` directory: it lives only at the
-# real repo root, never in the mutmut sandbox.
-def _find_repo_root(start: Path) -> Path:
-    for candidate in [start, *start.parents]:
-        if (
-            (candidate / "pyproject.toml").is_file()
-            and (candidate / "src").is_dir()
-            and (candidate / "scripts").is_dir()
-        ):
-            return candidate
-    raise RuntimeError(
-        f"could not locate repo root (no pyproject.toml + src/ + scripts/ above {start})"
-    )
-
-
-REPO_ROOT = _find_repo_root(Path(__file__).resolve().parent)
 SCRIPT = REPO_ROOT / "scripts" / "writing_gate.py"
 
 
-def _run(args: list[str], *, stdin_text: str | None = None) -> subprocess.CompletedProcess[str]:
-    """Invoke the CLI with ``args`` and capture stdout/stderr separately."""
-    return subprocess.run(  # noqa: S603 — intentional CLI invocation in tests
-        [sys.executable, str(SCRIPT), *args],
-        cwd=str(REPO_ROOT),
-        capture_output=True,
-        text=True,
-        timeout=30,
-        input=stdin_text,
-    )
+def _run(args: list[str], *, stdin_text: str | None = None):
+    """Thin shim so the existing test bodies keep using ``_run`` unchanged."""
+    return run_script(SCRIPT, args, stdin_text=stdin_text)
 
 
 class TestCliContract:
