@@ -315,7 +315,10 @@ sunxue/
 │   ├── scripts-README.md                # v1.2.1 新增：3 个非门禁脚本的 owner 文档（coherence_gate / writing_gate / gen_mutation_report）
 │   ├── PLAN-v1.2.2.md                   # v1.2.2 patch 计划（已实施归档）
 │   ├── PLAN-audit-v3.md                 # v1.2.1 全面审计计划（已实施，audit-v4 H-2 归档至此）
-│   └── audit-v3-{map,consistency,infoflow,code-review,peer,example-qual,hygiene,final-report}.md + audit-v3.1/v3.2-final-report.md  # v1.2.1 audit 7 份子报告 + 三代最终报告
+│   ├── PLAN-audit-v4.md                 # v1.3.1 全面审计计划（已实施归档）
+│   ├── PLAN-audit-v3.md                 # v1.2.1 全面审计计划（已实施，audit-v4 H-2 归档至此）
+│   ├── audit-v3-{map,consistency,infoflow,code-review,peer,example-qual,hygiene,final-report}.md + audit-v3.1/v3.2-final-report.md  # v1.2.1 audit 7 份子报告 + 三代最终报告
+│   └── audit-v4-{map,conflicts,infoflow,code-review,hygiene,example-qual,best-practice,deps,peer}.md + audit-v4-final-report.md  # v1.3.1 audit 9 份维度报表 + 最终报告
 ├── scripts/                             # 辅助脚本（3 个非门禁脚本：coherence_gate / writing_gate / gen_mutation_report；owner 详见 notes/scripts-README.md）
 └── tests/                            # pytest 测试树（unit + property + integration + golden + live）
     ├── README.md                     # 八层门禁命令表 + 质量五维映射 + 测试思路指针
