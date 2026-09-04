@@ -35,6 +35,6 @@ Copyright (c) 2026 bayshier
 
 ## 本技能的立场与致谢
 
-- 原文全文版权归原作者孙宇晨所有，完整文本请前往 [HEJustinSun/my-girlfriend-jingtian-latex](https://github.com/HEJustinSun/my-girlfriend-jingtian-latex) 阅读；本技能仅摘引片段作技法分析。
+- 原文全文版权归原作者孙宇晨所有，完整文本请前往 [HEJustinSun/my-girlfriend-jingtian-latex](https://github.com/HEJustinSun/my-girlfriend-jingtian-latex) 阅读；本技能仅摘引片段作技法分析。（2026-09-04 快照：该仓库与账号已 404；本地摘录见 `references/jingtian-essay-7000.md`）
 - 技能结构参考了社区先行工作 [KKKKhazix/sun-style-writing](https://github.com/KKKKhazix/sun-style-writing)（"从孙割 19 年白月光的痛彻心扉中蒸馏出来的无上心法"）；本技能的技法体系、命名与文本拆解为独立原创。
 - 文中涉及的人物与事件均为公开报道事实；本技能不对其中的私人关系做任何判断。

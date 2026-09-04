@@ -3,7 +3,7 @@ Source: gehao628/sun-writing
 Original path: sun-writing/references/checklist.md
 Original license: MIT
 Copyright (c) 2026 gehao628
-来源仓库: https://github.com/gehao628/sun-writing (v1.2)
+来源仓库: https://github.com/gehao628/sunxue/tree/main/sun-writing (v1.2)
 原内容用途: 16 项硬性计数自检（v1.1.0 增补 1 项虚构红线）+ 结构检查 + 致命自检
 合并说明: 文件名在合并 skill 中重命名为 writing-checklist.md 以与 judgment-checklist 区分
 -->

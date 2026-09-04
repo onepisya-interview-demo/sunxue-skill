@@ -3,7 +3,7 @@ Source: gehao628/sun-writing
 Original path: sun-writing/references/anatomy.md
 Original license: MIT
 Copyright (c) 2026 gehao628
-来源仓库: https://github.com/gehao628/sun-writing (v1.2)
+来源仓库: https://github.com/gehao628/sunxue/tree/main/sun-writing (v1.2)
 原内容用途: 一篇小作文的完整解剖 + 五幕骨架 + 数字骨架 + 可复用句式
 合并说明: 文件名在合并 skill 中重命名为 writing-anatomy.md 以避免与 bayshier/style-anatomy.md 混淆
 -->

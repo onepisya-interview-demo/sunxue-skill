@@ -254,7 +254,6 @@ sunxue/
 ├── VERSION                           # 1.3.0
 ├── LICENSE                           # MIT + 双源版权声明
 ├── README.md                         # 本文件
-├── PLAN-audit-v3.md                  # v1.2.1 全面审计计划（已实施归档）
 ├── notes/PLAN-v1.3.md                # v1.3 集群计划（已实施归档）
 ├── notes/audit-v3.2-final-report.md  # v1.3 release 最终报告
 ├── CHANGELOG.md                      # v1.3.0 命名/常量清理+内容扩 / v1.2.2 patch 收口 / v1.2.1 audit 收口 / v1.2.0 yingxue+SKILL.md 外化 / v1.1.0 门禁工程化 / v1.0.0 合并首发
@@ -315,6 +314,7 @@ sunxue/
 │   ├── testing.md                       # 测试思路（五层金字塔与豁免政策）
 │   ├── scripts-README.md                # v1.2.1 新增：3 个非门禁脚本的 owner 文档（coherence_gate / writing_gate / gen_mutation_report）
 │   ├── PLAN-v1.2.2.md                   # v1.2.2 patch 计划（已实施归档）
+│   ├── PLAN-audit-v3.md                 # v1.2.1 全面审计计划（已实施，audit-v4 H-2 归档至此）
 │   └── audit-v3-{map,consistency,infoflow,code-review,peer,example-qual,hygiene,final-report}.md + audit-v3.1/v3.2-final-report.md  # v1.2.1 audit 7 份子报告 + 三代最终报告
 ├── scripts/                             # 辅助脚本（3 个非门禁脚本：coherence_gate / writing_gate / gen_mutation_report；owner 详见 notes/scripts-README.md）
 └── tests/                            # pytest 测试树（unit + property + integration + golden + live）
@@ -350,7 +350,7 @@ sunxue/
 
 - **写作心法与三层孙学** —— 来自 [bayshier/sunxue](https://github.com/bayshier/sunxue)（MIT）
 - **写作机械结构与判断引擎** —— 来自 [gehao628](https://github.com/gehao628)（MIT）
-- **范本原文** —— 来自 [HEJustinSun/my-girlfriend-jingtian-latex](https://github.com/HEJustinSun/my-girlfriend-jingtian-latex)（《我的女友景甜》全文版权归原作者孙宇晨所有）
+- **范本原文** —— 来自 [HEJustinSun/my-girlfriend-jingtian-latex](https://github.com/HEJustinSun/my-girlfriend-jingtian-latex)（《我的女友景甜》全文版权归原作者孙宇晨所有；2026-09-04 快照：该仓库与账号已 404，疑似注销/改名，本地摘录见 `references/jingtian-essay-7000.md`）
 
 本 skill 仅摘引片段作技法分析与语料研究，不修改、不续写、不商化原始内容。
 

@@ -1,6 +1,6 @@
 <!--
 Source: bayshier/sunxue (v1.4.0, main 分支 2026-08-28 commit)
-Original path: yingxue/references/anatomy.md
+Original path: yingxue/references/corpus.md（本文件为 v1.3.0 本地归纳件；上游 yingxue/references/ 仅有 corpus.md，audit-v4 H-6 勘误）
 Original license: MIT
 Copyright (c) 2026 bayshier
 来源仓库: https://github.com/bayshier/sunxue

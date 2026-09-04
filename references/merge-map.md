@@ -5,7 +5,7 @@ Original license: MIT
 Copyright (c) 2024-2026 bayshier; 2026 gehao628
 Source repos:
   - https://github.com/bayshier/sunxue (v1.4.0)
-  - https://github.com/gehao628/sun-writing (v1.2)
+  - https://github.com/gehao628/sunxue/tree/main/sun-writing (v1.2)
 Original content purpose: cross-walk table showing how the 22 technique rules
 (bayshier 10 + gehao628 12) merge into the 13 core techniques that drive the
 SKILL.md writing engine. The table makes provenance auditable: every one of
