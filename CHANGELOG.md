@@ -5,6 +5,62 @@ All notable changes to this skill are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-09-04
+
+### Added — v1.3 集群实施 (5 集群 / 4 commits + 1 release + 1 归档)
+
+v1.2.1 audit + v1.2.2 patch 后剩余的命名/常量债 + 内容扩 + mutmut 试探一次性收口。沿用同 Conventional Commits + WHAT/WHY/HOW 规范。**不推到 PyPI**（仓库无 origin remote，v1.3 tag 仅本地）。
+
+**集群 A — 7 项 P2/P3 命名/常量清理 (commit 8ddb12f)**
+
+tables.py / `__init__.py` / `pyproject.toml` 真源化 + 1 个 helper：
+
+- F7 `token_budget._estimate_with_mode(text, size, precise)` 抽 helper, 2 处 dispatch 重复消除
+- F8 `sunxue_gates.get_gates_flags()` frozenset 抽到 `__init__.py`, `lint_claims._GATES_FLAGS` 改为导入, 防止与 `__main__` 漂移
+- F9 `lint_claims._KNOWN_UV_SUBCOMMANDS` 9 条 → `tables.KNOWN_UV_SUBCOMMANDS` (mutmut do_not_mutate 覆盖 + golden literals 双重保护)
+- F14 `_load_budgets` defaults 走 pyproject `[tool.sunxue.defaults]`, 硬编码 60/5/120 变 last-resort safety net
+- F16 `count_loop_closure` 4/20 魔数 → `tables.LOOP_CLOSURE_MIN/MAX_LEN`
+- F17 `token_budget.CHARS_PER_TOKEN` 3 魔数 → `tables.CHARS_PER_TOKEN_ESTIMATE` (仍重导出 `CHARS_PER_TOKEN` 保 API 兼容)
+- F21 `mutation_drill.mutate_synonym/split/soften` 3 张内联表 → `tables.MUTATION_SYNONYMS` / `MUTATION_SPLIT_WORDS` / `MUTATION_SOFTEN_REPLACEMENTS`
+
+**集群 B — 抽 tests/integration/_helpers.py (commit 158f82e)**
+
+- 新建 `tests/integration/_helpers.py` 暴露 `find_repo_root()` + `run_script(script, args)` + `REPO_ROOT` 三个公开名字
+- `test_coherence_gate_cli.py` + `test_writing_gate_cli.py` 保留 `_run(args)` 瘦 shim 一行透传, body 不动
+- 新增 `tests/integration/__init__.py` 让 pytest 把该目录当 package 收集 (与其他 `tests/unit` 等子目录对齐)
+
+**集群 C — mutmut 性能优化试探 (commit 1f02cc2, 试探失败留档)**
+
+- 实测 1252 killed + 1330 un-killed (1116 survived + 214 no_tests + 0 timeout) / 2582 total = **51.5%**
+- 未达 ≤ 40% 接受判据 (PLAN-v1.3 §1 集群 C), 走「试探失败路径」: commit 仍保留 + 数字按真实值更新 + 后续路径留 v1.4+
+- 集群 A 副作用核查: v1.2.2 51.45% → v1.3 51.51% (+0.06 pp, 在噪声范围) - do_not_mutate 机制本身正确工作, 抽常量对 mutmut 无可观测影响
+- 30% → 10% 压降是 v1.4+ 工程 (~2-3 天写 10 个 helper 的针对性 mutation test), 不属 v1.3 试探窗口
+
+**集群 D — 内容扩 (commit 4322b11)**
+
+- 新建 `references/yingxue-anatomy.md` (7621 chars, 仿 `writing-anatomy.md` 结构): 6 技法卡片 (荒诞物证 / 恍然大悟式反转 / 典故降维 / 自降咖位 / 数字的喜剧用法 / 短句停顿) + 四篇骨架表 + 颖学 vs 孙学对照表 + 7 步流程接续点
+- 新建 `examples/writing-我沉默了-强示范.md` (5274 chars): 装修工单题材, 我沉默了触发词 15 次覆盖 count_chen_mo 7 个正则全部命中, 我说好 16 次, 闭环句 3 (清单念完我沉默了 / 工单结束了 / 门牌号 1207 是我的), 物件 callback 那把电锤贯穿, 结尾 1 直接提问
+- 同步: `README.md` 目录树注释 12 reference→13 / 16 example→17; `AGENTS.md` L10 references_total 18,943→20,279 tokens / 56,837→60,847 chars
+
+### 跳过的 5 项 (PLAN §5 实施差异预案)
+
+- F10 `writing_gate.py sys.path.insert` 改 pip-install 涉及包安装流程, 留 v1.3.1
+- F11/F12 v1.2.1 实施时已修 (gen_mutation_report 静默吞错 stderr + MUTMUT_BIN env override)
+- F13 `_disk_count` 描述含糊, 留 v1.3.1
+- F15 `scan_security` → `lint_security` 改名触动 5+ docs (PLAN §5 实施差异预案), 留 v1.4
+- F18 `_ALL_CHAIN` → pyproject 涉及 CLI 行为变更, 风险/收益比高, 留 v1.4
+
+### Backlog (v1.4+ / 不在 1.3 范围)
+
+- mutmut 幸存率 30% → 10% 压降 (v1.3.0 集群 C 试探失败的延续, ~2-3 天工程)
+- 3 P3 命名/卫生小修 (F13 / F15 / F18) + mutmut 3.7.1+ 升级 (3.7.1 PyPI 不存在, monitor 模式)
+
+### Fixed
+
+- 8/8 门禁全绿 (含 1 个新 reference + 1 个新 example 后 regression_output 仍 PASS)
+- 335 tests pass (含 1 个新 example 16/16 writing tier 硬指标全 OK)
+- 16 examples / 13 references / 4 模式 / 3 scripts / 8 门禁 (与 1.2.2 一致; 新增项已在 clusters A/B/D 列明)
+
 ## [1.2.1] - 2026-09-04
 
 ### Added — v1.2.0 全面 audit 收口
