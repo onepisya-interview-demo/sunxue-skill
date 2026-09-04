@@ -2,10 +2,10 @@
 
 > 合并自 [`bayshier/sunxue`](https://github.com/bayshier/sunxue) v1.4.0
 > + [`gehao628`](https://github.com/gehao628) `sun-writing` + `sun-judgment` v1.2。
-> 三个子模式（writing / judgment / meta）合装在一个 skill 内，
+> 四个子模式（writing / judgment / meta / **yingxue**）合装在一个 skill 内，
 > 触发词命中哪个子模式就只加载对应章节。
 
-**版本**：v1.1.0（七层 Python 门禁工程化）
+**版本**：v1.2.1（八层 Python 门禁工程化 + audit 修复批次）
 **License**：MIT（双源版权 + 原文版权归原作者，详见 [LICENSE](./LICENSE)）
 
 > **元信息冻结**：SKILL.md 自 v1.0 起冻结（字符数顶在 lint 门禁上限）。
@@ -215,15 +215,16 @@ ls <skill-install-path>/sunxue/
 
 ```
 sunxue/
-├── SKILL.md                          # 三模式入口（元信息冻结；v1.1 减重后 23,865 字符）
-├── VERSION                           # 1.1.0
+├── SKILL.md                          # 四模式入口（元信息冻结；v1.2.0 外化后 12,606 chars；v1.2.1+ 不动）
+├── VERSION                           # 1.2.1
 ├── LICENSE                           # MIT + 双源版权声明
 ├── README.md                         # 本文件
-├── CHANGELOG.md                      # v1.1.0 门禁工程化 / v1.0.0 合并首发
+├── PLAN-audit-v3.md                  # v1.2.1 全面审计计划（已实施归档）
+├── CHANGELOG.md                      # v1.2.1 audit 收口 / v1.2.0 yingxue+SKILL.md 外化 / v1.1.0 门禁工程化 / v1.0.0 合并首发
 ├── pyproject.toml                    # uv 配置 + dev 工具链
 ├── uv.lock                           # 锁定依赖图
 ├── src/
-│   └── sunxue_gates/                 # 门禁包（七门禁 + 共享解析 + 结果类型）
+│   └── sunxue_gates/                 # 门禁包（八门禁 + 共享解析 + 结果类型）
 │       ├── __init__.py               # GATES 元组 + run() / run_all()
 │       ├── __main__.py               # `python -m sunxue_gates` 串跑入口
 │       ├── results.py                # CheckResult / GateResult dataclass
@@ -239,15 +240,17 @@ sunxue/
 ├── references/                       # 12 个 reference（原样搬运 + 技法注解 + 门禁契约 + 第 7.2 步内容自洽性扫描 + v1.2 写作总纲 + yingxue 语料）
 │   ├── style-anatomy.md              # bayshier 原文例证 10 技法（与 gehao628 合并去重后形成 SKILL.md 的 13 条核心技法）
 │   ├── x-field-notes.md              # bayshier X 舆论场 + 曾颖讲义 + 三层孙学
-│   ├── writing-anatomy.md            # gehao628 sun-writing（五幕骨架 + 数字骨架）
-│   ├── writing-checklist.md          # gehao628 sun-writing（17 项硬计数自检）— 16 项硬指标的真源
-│   ├── judgment-corpus.md            # gehao628 sun-judgment（核实语料 + 禁用清单）
+│   ├── writing-anatomy.md            # gehao628 sun-writing（五幕骨架 + 数字骨架 + 7 步流程 + 致命自检/最后一问附录 A/B）
+│   ├── writing-checklist.md          # gehao628 sun-writing（16 项硬自检）— 17 项 EXPECT 字典的真源（含场景切换/闭环句）
+│   ├── judgment-corpus.md            # gehao628 sun-judgment（核实语料 + 7 规则 + 6 步 + 语气 + 防翻车禁用）
 │   ├── background.md                 # bayshier 孙宇晨其人 + 事件脉络
 │   ├── jingtian-essay-7000.md        # 孙宇晨原作《我的女友景甜》原文片段
 │   ├── merge-map.md                  # 22 条 → 13 条去重映射表（v1.1.0 从 SKILL.md 外迁，plan 3.2）
-│   ├── enforcement.md                # 交付期门禁契约 + 跨宿主诚实声明（synthesis 档 ① 外置）
-│   └── coherence-checklist.md        # SKILL.md 第 7.2 步内容自洽性扫描 SOP（5 项检查 + 报告格式）
-├── examples/                         # 13 个真实样本（无占位；v1.2 新增 4 个判断实战范例独立文件）
+│   ├── enforcement.md                # 交付期门禁契约 + 跨宿主诚实声明 + 两引擎绝对禁令 §6
+│   ├── coherence-checklist.md        # SKILL.md 第 7.2 步内容自洽性扫描 SOP（5 项检查 + 报告格式）
+│   ├── writing-essence.md            # v1.2.0 新增：第一原则 + 第零关 + 仿写公式 + 镜像识别 + 演说体 vs 证词体
+│   └── yingxue-corpus.md             # v1.2.0 新增：曾颖四篇语料（冻鸡/椰子鸡/15688 消息/养他论）+ 词源
+├── examples/                         # 14 个真实样本（v1.2.1 含 1 个 meta 真样本；8 写作 + 5 判断 + 1 meta）
 │   ├── writing-巴菲特午餐.md         # gehao628：用孙文体写孙本人
 │   ├── writing-示例2-被割版.md       # 真实完整稿（v1.0 误标占位，v1.1 更正）
 │   ├── writing-示例3-AI时代前端.md   # regression_output 真实样本
@@ -256,23 +259,30 @@ sunxue/
 │   ├── writing-七年通勤.md           # 通勤七年账本（plan 3.1 sample-expansion）
 │   ├── writing-五次打印机.md         # 五次打印机报价单（plan 3.1 sample-expansion）
 │   ├── writing-清仓大甩卖.md         # 清仓大甩卖话术（plan 3.1 sample-expansion）
-│   └── judgment-老客户账期.md         # gehao628：账期四波
+│   ├── judgment-老客户账期.md         # gehao628：账期四波
+│   ├── judgment-面馆-范例.md         # v1.2.0 拆分：3 公里面馆上热搜（规则 0/2/3 强示范）
+│   ├── judgment-行业B端-范例.md      # v1.2.0 拆分：B 端借势蹭争议（规则 0/4/5/7 边界三问）
+│   ├── judgment-全球IP-范例.md        # v1.2.0 拆分：500 万买事件（规则 0/1/2/3 强示范）
+│   ├── judgment-律师函反例.md         # v1.2.0 拆分：发律师函的边界失败（规则 4/5/7 反例）
+│   └── meta-注意力定价-bug-disclosure.md  # v1.2.1 收口：注意力定价三层拆解（meta 真样本）
 ├── notes/                               # 开发笔记（踩坑 / 手册 / 学习 / 测试思路）
 │   ├── pitfalls.md                      # 踩坑记录（10 条实战坑）
 │   ├── runbook.md                       # 操作手册（搭建 / 日常 / 发版 / 受限环境）
 │   ├── learning.md                      # 学习笔记（门禁分层设计理念）
-│   └── testing.md                       # 测试思路（五层金字塔与豁免政策）
-├── assets/                           # 推广海报
-│   ├── promo-1.jpg
-│   └── promo-2.jpg
-├── scripts/                             # 辅助脚本（gen_mutation_report.py）
-└── tests/                            # pytest 测试树（unit + property + live）
-    ├── README.md                     # 七层门禁命令表 + 质量五维映射 + 测试思路指针
+│   ├── testing.md                       # 测试思路（五层金字塔与豁免政策）
+│   ├── scripts-README.md                # v1.2.1 新增：3 个非门禁脚本的 owner 文档（coherence_gate / writing_gate / gen_mutation_report）
+│   └── audit-v3-{map,consistency,infoflow,code-review,peer,example-qual,hygiene,final-report}.md  # v1.2.1 audit 7 份子报告 + 最终报告
+├── scripts/                             # 辅助脚本（3 个非门禁脚本：coherence_gate / writing_gate / gen_mutation_report；owner 详见 notes/scripts-README.md）
+└── tests/                            # pytest 测试树（unit + property + integration + golden + live）
+    ├── README.md                     # 八层门禁命令表 + 质量五维映射 + 测试思路指针
     ├── conftest.py                   # 共享 fixtures
-    ├── unit/                         # 纯函数单元测试
-    ├── property/                     # hypothesis 属性测试
-    ├── test_gates_live.py            # 对当前仓库跑七门禁 run()，断言 PASS（旧行为回归）
-    └── mutation-report.md            # mutmut 3.x triage 报告（豁免台账见 mutation-exemptions.json）
+    ├── unit/                         # 纯函数单元测试（12 文件，10 门禁模块全覆盖）
+    ├── property/                     # hypothesis 属性测试（14 个 @given 不变量）
+    ├── integration/                  # scripts/ CLI 契约测试（2 文件：writing_gate + coherence_gate）
+    ├── golden/                       # 字面量金样（literals.json SHA-256 + hex_utf8 双签名，4 门覆盖）
+    ├── test_gates_live.py            # 对当前仓库跑八门禁 run()，断言 PASS（旧行为回归）
+    ├── mutation-report.md            # mutmut 3.x triage 报告（豁免台账见 mutation-exemptions.json）
+    └── mutation-exemptions.json      # 49.5% 幸存者的豁免理由 JSON
 ```
 
 ---
@@ -281,6 +291,8 @@ sunxue/
 
 | 版本 | 日期 | 说明 |
 |---|---|---|
+| 1.2.1 | 2026-09-04 | **全面 audit 收口**：七→八门禁口径统一 / meta 模式首个真样本 / examples 14 / scripts 3 个 owner 文档 / 16/17 项硬指标口径统一 / 目录树补项 |
+| 1.2.0 | 2026-09-04 | SKILL.md 元信息冻结 12,606 chars 外化重组 + yingxue 第四模式首次纳入（曾颖四篇语料 → references/yingxue-corpus.md）|
 | 1.1.0 | 2026-08-30 | 门禁工程化：src/sunxue_gates package + uv scaffold + tests/ 测试树（202 pytest 100% 覆盖） |
 | 1.0.0 | 2026-08-28 | 合并首发：bayshier/sunxue v1.4.0 + gehao628 sun-writing + sun-judgment |
 
