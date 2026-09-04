@@ -29,11 +29,12 @@
 > （命名 / 心法 / 元反思三个层）。与 gehao628 的 12 条硬规则合并去重后，
 > 形成 SKILL.md 的 **13 条核心技法**（去重不丢粒度）。详见 CHANGELOG 1.1.0。
 
-合并后形成**三个子模式**：
+合并后形成**四个子模式**：
 
 1. **`writing`** —— 用孙宇晨体写克制白描散文
 2. **`judgment`** —— 注意力定价与商业判断
 3. **`meta`** —— 三层孙学反思（文本 / 系统 / 修行）
+4. **`yingxue`** —— 曾颖深情喜剧学（笑点在前、痛点在后；v1.2.0 首纳）
 
 ---
 
@@ -112,17 +113,24 @@ ls $HOME/.agents/skills/sunxue/
 
 产出预期：文本层 / 系统层 / 修行层的三层拆解。
 
+**模式 4 · yingxue（深情喜剧学）** —— 带上旧情或亲情的真实细节：
+
+> 用颖学写一段：他寄的冻鸡被海关扣了，打电话让我去认领……
+
+产出预期：一篇让人「又笑又心疼」的深情文——荒诞实物承载深情，结尾一句「原来…」立刻收笔。
+
 ### 素材给法（决定产出上限）
 
 - **writing**：带着真实细节来（时间、地点、金额、对话）——被割场景（被分手 / 被骗 / 亏损 / 裁员）威力最大
 - **judgment**：给清处境、预算与目标声量，让引擎给动作定价
 - **meta**：给一个具体的文本或现象，别问空泛问题
+- **yingxue**：给一段旧情/亲情的真实细节，让荒诞实物（冻鸡 / 椰子鸡 / 消息条数）替你说深情
 
 ### 铁律（来自 SKILL.md，触发前必读）
 
-1. writing 只用于散文回忆，judgment 只用于商业决策——**两个引擎互不污染**
+1. writing/yingxue 只用于散文回忆，judgment 只用于商业决策——**引擎互不污染**
 2. 严禁用 judgment 给真人真事定罪
-3. 严禁用 writing 把普通生活写成营销稿
+3. 严禁用 writing/yingxue 把普通生活写成营销稿
 4. 原作版权归原作者；本 skill 仅摘引片段作技法分析
 
 ### 触发不中怎么办
@@ -131,20 +139,19 @@ ls $HOME/.agents/skills/sunxue/
 - 或直接点名子模式：「用 writing 引擎写……」「进入 judgment 模式……」
 - 一个输入只针对一个引擎——把写作和决策两类需求揉进同一句话，路由会含糊
 
-各模式的完整触发词、适合场景与 reference 索引，见下节「三模式说明」。
+各模式的完整触发词、适合场景与 reference 索引，见下节「四模式说明」。
 
 ---
 
-## 三模式说明
+## 四模式说明
 
 ### 模式 1：writing（写作引擎）
 
 **触发词**：
 
-- 孙宇晨体 / 用孙宇晨的风格写 / 用孙哥的风格写
-- sun-writing / 把这段经历写成小作文
-- 景甜式写法 / 克制白描 / 像孙学一样写
-- 被割版 / 写一段（关系/经历/失去/徒劳）
+- 孙宇晨体 / 用孙宇晨的风格写 / 孙哥风格
+- 景甜式白描 / 冷叙事 / 被割版
+- 把这段经历写成小作文
 
 **适合场景**：
 
@@ -155,18 +162,19 @@ ls $HOME/.agents/skills/sunxue/
 
 **会用到的 reference**：
 
-- `references/writing-anatomy.md` —— 五幕骨架解剖
-- `references/writing-checklist.md` —— 16 项硬计数自检（v1.1.0 增补 1 项虚构红线）
-- `references/style-anatomy.md` —— 10 技法原文例证（与 gehao628 技法合并去重后形成 SKILL.md 的 13 条核心技法）
-- `examples/writing-巴菲特午餐.md` —— 用孙文体写孙本人
+- `references/writing-essence.md` —— 第一原则（温度计归零）+ 第零关闸门（动笔前必读）
+- `references/style-anatomy.md` —— 13 技法完整定义 + 原文例证
+- `references/writing-anatomy.md` —— 7+1 步流程逐幕机械做法
+- `references/writing-checklist.md` —— 16 项硬计数自检（17 项 EXPECT 真源）
+- `examples/writing-*.md` —— 9 个完整样本（巴菲特午餐 / 我沉默了-强示范 等）
 
 ### 模式 2：judgment（判断引擎）
 
 **触发词**：
 
 - 孙学判断 / sun-judgment / 注意力定价
-- 孙宇晨会怎么做 / 用孙宇晨的逻辑判断
-- 注意力套利 / 这钱该怎么花才有声量
+- 孙宇晨会怎么做 / 注意力套利
+- 这笔钱怎么花才有声量
 
 **适合场景**：
 
@@ -177,16 +185,16 @@ ls $HOME/.agents/skills/sunxue/
 
 **会用到的 reference**：
 
-- `references/judgment-corpus.md` —— 核实过的原文语料 + 禁用清单
-- `examples/judgment-老客户账期.md` —— 账期四波的实战样本
+- `references/judgment-corpus.md` —— 7 规则 + 6 步 + 8 节核实语料 + 防翻车禁用清单
+- `references/enforcement.md` —— 绝对禁令 + 门禁工程契约
+- `examples/judgment-*.md` —— 6 个判断样本（面馆/全球IP/暑期招生 范例 + 律师函反例 等）
 
 ### 模式 3：meta（三层孙学反思）
 
 **触发词**：
 
-- 三层孙学 / 仿写公式 / 被割版
-- 孙学爆红原因 / 学孙学还是学孙哥
-- 怎么像孙学一样传播 / 文本层 / 系统层 / 修行层
+- 三层孙学 / 仿写公式 / 孙学爆红原因
+- 学孙学还是学孙哥 / 修行层
 
 **适合场景**：
 
@@ -197,8 +205,30 @@ ls $HOME/.agents/skills/sunxue/
 
 **会用到的 reference**：
 
-- `references/x-field-notes.md` —— X 舆论场 + 曾颖讲义 + 三层孙学
-- `references/background.md` —— 孙宇晨其人与事件脉络
+- `references/x-field-notes.md` —— X 舆论场 + 三层孙学 + 舆论场四派
+- `examples/meta-注意力定价-bug-disclosure.md` —— 注意力定价三层拆解真样本
+- （背景可选读 `references/background.md` —— 孙宇晨其人与事件脉络）
+
+---
+
+### 模式 4：yingxue（深情喜剧学）
+
+**触发词**：
+
+- 颖学 / 曾颖 / 椰子鸡 / 冻鸡
+- 笑完才疼 / 一把屎一把尿式深情 / @zengying1107
+
+**适合场景**：
+
+- 旧情回忆、人物侧写——想让人「又笑又心疼」时用
+- 深情不直说，让一个荒诞实物（冻鸡 / 椰子鸡 / 一条没删的消息）替你说
+- 以柔克刚的反击（颖学只发嗲和反问，不写长文骂人）
+
+**会用到的 reference**：
+
+- `references/yingxue-corpus.md` —— 曾颖四篇语料 + 词源
+- `references/yingxue-anatomy.md` —— 技法解剖 + 四篇骨架表 + 孙颖对照
+- `examples/yingxue-冻鸡挽歌-仿写.md` —— 200 字仿写首例
 
 ---
 
@@ -206,11 +236,12 @@ ls $HOME/.agents/skills/sunxue/
 
 | 子模式 | 触发词 |
 |---|---|
-| **writing** | 孙宇晨体, 用孙宇晨的风格写, 用孙哥的风格写, sun-writing, 把这段经历写成小作文, 景甜式写法, 克制白描, 像孙学一样写, 被割版, 写一段（关系/经历/失去/徒劳） |
-| **judgment** | 孙学判断, sun-judgment, 注意力定价, 孙宇晨会怎么做, 用孙宇晨的逻辑判断, 注意力套利, 这钱该怎么花才有声量 |
-| **meta** | 三层孙学, 仿写公式, 被割版, 孙学爆红原因, 学孙学还是学孙哥, 怎么像孙学一样传播, 文本层, 系统层, 修行层 |
+| **writing** | 孙宇晨体, 用孙宇晨的风格写, 孙哥风格, 景甜式白描, 冷叙事, 被割版, 把这段经历写成小作文 |
+| **judgment** | 孙学判断, sun-judgment, 注意力定价, 孙宇晨会怎么做, 注意力套利, 这笔钱怎么花才有声量 |
+| **meta** | 三层孙学, 仿写公式, 孙学爆红原因, 学孙学还是学孙哥, 修行层 |
+| **yingxue** | 颖学, 曾颖, 椰子鸡, 冻鸡, 笑完才疼, 一把屎一把尿式深情, @zengying1107 |
 
-> 触发词可在 `SKILL.md` 的 frontmatter `description` 中找到。
+> 上表与 `SKILL.md` frontmatter `description` 逐词对应（触发真源 = description，未列出的口语说法靠主动触发条款兜底）。
 > 多个触发词命中同一子模式时只加载该子模式章节。
 
 ---
