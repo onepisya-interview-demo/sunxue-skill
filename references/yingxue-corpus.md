@@ -6,7 +6,7 @@ Copyright (c) 2026 bayshier
 来源仓库: https://github.com/bayshier/sunxue (v1.4.0,main 分支 2026-08-28 commit,无 v1.4.0 tag)
 原内容用途: 曾颖(@zengying1107 / @tenten19901107)四篇文章全文语料,作为颖学 skill 的语料库
 
-> **版本号说明**: 上面 `(v1.4.0)` 是 bayshier/sunxue 源仓库的版本号 (main 分支 2026-08-28 commit, 仓库未打 v1.4.0 tag)。本 sunxue-skill 自身的版本号演化在 `VERSION` + `CHANGELOG.md` (v1.0→v1.2.2), 颖学于 v1.2.0 首次纳入, v1.2.1 加首个真样本 (examples/yingxue-冻鸡挽歌-仿写.md)。
+> **版本号说明**: 上面 `(v1.4.0)` 是 bayshier/sunxue 源仓库的版本号 (main 分支 2026-08-28 commit, 仓库未打 v1.4.0 tag)。本 sunxue-skill 自身的版本号演化在 `VERSION` + `CHANGELOG.md` (v1.0→v1.3.0), 颖学于 v1.2.0 首次纳入, v1.2.1 加首个真样本 (examples/yingxue-冻鸡挽歌-仿写.md), v1.3.0 加 6 技法卡片 (references/yingxue-anatomy.md)。
 合并说明: v1.2.0 本地 sunxue-skill 首次纳入 yingxue(此前 v1.0/v1.1 完全漏掉 bayshier 的镜像学科),原样搬运,仅添加顶部注释块。
 -->
 
