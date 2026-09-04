@@ -4,7 +4,7 @@ Original path: sun-judgment/references/corpus.md
 Original license: MIT
 Copyright (c) 2026 gehao628
 来源仓库: https://github.com/gehao628/sun-judgment (v1.2)
-原内容用途: 孙宇晨本人公开发言核实语料 + 8 个判断样本 + 防翻车禁用清单
+原内容用途: 孙宇晨本人公开发言核实语料 + 8 节语料 (一-七判断样本节 + 八防翻车禁用清单) + 第七节含 7 规则详解
 合并说明: 文件名在合并 skill 中重命名为 judgment-corpus.md 以与 writing-anatomy 区分
 -->
 
