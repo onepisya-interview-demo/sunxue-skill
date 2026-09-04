@@ -57,6 +57,56 @@ PLAN-audit-v3.md 7 维度并发探查 → 12 P0 + 18 P1 全部修复；7 份子�
 - README 目录树计数 13→16 + 7 个 missing 文件补登
 - PLAN-audit-v3.md 3 处 `~/.hermes/` 路径脱敏（lint_pii 不再硬命中）
 
+## [1.2.2] - 2026-09-04
+
+### Added — v1.2.1 patch 收口 (5 集群 / 6 commits)
+
+v1.2.1 audit 后剩余问题的 patch 收口。沿用 v1.2.0/v1.2.1 同一 Conventional Commits + WHAT/WHY/HOW 规范。
+
+**集群 B — 数字/路径真源 (commit 7ed04d6)**
+- `AGENTS.md` L10 references_total 18,585 → 18,943 tokens / 55,756 → 56,837 chars (v1.2.2 实测真源, 含 yingxue-corpus.md v1.2.1 新增 2001 chars/667 tokens)
+- `CHANGELOG.md` L199-L200 `[1.1.0]`/`[1.0.0]` 占位 `github.com/your-org/sunxue` 链接改成本文件锚点 (无远端, 占位不可达)
+
+**集群 C — 文档补完 + baseline tag (commit c02c2b9)**
+- `references/style-anatomy.md` 顶部加注: bayshier 源 10 技法 + gehao628 合并后 13 技法, 同文档不同版本不同范围
+- `examples/writing-示例3-AI时代前端.md` 头部加真实样本注脚 (用 ASCII 引号避 regression_output 引号==0 硬约束)
+- `tests/README.md` L17/L83/L157 + §8.3 `diff-cover --compare-branch` 从 `gate-baseline` 切到 `gate-v1.2.1` (v1.2.2 baseline)
+- git tag `-a v1.2.0` / `v1.2.1` (release tag, 之前漏标) + `gate-v1.2.0` / `gate-v1.2.1` (diff-cover baseline tag)
+- 历史 `gate-baseline` 保留不删, 仍可 `git diff gate-baseline` 看 v1.0 起点
+
+**集群 D — references 路由同步 (commit 510b7cc)**
+- `references/x-field-notes.md` L225 锚点 `<!-- @mode:meta -->` → `<!-- @meta-appendix -->` (SKILL.md 路由触发器用 `@mode:writing|judgment|meta|yingxue`, x-field-notes 末节是 meta 章节附录不是触发器)
+- `references/yingxue-corpus.md` L6 顶部加版本号注脚: bayshier v1.4.0 是源仓库版本号, 本 skill v1.2.0 首纳, v1.2.1 加首样本
+- `references/judgment-corpus.md` L7 "8 个判断样本" 改 "8 节语料 (一-七判断样本节 + 八防翻车禁用清单) + 第七节含 7 规则详解" (原描述不准, 前 7 节不全为判断样本, 第七节是 7 规则详解)
+
+**集群 E — peer hygiene (commit e90c4f6)**
+- `README.md` 5 处 `<skill-install-path>` 占位符改 `$HOME/.agents/skills/sunxue/` (ZCode/Claude Code/Hermes 三种启动器对照注脚)
+- `README.md` L225 uv.lock 注脚 "本仓库 tracked, v1.2.1 audit 起入 git"
+- `README.md` 加 ## 平台限制 段 (macos-14 runner 性能 / Windows WSL / Python ≥ 3.10 / 磁盘)
+- `.github/PULL_REQUEST_TEMPLATE.md` 新建 (1049 字节, 8 项 checklist 含 8 门禁自检 + WHAT/WHY/HOW + diff-cover baseline)
+- `CONTRIBUTING.md` 新建 (3249 字节, 8 节: 提交规范 / 开发流程 / 加 example / 加 reference / 加门禁 / PR 流程 / 禁止事项 / 平台)
+
+**集群 F — mutmut budget 放宽 (commit a306a30)**
+- `pyproject.toml [tool.sunxue.budgets]` mutmut = 45 → 120 (13 文件 2581 变异实测 ~80s 超 45s budget, 用户豁免"mutmut 时间长一点没关系")
+- `src/sunxue_gates/__main__.py:97-101` defaults mutmut 45.0 → 120.0 + docstring 改"30s for mutmut"(错)→"120s for mutmut" + 完整 v1.2.2 放宽理由
+- `tests/unit/test_init_and_main.py` 5 个 TestLoadBudgets 断言 45 → 120 (test_loads_from_real_pyproject / test_defaults_when_no_budgets_table / test_defaults_when_pyproject_missing / test_defaults_when_pyproject_malformed / test_partial_table_falls_back_per_key)
+
+### Fixed
+
+- 8/8 门禁全绿 (单跑)
+- 5 处外部数字统一 (AGENTS.md token_budget 真源 18,943)
+- 6 个 git tag 标齐 (v1.2.0 / v1.2.1 / v1.2.2 release + gate-v1.1.0 / v1.2.0 / v1.2.1 baseline)
+
+### Backlog (v1.3 / 不在 1.2.2 范围)
+
+- mutmut 3.7.0 → 3.7.1+ 升级 (3.7.1 PyPI 未发版, v1.3 等发版后回收 budget 放宽)
+- mutmut 幸存率 49.5% → < 10% (4-8h, v1.3 性能优化)
+- writing 闭环 == 3 改 3-5 区间 (脆等式, 改协议风险高, 取消)
+- 6 个 P2 命名/常量重复清理 (M-1~M-14 命名债)
+- 14 个 integration test helper 抽公共模块
+- 2 个 mutator synonym table 移到 tables.py
+- F-4 yingxue-anatomy 复制 (30 min, v1.3 backlog)
+
 ## [1.2.0] - 2026-09-04
 
 ### Added — SKILL.md 外化重组 + yingxue 镜像学科首次纳入
