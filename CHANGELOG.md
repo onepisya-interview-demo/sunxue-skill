@@ -117,7 +117,7 @@ sunxue/
 │   ├── style-anatomy.md          # 来自 bayshier（原文例证 10 技法）
 │   ├── x-field-notes.md          # 来自 bayshier（X 舆论场 + 曾颖讲义 + 三层孙学）
 │   ├── writing-anatomy.md        # 来自 gehao628 sun-writing（五幕骨架 + 数字骨架）
-│   ├── writing-checklist.md      # 来自 gehao628 sun-writing（15 项硬计数自检）
+│   ├── writing-checklist.md      # 来自 gehao628 sun-writing（16 项硬计数自检；v1.1.0 增补 1 项虚构红线）
 │   ├── judgment-corpus.md        # 来自 gehao628 sun-judgment（核实语料 + 禁用清单）
 │   └── background.md             # 来自 bayshier（孙宇晨其人 + 事件脉络）
 ├── examples/

@@ -307,12 +307,21 @@ def _check_uv_commands(root: Path) -> CheckResult:
 
     # Also require the ``gates`` console script and --all / --json flags to
     # be reachable. The console script comes from pyproject; the flags
-    # come from __main__.main.
+    # come from __main__.main. v1.2.1 audit (reviewer.code F4): switched
+    # from fragile text-grep to ast-based detection of the help message
+    # string in __main__.py — robust to quote/whitespace/comment changes.
     cfg = _load_pyproject(root)
     has_gates_script = "gates" in cfg.get("project", {}).get("scripts", {})
-    src_main = (root / "src" / "sunxue_gates" / "__main__.py").read_text(encoding="utf-8")
-    has_all_flag = '"--all"' in src_main or "'--all'" in src_main
-    has_json_flag = '"--json"' in src_main or "'--json'" in src_main
+    import ast
+    src_main_path = root / "src" / "sunxue_gates" / "__main__.py"
+    src_main_ast = ast.parse(src_main_path.read_text(encoding="utf-8"))
+    has_all_flag = has_json_flag = False
+    for node in ast.walk(src_main_ast):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str):
+            if node.value == "--all":
+                has_all_flag = True
+            elif node.value == "--json":
+                has_json_flag = True
 
     gates_ok = has_gates_script and has_all_flag and has_json_flag
     ok = gates_ok and not missing

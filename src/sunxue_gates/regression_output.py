@@ -1,7 +1,7 @@
-"""Gate 3: output regression — verifies the 15 hard metrics in examples/.
+"""Gate 3: output regression — verifies the 17 hard metrics in examples/.
 
 Each example under ``examples/`` is checked against a tier-specific
-EXPECT table. Three modes are supported (plan 3.1 second half):
+EXPECT table. Four modes are supported (v1.2.1 audit added yingxue):
 
 - ``writing``: the original 17 EXPECT entries, all strict. Applied
   to samples whose filename starts with ``writing-``.
@@ -13,8 +13,10 @@ EXPECT table. Three modes are supported (plan 3.1 second half):
   zero-leak lint for 排比/反问/比喻/感叹号/省略号/破折号/引号/情绪直述)
   stay strict. Applied to ``judgment-*`` samples.
 - ``meta``: minimum structural lint (排比 == 0, 反问 == 0 strict);
-  every other counter is informational. No ``meta-*`` sample ships on
-  disk; the mode is wired in for future meta samples.
+  every other counter is informational. Applied to ``meta-*`` samples.
+- ``yingxue`` (v1.2.1): inherits meta base, 数字 >= 5 (荒诞物证靠数字驱动),
+  情绪直述/感叹号 strict (6 红线之一), 结尾直接提问 INFO (yingxue 收束靠反转).
+  Applied to ``yingxue-*`` samples.
 
 Each ``CheckResult`` returned by :func:`run` carries the sample's
 mode in its ``detail`` mapping so downstream consumers can attribute

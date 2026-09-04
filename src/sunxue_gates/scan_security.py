@@ -40,12 +40,15 @@ __all__ = [
 # (e.g. the D3 ChatML incident story), not to inject one. Removing any
 # entry from this list will re-arm the gate; adding one is a deliberate
 # decision and must be called out in the CHANGELOG.
-_INJECTION_NARRATIVE_EXEMPT: frozenset[str] = frozenset(
-    {
-        # v2 门禁实战样本：脚本化讲述 D3 ChatML 注入事件，原文含 <|im_start|>
-        # / <|im_end|> 的 hex 与 ASCII 形态作为事件物证，不是注入向量。
-        "writing-十二个字节.md",
-    }
+#
+# v1.2.1 audit (reviewer.code F6): switched from filename-only to
+# path-prefix tuple — matches the lint_pii._NARRATIVE_EXEMPT convention
+# so the two gates are aligned on how to recognize "this is a
+# narrative sample, not a real injection vector".
+_INJECTION_NARRATIVE_EXEMPT: tuple[str, ...] = (
+    # v2 门禁实战样本：脚本化讲述 D3 ChatML 注入事件，原文含 <|im_start|>
+    # / <|im_end|> 的 hex 与 ASCII 形态作为事件物证，不是注入向量。
+    "writing-十二个字节.md",
 )
 
 
@@ -104,7 +107,10 @@ def scan_file(label: str, path: Path) -> tuple[list[CheckResult], bool]:
     text = path.read_text(encoding="utf-8")
     hits = _scan_text(text)
     # Narrative-sample exemption: drop INJECTION hits for whitelisted files.
-    if path.name in _INJECTION_NARRATIVE_EXEMPT:
+    # v1.2.1: supports both exact filename match and substring-in-path match,
+    # so moving the file to a subdirectory still triggers the exemption.
+    path_str = str(path)
+    if any(path.name == m or m in path_str for m in _INJECTION_NARRATIVE_EXEMPT):
         before = len(hits)
         hits = [h for h in hits if h[0] not in _INJECTION_LABELS]
         suppressed = before - len(hits)

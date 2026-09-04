@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -32,7 +33,7 @@ EXEMPTIONS_PATH = REPO_ROOT / "tests" / "mutation-exemptions.json"
 REPORT_PATH = REPO_ROOT / "tests" / "mutation-report.md"
 MUTANTS_DIR = REPO_ROOT / "mutants"
 CICD_STATS_PATH = MUTANTS_DIR / "mutmut-cicd-stats.json"
-MUTMUT_BIN = "mutmut"
+MUTMUT_BIN = os.environ.get("SUNXUE_MUTMUT_BIN", "mutmut")  # v1.2.1 F12: 环境变量可覆盖
 
 
 def _run_mutmut_results() -> str:
@@ -108,7 +109,10 @@ def _load_cicd_stats() -> dict[str, int]:
         with CICD_STATS_PATH.open(encoding="utf-8") as fh:
             data = json.load(fh)
         return {k: int(v) for k, v in data.items() if isinstance(v, (int, float))}
-    except (OSError, json.JSONDecodeError):
+    except (OSError, json.JSONDecodeError) as e:
+        # v1.2.1 F11: don't silently swallow — emit a warning to stderr so
+        # the operator can see why stats are missing. Falling back to {}.
+        print(f"warn: cicd stats unreadable: {e}", file=sys.stderr)
         return {}
 
 

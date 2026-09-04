@@ -215,7 +215,7 @@ def scan_text(text: str) -> list[tuple[str, str]]:
     hits: list[tuple[str, str]] = []
     for pat, label in PII_LINT_PATTERNS:
         for m in re.finditer(pat, text):
-            hits.append((label, m.group()[:60]))
+            hits.append((label, m.group()[:40]))  # 截断 40 字符 (与 scan_security 对齐)
     return hits
 
 

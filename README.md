@@ -22,7 +22,7 @@
 | 来源 | 焦点 | 蒸馏产物 |
 |---|---|---|
 | bayshier/sunxue v1.4.0 | 写作心法 + 三层孙学 | 10 技法（命名 + 心法 + 元反思），见 `references/style-anatomy.md` |
-| gehao628/sun-writing v1.2 | 写作机械结构 | 12 条硬规则 + 15 项硬计数自检 + 7 步流程 |
+| gehao628/sun-writing v1.2 | 写作机械结构 | 12 条硬规则 + 16 项硬计数自检 + 7 步流程 |
 | gehao628/sun-judgment v1.2 | 商业判断 | 规则 0（先量生意半径）+ 7 条规则 + 6 步流程 + 核实语料库 |
 
 > **技法归并说明**：`style-anatomy.md` 记的是 bayshier 原文例证的 **10 条技法**
@@ -90,7 +90,7 @@ ls <skill-install-path>/sunxue/
 
 > 像孙学一样写一段被裁员的故事，克制一点，别煽情。
 
-产出预期：一篇克制白描的长文——数字骨架、物件回环、账单收尾，能通过 writing-checklist 的 15 项硬计数自检。
+产出预期：一篇克制白描的长文——数字骨架、物件回环、账单收尾，能通过 writing-checklist 的 16 项硬计数自检。
 
 **模式 2 · judgment（判断引擎）** —— 带上你的决策处境：
 
@@ -152,7 +152,7 @@ ls <skill-install-path>/sunxue/
 **会用到的 reference**：
 
 - `references/writing-anatomy.md` —— 五幕骨架解剖
-- `references/writing-checklist.md` —— 15 项硬计数自检
+- `references/writing-checklist.md` —— 16 项硬计数自检（v1.1.0 增补 1 项虚构红线）
 - `references/style-anatomy.md` —— 10 技法原文例证（与 gehao628 技法合并去重后形成 SKILL.md 的 13 条核心技法）
 - `examples/writing-巴菲特午餐.md` —— 用孙文体写孙本人
 
