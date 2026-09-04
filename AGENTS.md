@@ -7,7 +7,7 @@
 - **SKILL.md 结构冻结，事实数字随版本同步（audit-v4 D1③ 裁决）**：`lint_claims.skill_freeze` 实际只锁两个标记——README 含「元信息冻结」注记 + SKILL.md 含「孙学 Skill v1.0」H1 子串；结构（frontmatter / 章节骨架 / 触发词组）保持冻结，事实数字与指针（样本计数 / reference 清单 / 版本叙述 / 必读清单）允许随 `VERSION` 演化同步更新。版本号演化在 `VERSION` 文件 + `pyproject.toml` + `CHANGELOG.md`。
 - 实质版本演化：v1.0.0（合并首发，2026-08-28）→ v1.1.0（门禁工程化，2026-08-30）→ v1.2.0（SKILL.md 外化 + yingxue 镜像学科首次纳入）→ v1.2.1（7 维度 audit 收口）→ v1.2.2（patch 收口）→ v1.3.0（命名清理 + yingxue-anatomy + 强示范 example）→ v1.3.1（audit-v4 全面审计收口，均 2026-09-04）。
 - SKILL.md 字符预算：`lint_structure` 硬上限 25,000 chars；v1.3.1 实测 13,068 chars（留 11,932 余量）。
-- references/ 字符预算：每个 ≤ 12,000 chars；v1.3.1 实际 13 个 reference，总 60,896 chars / 20,298 tokens（est = Σ⌊chars/3⌋，`token_budget.references_total` 上限 22,000；yingxue-anatomy.md 3,515 chars / 1,171 tokens——v1.3.0 曾误记字节数 7,621 为 chars，audit-v4 勘误）。
+- references/ 字符预算：每个 ≤ 12,000 chars；v1.3.1 修复落地后实测 13 个 reference，总 62,365 chars / 20,785 tokens（est = Σ⌊chars/3⌋，与 `token_budget` 输出同款算法，audit-v4 PE-08 口径统一；`token_budget.references_total` 上限 22,000；yingxue-anatomy.md v1.3.0 曾误记字节数 7,621 为 chars，audit-v4 勘误）。
 - 4 模式路由：description 触发词命中即加载对应 `<!-- @mode:writing|judgment|meta|yingxue -->` 章节。
 
 ## 提交规范：Commit-as-Prompt（WHAT / WHY / HOW）
@@ -59,6 +59,6 @@
 
 - Python 门禁工程：`src/sunxue_gates`（八门禁：lint_structure / scan_security / regression_output / token_budget / injection_drill / mutation_drill / lint_claims / lint_pii）+ `tests/` + `SKILL.md` / `references` / `examples`
 - 一键验收：`uv run gates --all`；本地快速层 pre-commit 需 `git config core.hooksPath .githooks` 手动启用（激活与跳过步骤见 tests/README §8.1）
-- Skill 自身门禁：SKILL.md 写作引擎第 7 步为「门禁回环（gate loop）」硬约束——写完自动跑 `references/writing-checklist.md` 的 16 项硬自检（v1.1.0 增补 1 项虚构红线），任何一项不过 → 回炉 → 再跑，全部通过才交付。详见 `SKILL.md` §七步写作流程。
+- Skill 自身门禁：SKILL.md 写作引擎第 7 步为「门禁回环（gate loop）」硬约束——写完自动跑 `references/writing-checklist.md` 的 16 项硬自检（v1.1.0 增补 1 项虚构红线；门禁 EXPECT 为 17 项硬指标——多出的两项是 场景切换 / 结尾直接提问 计数器，audit-v4 口径桥接），任何一项不过 → 回炉 → 再跑，全部通过才交付。详见 `SKILL.md` §七步写作流程。
 - Git 身份：提交者使用**自己环境**的全局 git 身份，规范中不写死任何个人邮箱；本仓库 local config 禁止配置假身份 / 占位身份（即无主人的机器占位地址，形如「用户名 + @ + 本地域名」——为免触发 scan_security 邮箱硬规则，此处不书写字面量）
 - 历史改写（message / 身份）需连带重写 tags（`--tag-name-filter cat`）并清理 `refs/original` + reflog + gc，确保旧对象物理清除

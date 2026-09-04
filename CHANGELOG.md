@@ -42,7 +42,7 @@ tables.py / `__init__.py` / `pyproject.toml` 真源化 + 1 个 helper：
 - 新建 `examples/writing-我沉默了-强示范.md` (1,863 chars): 装修工单题材, 我沉默了触发词 15 次覆盖 count_chen_mo 7 个正则全部命中, 我说好 16 次, 闭环句 3 (清单念完我沉默了 / 工单结束了 / 门牌号 1207 是我的), 物件 callback 那把电锤贯穿, 结尾 1 直接提问
 - 同步: `README.md` 目录树注释 12 reference→13 / 16 example→17; `AGENTS.md` L10 references_total 18,943→20,279 tokens / 56,837→60,847 chars
 
-> **audit-v4 勘误（2026-09-04）**：本版集群 D 原记「yingxue-anatomy 7621 chars / 2540 tokens」系把 UTF-8 字节数误报为字符数（真值 3,515 chars / 1,171 tokens）；「我沉默了 5274 chars」为幻数（真值 1,863 chars）；总表 60,847 chars / 20,279 tokens 不可由任何口径复现（真值 Σlen=60,896 chars / 20,298 tokens）。本节数字已按真值改写。
+> **audit-v4 勘误（2026-09-04）**：本版集群 D 原记「yingxue-anatomy 7621 chars / 2540 tokens」系把 UTF-8 字节数误报为字符数（真值 3,515 chars / 1,171 tokens）；「我沉默了 5274 chars」为幻数（真值 1,863 chars）；总表 60,847 chars / 20,279 tokens 不可由任何口径复现（真值 Σlen=60,896 chars / 20,295 tokens（est = Σ⌊chars/3⌋，与 token_budget 同款）。本节数字已按真值改写；v1.3.1 修复落地后现值 62,365 chars / 20,785 tokens。
 
 ### 跳过的 5 项 (PLAN §5 实施差异预案)
 
