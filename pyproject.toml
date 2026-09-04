@@ -106,7 +106,8 @@ mutmut = 120
 gates_all = 120
 pytest = 5
 # mutmut budget: v1.2.2 起 45s → 120s。mutmut 3.7.0 跑 13 文件 2581 个
-# 变异实测 ~80s, 旧 45s budget 会撞 exit 75 (用户豁免 'mutmut 时间长一点
+# 变异实测 ~80s (v1.2.2 时点; v1.3 起 14 文件 2582, audit-v4 N11 更新),
+# 旧 45s budget 会撞 exit 75 (用户豁免 'mutmut 时间长一点
 # 没关系')。3.7.1 上游 collection bug 修复未发版, 单纯放宽 budget。
 # v1.3 mutmut 升级 3.7.1+ 后回收此放宽。
 #

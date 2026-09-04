@@ -242,6 +242,8 @@ sunxue/
 │       ├── injection_drill.py        # Gate 5
 │       ├── mutation_drill.py         # Gate 6
 │       ├── lint_claims.py             # Gate 7
+│       ├── lint_pii.py                # Gate 8（PII 硬扫描）
+│       ├── _cli_flags.py              # --all/--json flag 真源 frozenset（get_gates_flags）
 │       └── tables.py                  # 关键词/模式纯数据表（golden 契约锁定）
 ├── references/                       # 13 个 reference（原样搬运 + 技法注解 + 门禁契约 + 第 7.2 步内容自洽性扫描 + v1.2 写作总纲 + yingxue 语料 + v1.3 颖学解剖）
 │   ├── style-anatomy.md              # bayshier 原文例证 10 技法（与 gehao628 合并去重后形成 SKILL.md 的 13 条核心技法）
@@ -255,7 +257,8 @@ sunxue/
 │   ├── enforcement.md                # 交付期门禁契约 + 跨宿主诚实声明 + 两引擎绝对禁令 §6
 │   ├── coherence-checklist.md        # SKILL.md 第 7.2 步内容自洽性扫描 SOP（5 项检查 + 报告格式）
 │   ├── writing-essence.md            # v1.2.0 新增：第一原则 + 第零关 + 仿写公式 + 镜像识别 + 演说体 vs 证词体
-│   └── yingxue-corpus.md             # v1.2.0 新增：曾颖四篇语料（冻鸡/椰子鸡/15688 消息/养他论）+ 词源
+│   ├── yingxue-corpus.md             # v1.2.0 新增：曾颖四篇语料（冻鸡/椰子鸡/15688 消息/养他论）+ 词源
+│   └── yingxue-anatomy.md            # v1.3.0 新增：颖学技法解剖 + 四篇骨架表 + 孙颖对照（本地归纳，与 SKILL.md 上游 6 卡关系见文件头仲裁注）
 ├── examples/                         # 17 个真实样本（v1.2.1 audit 收口：8 写作 + 6 判断 + 1 meta + 1 yingxue；v1.3 集群 D 加 1 写作我沉默了强示范）
 │   ├── writing-巴菲特午餐.md         # gehao628：用孙文体写孙本人
 │   ├── writing-示例2-被割版.md       # 真实完整稿（v1.0 误标占位，v1.1 更正）
@@ -265,6 +268,7 @@ sunxue/
 │   ├── writing-七年通勤.md           # 通勤七年账本（plan 3.1 sample-expansion）
 │   ├── writing-五次打印机.md         # 五次打印机报价单（plan 3.1 sample-expansion）
 │   ├── writing-清仓大甩卖.md         # 清仓大甩卖话术（plan 3.1 sample-expansion）
+│   ├── writing-我沉默了-强示范.md     # v1.3.0 集群 D：双线节拍强示范（装修工单，我沉默了/我说好 ≥ 5）
 │   ├── judgment-老客户账期.md         # gehao628：账期四波
 │   ├── judgment-面馆-范例.md         # v1.2.0 拆分：3 公里面馆上热搜（规则 0/2/3 强示范）
 │   ├── judgment-行业B端-范例.md      # v1.2.0 拆分：B 端借势蹭争议（规则 0/4/5/7 边界三问）
@@ -279,13 +283,14 @@ sunxue/
 │   ├── learning.md                      # 学习笔记（门禁分层设计理念）
 │   ├── testing.md                       # 测试思路（五层金字塔与豁免政策）
 │   ├── scripts-README.md                # v1.2.1 新增：3 个非门禁脚本的 owner 文档（coherence_gate / writing_gate / gen_mutation_report）
-│   └── audit-v3-{map,consistency,infoflow,code-review,peer,example-qual,hygiene,final-report}.md  # v1.2.1 audit 7 份子报告 + 最终报告
+│   ├── PLAN-v1.2.2.md                   # v1.2.2 patch 计划（已实施归档）
+│   └── audit-v3-{map,consistency,infoflow,code-review,peer,example-qual,hygiene,final-report}.md + audit-v3.1/v3.2-final-report.md  # v1.2.1 audit 7 份子报告 + 三代最终报告
 ├── scripts/                             # 辅助脚本（3 个非门禁脚本：coherence_gate / writing_gate / gen_mutation_report；owner 详见 notes/scripts-README.md）
 └── tests/                            # pytest 测试树（unit + property + integration + golden + live）
     ├── README.md                     # 八层门禁命令表 + 质量五维映射 + 测试思路指针
     ├── conftest.py                   # 共享 fixtures
     ├── unit/                         # 纯函数单元测试（12 文件，10 门禁模块全覆盖）
-    ├── property/                     # hypothesis 属性测试（14 个 @given 不变量）
+    ├── property/                     # hypothesis 属性测试（15 个 @given 不变量）
     ├── integration/                  # scripts/ CLI 契约测试（2 文件：writing_gate + coherence_gate）
     ├── golden/                       # 字面量金样（literals.json SHA-256 + hex_utf8 双签名，4 门覆盖）
     ├── test_gates_live.py            # 对当前仓库跑八门禁 run()，断言 PASS（旧行为回归）
@@ -299,9 +304,9 @@ sunxue/
 
 | 版本 | 日期 | 说明 |
 |---|---|---|
-| 1.3.0 | 2026-09-04 | **5 集群 patch 收口**：7 项 P2/P3 命名/常量清理（F7/F8/F9/F14/F16/F17/F21，tables.py 真源化）+ tests/integration/_helpers.py 抽公共 helper + mutmut 试探留档（51.5% 1330/2582，未达 ≤ 40% 接受判据）+ yingxue-anatomy 6 技法卡片（references/yingxue-anatomy.md）+ 我沉默了 ≥ 5 强示范 example（17/16 example / 13 reference）/ 8/8 gates --all 全绿 / 335 tests pass |
-| 1.2.2 | 2026-09-04 | **patch 收口**：5 集群 13 项 P0/P1 全修（数字/路径真源 + 文档补完 + 路由同步 + peer hygiene + mutmut budget 45→120s）/ mutmut 幸存率 7.9% 命中 M-14 < 10% 目标 / 8/8 gates --all 全绿 48.58s |
-| 1.2.1 | 2026-09-04 | **全面 audit 收口**：七→八门禁口径统一 / meta 模式首个真样本 / examples 14 / scripts 3 个 owner 文档 / 16/17 项硬指标口径统一 / 目录树补项 |
+| 1.3.0 | 2026-09-04 | **5 集群 patch 收口**：7 项 P2/P3 命名/常量清理（F7/F8/F9/F14/F16/F17/F21，tables.py 真源化）+ tests/integration/_helpers.py 抽公共 helper + mutmut 试探留档（51.5% 1330/2582，未达 ≤ 40% 接受判据）+ yingxue-anatomy 6 技法卡片（references/yingxue-anatomy.md）+ 我沉默了 ≥ 5 强示范 example（17 example / 13 reference）/ 8/8 gates --all 全绿 / 335 tests pass |
+| 1.2.2 | 2026-09-04 | **patch 收口**：5 集群 13 项 P0/P1 全修（数字/路径真源 + 文档补完 + 路由同步 + peer hygiene + mutmut budget 45→120s）/ mutmut 幸存率 51.4%（audit-v4 勘误：发布时描述 7.9% 系 reporter 字段名歧义误读，M-14 未命中）/ 8/8 gates --all 全绿 48.58s |
+| 1.2.1 | 2026-09-04 | **全面 audit 收口**：七→八门禁口径统一 / meta 模式首个真样本 / examples 16 / scripts 3 个 owner 文档 / 16/17 项硬指标口径统一 / 目录树补项 |
 | 1.2.0 | 2026-09-04 | SKILL.md 元信息冻结 12,606 chars 外化重组 + yingxue 第四模式首次纳入（曾颖四篇语料 → references/yingxue-corpus.md）|
 | 1.1.0 | 2026-08-30 | 门禁工程化：src/sunxue_gates package + uv scaffold + tests/ 测试树（202 pytest 100% 覆盖） |
 | 1.0.0 | 2026-08-28 | 合并首发：bayshier/sunxue v1.4.0 + gehao628 sun-writing + sun-judgment |

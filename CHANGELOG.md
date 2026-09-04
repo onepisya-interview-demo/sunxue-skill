@@ -38,9 +38,11 @@ tables.py / `__init__.py` / `pyproject.toml` 真源化 + 1 个 helper：
 
 **集群 D — 内容扩 (commit 4322b11)**
 
-- 新建 `references/yingxue-anatomy.md` (7621 chars, 仿 `writing-anatomy.md` 结构): 6 技法卡片 (荒诞物证 / 恍然大悟式反转 / 典故降维 / 自降咖位 / 数字的喜剧用法 / 短句停顿) + 四篇骨架表 + 颖学 vs 孙学对照表 + 7 步流程接续点
-- 新建 `examples/writing-我沉默了-强示范.md` (5274 chars): 装修工单题材, 我沉默了触发词 15 次覆盖 count_chen_mo 7 个正则全部命中, 我说好 16 次, 闭环句 3 (清单念完我沉默了 / 工单结束了 / 门牌号 1207 是我的), 物件 callback 那把电锤贯穿, 结尾 1 直接提问
+- 新建 `references/yingxue-anatomy.md` (3,515 chars, 仿 `writing-anatomy.md` 结构): 6 技法卡片 (荒诞物证 / 恍然大悟式反转 / 典故降维 / 自降咖位 / 数字的喜剧用法 / 短句停顿) + 四篇骨架表 + 颖学 vs 孙学对照表 + 7 步流程接续点
+- 新建 `examples/writing-我沉默了-强示范.md` (1,863 chars): 装修工单题材, 我沉默了触发词 15 次覆盖 count_chen_mo 7 个正则全部命中, 我说好 16 次, 闭环句 3 (清单念完我沉默了 / 工单结束了 / 门牌号 1207 是我的), 物件 callback 那把电锤贯穿, 结尾 1 直接提问
 - 同步: `README.md` 目录树注释 12 reference→13 / 16 example→17; `AGENTS.md` L10 references_total 18,943→20,279 tokens / 56,837→60,847 chars
+
+> **audit-v4 勘误（2026-09-04）**：本版集群 D 原记「yingxue-anatomy 7621 chars / 2540 tokens」系把 UTF-8 字节数误报为字符数（真值 3,515 chars / 1,171 tokens）；「我沉默了 5274 chars」为幻数（真值 1,863 chars）；总表 60,847 chars / 20,279 tokens 不可由任何口径复现（真值 Σlen=60,896 chars / 20,298 tokens）。本节数字已按真值改写。
 
 ### 跳过的 5 项 (PLAN §5 实施差异预案)
 
@@ -58,64 +60,12 @@ tables.py / `__init__.py` / `pyproject.toml` 真源化 + 1 个 helper：
 ### Fixed
 
 - 8/8 门禁全绿 (含 1 个新 reference + 1 个新 example 后 regression_output 仍 PASS)
-- 335 tests pass (含 1 个新 example 16/16 writing tier 硬指标全 OK)
-- 16 examples / 13 references / 4 模式 / 3 scripts / 8 门禁 (与 1.2.2 一致; 新增项已在 clusters A/B/D 列明)
-
-## [1.2.1] - 2026-09-04
-
-### Added — v1.2.0 全面 audit 收口
-
-PLAN-audit-v3.md 7 维度并发探查 → 12 P0 + 18 P1 全部修复；7 份子报告 + 1 份最终报告归档 `notes/audit-v3-*.md`。
-
-**Examples (8 写作 + 6 判断 + 1 meta + 1 yingxue = 16)：**
-- `examples/meta-注意力定价-bug-disclosure.md` —— meta 模式首例（注意力定价三层拆解）
-- `examples/judgment-暑期招生窗口期.md` —— 规则 6 争一千天 0/5 → 1/5 命中
-- `examples/yingxue-冻鸡挽歌-仿写.md` —— yingxue 模式首例（曾颖《冻鸡挽歌》200 字仿写，4/6 技法强示范）
-
-**Gate 机制：**
-- `regression_output.py` Mode Literal 加 `yingxue` + `EXPECT_BY_MODE["yingxue"]` tier + `_PREFIX_TO_MODE` 加 `yingxue-` 前缀
-- meta/yingxue 模式：examples 已实存但 gate 机制缺失的双轨修复
-
-**口口径统一：**
-- 八层门禁（七→八）：`__init__.py` / `__main__.py` / `pyproject.toml` / `README.md` / `AGENTS.md` / `tests/README.md` / `notes/learning.md`
-- 16 项硬自检（15→16）：`writing-checklist.md` 顶部 + `AGENTS.md` + `CHANGELOG.md` + `README.md` + `x-field-notes.md` + `writing-景甜-原文片段.md` 同步
-- 7+1 步流程（7→8）：`writing-anatomy.md` 附录 A 标题显式
-- 17 hard metrics docstring（15→17）：`regression_output.py:1` 与 EXPECT 字典一致
-- `token_budget.py` docstring 阈值 16_000→22_000 跟随 v1.2.0 SOFT_LIMIT 升级
-- `notes/runbook.md` mutmut 预算 30s→45s 跟随 lint_pii gate addition
-
-**Owner 文档：**
-- `notes/scripts-README.md` —— 3 个非门禁脚本（coherence_gate / writing_gate / gen_mutation_report）的 owner/触发/CI/失败行为契约
-
-**源码债修复：**
-- `lint_claims.py:313-315` text-grep `--all/--json` 改 ast parse（reviewer.code F4）
-- `lint_pii.py:218` 截断 60→40 字符（与 scan_security 对齐）
-- `scan_security.py` `_INJECTION_NARRATIVE_EXEMPT` 改 tuple+path-prefix（与 lint_pii 对齐）
-- `gen_mutation_report.py:35` `MUTMUT_BIN` 走 `SUNXUE_MUTMUT_BIN` 环境变量
-- `gen_mutation_report.py:111` 静默吞错加 stderr 警告
-
-**工作区卫生：**
-- `.sunxue/` 加入 .gitignore（草稿目录）
-- `uv.lock` sunxue-gates 1.1.0→1.2.0 sync 提交
-- `notes/bug-disclosure-meta.md` 删除（已迁入 examples/）
-
-### Backlog (v1.2.2+ / 不在 1.2.1 范围)
-
-- mutmut 幸存率 49.5% 压降（v1.3 性能优化）
-- writing 闭环 == 3 改 3-5 区间（脆等式）
-- 6 个 integration test helper 抽公共模块
-- 2 个 mutator synonym table 移到 tables.py
-- 6 个 P2 命名/常量重复清理
-
-### Fixed
-
-- 8/8 门禁全绿（含新增 2 个 example 后 regression_output 仍 PASS）
-- README 目录树计数 13→16 + 7 个 missing 文件补登
-- PLAN-audit-v3.md 3 处 `~/.hermes/` 路径脱敏（lint_pii 不再硬命中）
+- 335 tests pass (含 1 个新 example，writing tier 17 项硬指标全 OK——audit-v4 勘误：门禁实为 17 项，原记 16/16)
+- 17 examples / 13 references / 4 模式 / 3 scripts / 8 门禁 (集群 D 新增 1 example 后; audit-v4 勘误：原记 16 examples 漏计)
 
 ## [1.2.2] - 2026-09-04
 
-### Added — v1.2.1 patch 收口 (5 集群 / 6 commits)
+### Added — v1.2.2 patch 收口（基线 v1.2.1，5 集群 / 6 commits）
 
 v1.2.1 audit 后剩余问题的 patch 收口。沿用 v1.2.0/v1.2.1 同一 Conventional Commits + WHAT/WHY/HOW 规范。
 
@@ -170,6 +120,58 @@ v1.2.1 audit 后剩余问题的 patch 收口。沿用 v1.2.0/v1.2.1 同一 Conve
 - 14 个 integration test helper 抽公共模块
 - 2 个 mutator synonym table 移到 tables.py
 - F-4 yingxue-anatomy 复制 (30 min, v1.3 backlog)
+
+## [1.2.1] - 2026-09-04
+
+### Added — v1.2.1 全面 audit 收口（基线 v1.2.0）
+
+PLAN-audit-v3.md 7 维度并发探查 → 12 P0 + 18 P1 全部修复；7 份子报告 + 1 份最终报告归档 `notes/audit-v3-*.md`。
+
+**Examples (8 写作 + 6 判断 + 1 meta + 1 yingxue = 16)：**
+- `examples/meta-注意力定价-bug-disclosure.md` —— meta 模式首例（注意力定价三层拆解）
+- `examples/judgment-暑期招生窗口期.md` —— 规则 6 争一千天 0/5 → 1/5 命中
+- `examples/yingxue-冻鸡挽歌-仿写.md` —— yingxue 模式首例（曾颖《冻鸡挽歌》200 字仿写，4/6 技法强示范）
+
+**Gate 机制：**
+- `regression_output.py` Mode Literal 加 `yingxue` + `EXPECT_BY_MODE["yingxue"]` tier + `_PREFIX_TO_MODE` 加 `yingxue-` 前缀
+- meta/yingxue 模式：examples 已实存但 gate 机制缺失的双轨修复
+
+**口径统一：**
+- 八层门禁（七→八）：`__init__.py` / `__main__.py` / `pyproject.toml` / `README.md` / `AGENTS.md` / `tests/README.md` / `notes/learning.md`
+- 16 项硬自检（15→16）：`writing-checklist.md` 顶部 + `AGENTS.md` + `CHANGELOG.md` + `README.md` + `x-field-notes.md` + `writing-景甜-原文片段.md` 同步
+- 7+1 步流程（7→8）：`writing-anatomy.md` 附录 A 标题显式
+- 17 hard metrics docstring（15→17）：`regression_output.py:1` 与 EXPECT 字典一致
+- `token_budget.py` docstring 阈值 16_000→22_000 跟随 v1.2.0 SOFT_LIMIT 升级
+- `notes/runbook.md` mutmut 预算 30s→45s 跟随 lint_pii gate addition
+
+**Owner 文档：**
+- `notes/scripts-README.md` —— 3 个非门禁脚本（coherence_gate / writing_gate / gen_mutation_report）的 owner/触发/CI/失败行为契约
+
+**源码债修复：**
+- `lint_claims.py:313-315` text-grep `--all/--json` 改 ast parse（reviewer.code F4）
+- `lint_pii.py:218` 截断 60→40 字符（与 scan_security 对齐）
+- `scan_security.py` `_INJECTION_NARRATIVE_EXEMPT` 改 tuple+path-prefix（与 lint_pii 对齐）
+- `gen_mutation_report.py:35` `MUTMUT_BIN` 走 `SUNXUE_MUTMUT_BIN` 环境变量
+- `gen_mutation_report.py:111` 静默吞错加 stderr 警告
+
+**工作区卫生：**
+- `.sunxue/` 加入 .gitignore（草稿目录）
+- `uv.lock` sunxue-gates 1.1.0→1.2.0 sync 提交
+- `notes/bug-disclosure-meta.md` 删除（已迁入 examples/）
+
+### Backlog (v1.2.2+ / 不在 1.2.1 范围)
+
+- mutmut 幸存率 49.5% 压降（v1.3 性能优化）
+- writing 闭环 == 3 改 3-5 区间（脆等式）
+- 6 个 integration test helper 抽公共模块
+- 2 个 mutator synonym table 移到 tables.py
+- 6 个 P2 命名/常量重复清理
+
+### Fixed
+
+- 8/8 门禁全绿（含新增 2 个 example 后 regression_output 仍 PASS）
+- README 目录树计数 13→16 + 7 个 missing 文件补登
+- PLAN-audit-v3.md 3 处 `~/.hermes/` 路径脱敏（lint_pii 不再硬命中）
 
 ## [1.2.0] - 2026-09-04
 
