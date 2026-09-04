@@ -100,7 +100,7 @@ show_missing = true
 [tool.sunxue.defaults]
 gates_all = 180
 pytest = 5
-mutmut = 120
+mutmut = 180
 
 [tool.sunxue.budgets]
 gates_all = 180
@@ -116,8 +116,9 @@ pytest = 5
 # 60 → 120s. 这是 v1.2.2 mutmut budget 放宽的同源累积效应, 不算新债.
 # v1.3.1 (audit-v4): meta/yingxue 接线 + golden 扩五模块后变异体
 # 2582 → 2607, 全链实测 120.42s 顶破 120s gates_all budget (超 0.42s),
-# 同源累积效应再放宽 120 → 180s.
-mutmut = 120
+# 同源累积效应再放宽 120 → 180s. mutmut 阶段同批实测 112.8/119.4/132.3s
+# 抖动, 120s budget 进入不稳定区, 同步 120 → 180s.
+mutmut = 180
 
 [tool.mutmut]
 source_paths = ["src/sunxue_gates"]

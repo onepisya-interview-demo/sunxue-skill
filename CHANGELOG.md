@@ -105,6 +105,10 @@ audit-v4（PLAN-audit-v4.md，v1.3.0 基线）9 维度正交审计（8 并行子
 - regression 机械覆盖 10/17 → 12/17 examples，豁免口径书面化（enforcement §7）
 - mutmut 机渲报告刷新并回归纯机渲：2607 mutants，幸存率 **50.7%**（1285 killed / 1117 survived / 205 no_tests）；手写叙述段移除，历史真源归本文件 v1.3.0 段
 
+### Post-release fix（v1.3.1 tag 后）
+
+- **mutmut budget 120→180s**：预算收口后三连实测 mutmut 阶段 112.8 / 119.4 / 132.3s 抖动，120s 进入不稳定区；同源累积放宽（2607 变异体），gates_all=180s 维持。复验 `gates --all` 8/8 全绿 143.04s。
+
 ### Backlog（v1.4+ / 不在 1.3.1 范围）
 
 - mutmut 幸存率 50.7% → <10%（长期工程）
