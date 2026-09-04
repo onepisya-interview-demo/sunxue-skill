@@ -324,9 +324,7 @@ def count_loop_closure(text: str) -> int:
     """
     sents = re.split(r"[。\n]", text)
     counts: Counter[str] = Counter(
-        s.strip()
-        for s in sents
-        if LOOP_CLOSURE_MIN_LEN < len(s.strip()) < LOOP_CLOSURE_MAX_LEN
+        s.strip() for s in sents if LOOP_CLOSURE_MIN_LEN < len(s.strip()) < LOOP_CLOSURE_MAX_LEN
     )
     return sum(1 for v in counts.values() if v >= 2)
 

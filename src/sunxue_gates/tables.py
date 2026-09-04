@@ -78,7 +78,6 @@ LOOP_CLOSURE_MAX_LEN: int = 20
 # v1.3.0 cluster B F21: keep the literal regex on ``co_consts`` (so mutmut
 # excludes it via the do_not_mutate glob) but expose it as a top-level name
 # here for readability. mutation_drill re-exports for backward compat.
-import re as _re
 SPLIT_MARKER_RE: str = r"([，。；])"
 
 # ---------------------------------------------------------------------------

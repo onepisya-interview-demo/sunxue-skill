@@ -12,6 +12,17 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from . import (
+    injection_drill,
+    lint_claims,
+    lint_pii,
+    lint_structure,
+    mutation_drill,
+    regression_output,
+    scan_security,
+    token_budget,
+)
+from ._cli_flags import get_gates_flags
 from .results import CheckResult, GateResult
 
 __all__ = [
@@ -24,33 +35,6 @@ __all__ = [
     "run_all",
 ]
 
-
-def get_gates_flags() -> frozenset[str]:
-    """Return the canonical set of CLI flags exposed by the ``gates`` console script.
-
-    v1.3.0 cluster A F8: single source of truth for the CLI flag set.
-    ``__main__.main`` and ``lint_claims._GATES_FLAGS`` both import from
-    here, so the dict-vs-set drift that the v1.2.0 audit caught cannot
-    happen again. The return type is a frozenset for O(1) membership
-    tests in the ast-based detection path.
-    """
-    return frozenset({"--all", "--json"})
-
-# Gate modules are imported eagerly below so that :data:`GATES` is a concrete
-# module tuple ready for ``run_all`` / ``run`` lookups. Tests can still import
-# a single gate module directly (e.g. ``from sunxue_gates import lint_structure``)
-# without paying for the rest; the import side-effect here is module loading,
-# not gate execution.
-from . import (
-    injection_drill,
-    lint_claims,
-    lint_pii,
-    lint_structure,
-    mutation_drill,
-    regression_output,
-    scan_security,
-    token_budget,
-)
 
 # Execution order matches the original test/ scripts; lint_claims (gate 7)
 # is appended at the end since it is a documentation / cross-check gate

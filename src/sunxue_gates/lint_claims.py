@@ -21,6 +21,7 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
+from ._cli_flags import get_gates_flags
 from .results import CheckResult, GateResult
 from .tables import KNOWN_UV_SUBCOMMANDS
 
@@ -53,9 +54,7 @@ _KNOWN_UV_SUBCOMMANDS: dict[str, str] = KNOWN_UV_SUBCOMMANDS
 # A F8: source-of-truth moved to ``sunxue_gates.get_gates_flags``; this
 # binding kept for backward-compat with any tests that import the
 # historical name.
-from . import get_gates_flags as _get_gates_flags
-
-_GATES_FLAGS: frozenset[str] = _get_gates_flags()
+_GATES_FLAGS: frozenset[str] = get_gates_flags()
 
 
 # ---------------------------------------------------------------------------
