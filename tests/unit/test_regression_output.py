@@ -421,8 +421,9 @@ class TestModeInference:
 class TestExpectByMode:
     """Per-mode EXPECT tables are well-formed."""
 
-    def test_three_modes_defined(self) -> None:
-        assert set(regression_output.EXPECT_BY_MODE) == {"writing", "judgment", "meta"}
+    def test_four_modes_defined(self) -> None:
+        # v1.2.1 audit: yingxue added as a 4th mode (PLAN-audit-v3 §1 row 4 P0)
+        assert set(regression_output.EXPECT_BY_MODE) == {"writing", "judgment", "meta", "yingxue"}
 
     def test_writing_tier_is_empty_so_writing_default_applies(self) -> None:
         # Writing tier is empty by design: ``_merge_expect('writing')``

@@ -313,6 +313,7 @@ def _check_uv_commands(root: Path) -> CheckResult:
     cfg = _load_pyproject(root)
     has_gates_script = "gates" in cfg.get("project", {}).get("scripts", {})
     import ast
+
     src_main_path = root / "src" / "sunxue_gates" / "__main__.py"
     src_main_ast = ast.parse(src_main_path.read_text(encoding="utf-8"))
     has_all_flag = has_json_flag = False

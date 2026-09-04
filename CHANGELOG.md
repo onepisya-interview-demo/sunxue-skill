@@ -5,6 +5,58 @@ All notable changes to this skill are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-09-04
+
+### Added — v1.2.0 全面 audit 收口
+
+PLAN-audit-v3.md 7 维度并发探查 → 12 P0 + 18 P1 全部修复；7 份子报告 + 1 份最终报告归档 `notes/audit-v3-*.md`。
+
+**Examples (8 写作 + 6 判断 + 1 meta + 1 yingxue = 16)：**
+- `examples/meta-注意力定价-bug-disclosure.md` —— meta 模式首例（注意力定价三层拆解）
+- `examples/judgment-暑期招生窗口期.md` —— 规则 6 争一千天 0/5 → 1/5 命中
+- `examples/yingxue-冻鸡挽歌-仿写.md` —— yingxue 模式首例（曾颖《冻鸡挽歌》200 字仿写，4/6 技法强示范）
+
+**Gate 机制：**
+- `regression_output.py` Mode Literal 加 `yingxue` + `EXPECT_BY_MODE["yingxue"]` tier + `_PREFIX_TO_MODE` 加 `yingxue-` 前缀
+- meta/yingxue 模式：examples 已实存但 gate 机制缺失的双轨修复
+
+**口口径统一：**
+- 八层门禁（七→八）：`__init__.py` / `__main__.py` / `pyproject.toml` / `README.md` / `AGENTS.md` / `tests/README.md` / `notes/learning.md`
+- 16 项硬自检（15→16）：`writing-checklist.md` 顶部 + `AGENTS.md` + `CHANGELOG.md` + `README.md` + `x-field-notes.md` + `writing-景甜-原文片段.md` 同步
+- 7+1 步流程（7→8）：`writing-anatomy.md` 附录 A 标题显式
+- 17 hard metrics docstring（15→17）：`regression_output.py:1` 与 EXPECT 字典一致
+- `token_budget.py` docstring 阈值 16_000→22_000 跟随 v1.2.0 SOFT_LIMIT 升级
+- `notes/runbook.md` mutmut 预算 30s→45s 跟随 lint_pii gate addition
+
+**Owner 文档：**
+- `notes/scripts-README.md` —— 3 个非门禁脚本（coherence_gate / writing_gate / gen_mutation_report）的 owner/触发/CI/失败行为契约
+
+**源码债修复：**
+- `lint_claims.py:313-315` text-grep `--all/--json` 改 ast parse（reviewer.code F4）
+- `lint_pii.py:218` 截断 60→40 字符（与 scan_security 对齐）
+- `scan_security.py` `_INJECTION_NARRATIVE_EXEMPT` 改 tuple+path-prefix（与 lint_pii 对齐）
+- `gen_mutation_report.py:35` `MUTMUT_BIN` 走 `SUNXUE_MUTMUT_BIN` 环境变量
+- `gen_mutation_report.py:111` 静默吞错加 stderr 警告
+
+**工作区卫生：**
+- `.sunxue/` 加入 .gitignore（草稿目录）
+- `uv.lock` sunxue-gates 1.1.0→1.2.0 sync 提交
+- `notes/bug-disclosure-meta.md` 删除（已迁入 examples/）
+
+### Backlog (v1.2.2+ / 不在 1.2.1 范围)
+
+- mutmut 幸存率 49.5% 压降（v1.3 性能优化）
+- writing 闭环 == 3 改 3-5 区间（脆等式）
+- 6 个 integration test helper 抽公共模块
+- 2 个 mutator synonym table 移到 tables.py
+- 6 个 P2 命名/常量重复清理
+
+### Fixed
+
+- 8/8 门禁全绿（含新增 2 个 example 后 regression_output 仍 PASS）
+- README 目录树计数 13→16 + 7 个 missing 文件补登
+- PLAN-audit-v3.md 3 处 `~/.hermes/` 路径脱敏（lint_pii 不再硬命中）
+
 ## [1.2.0] - 2026-09-04
 
 ### Added — SKILL.md 外化重组 + yingxue 镜像学科首次纳入
