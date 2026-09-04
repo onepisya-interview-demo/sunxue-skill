@@ -7,7 +7,7 @@
 - **SKILL.md 元信息依 `lint_claims.skill_freeze` 冻结在 v1.0**（PLAN §3.2 设计决定）；版本号演化在 `VERSION` 文件 + `pyproject.toml` + `CHANGELOG.md`。
 - 实质版本演化：v1.0.0（合并首发，2026-08-28）→ v1.1.0（门禁工程化，2026-08-30）→ v1.2.0（SKILL.md 外化 + yingxue 镜像学科首次纳入，2026-09-04）。
 - SKILL.md 字符预算：`lint_structure` 硬上限 25,000 chars；v1.2.0 实测 12,606 chars（留 12,394 余量）。
-- references/ 字符预算：每个 ≤ 12,000 chars；v1.2.2 实际 12 个 reference，总 56,837 chars / 18,943 tokens（`token_budget.references_total` 上限 22,000；v1.2.1 加 yingxue-corpus.md 2001 chars/667 tokens）。
+- references/ 字符预算：每个 ≤ 12,000 chars；v1.3.0 实际 13 个 reference，总 60,847 chars / 20,279 tokens（`token_budget.references_total` 上限 22,000；v1.3.0 集群 D 加 yingxue-anatomy.md 7621 chars/2540 tokens）。
 - 4 模式路由：description 触发词命中即加载对应 `<!-- @mode:writing|judgment|meta|yingxue -->` 章节。
 
 ## 提交规范：Commit-as-Prompt（WHAT / WHY / HOW）

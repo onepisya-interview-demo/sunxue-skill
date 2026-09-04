@@ -241,7 +241,7 @@ sunxue/
 │       ├── mutation_drill.py         # Gate 6
 │       ├── lint_claims.py             # Gate 7
 │       └── tables.py                  # 关键词/模式纯数据表（golden 契约锁定）
-├── references/                       # 12 个 reference（原样搬运 + 技法注解 + 门禁契约 + 第 7.2 步内容自洽性扫描 + v1.2 写作总纲 + yingxue 语料）
+├── references/                       # 13 个 reference（原样搬运 + 技法注解 + 门禁契约 + 第 7.2 步内容自洽性扫描 + v1.2 写作总纲 + yingxue 语料 + v1.3 颖学解剖）
 │   ├── style-anatomy.md              # bayshier 原文例证 10 技法（与 gehao628 合并去重后形成 SKILL.md 的 13 条核心技法）
 │   ├── x-field-notes.md              # bayshier X 舆论场 + 曾颖讲义 + 三层孙学
 │   ├── writing-anatomy.md            # gehao628 sun-writing（五幕骨架 + 数字骨架 + 7 步流程 + 致命自检/最后一问附录 A/B）
@@ -254,7 +254,7 @@ sunxue/
 │   ├── coherence-checklist.md        # SKILL.md 第 7.2 步内容自洽性扫描 SOP（5 项检查 + 报告格式）
 │   ├── writing-essence.md            # v1.2.0 新增：第一原则 + 第零关 + 仿写公式 + 镜像识别 + 演说体 vs 证词体
 │   └── yingxue-corpus.md             # v1.2.0 新增：曾颖四篇语料（冻鸡/椰子鸡/15688 消息/养他论）+ 词源
-├── examples/                         # 16 个真实样本（v1.2.1 audit 收口：8 写作 + 6 判断 + 1 meta + 1 yingxue）
+├── examples/                         # 17 个真实样本（v1.2.1 audit 收口：8 写作 + 6 判断 + 1 meta + 1 yingxue；v1.3 集群 D 加 1 写作我沉默了强示范）
 │   ├── writing-巴菲特午餐.md         # gehao628：用孙文体写孙本人
 │   ├── writing-示例2-被割版.md       # 真实完整稿（v1.0 误标占位，v1.1 更正）
 │   ├── writing-示例3-AI时代前端.md   # regression_output 真实样本
