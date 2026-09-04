@@ -94,9 +94,13 @@ _ALL_CHAIN: tuple[tuple[str, tuple[str, ...], str], ...] = (
 def _load_budgets(root: Path) -> dict[str, float]:
     """Read ``[tool.sunxue.budgets]`` from ``root/pyproject.toml``.
 
-    Missing keys fall back to safe defaults (plan 3.4): 60s for the overall
-    chain, 5s for pytest, 120s for mutmut. The defaults are identical to
-    ``pyproject.toml`` so a missing table does not silently relax the gates.
+    Missing keys fall back to ``[tool.sunxue.defaults]`` (v1.3.0 F14)
+    which is the single source of truth for the per-stage defaults —
+    the previous design had the defaults duplicated here and in
+    pyproject, with no enforcement that they agreed. The hard-coded
+    constant below is the last-resort safety net for the case where
+    pyproject is missing entirely (CI uses a real pyproject; the
+    hard-coded fallback is for offline / scaffold scenarios).
 
     v1.2.2 mutmut default raised 45→120s: mutmut 3.7.0 with the
     13-file surface generates 2581 mutants and empirically needs ~80s
@@ -104,15 +108,29 @@ def _load_budgets(root: Path) -> dict[str, float]:
     upstream fix not released; the relaxation is a stop-gap until the
     upgrade. See ``pyproject.toml [tool.sunxue.budgets]`` for context.
     """
-    defaults: dict[str, float] = {"gates_all": 60.0, "pytest": 5.0, "mutmut": 120.0}
+    hardcoded_defaults: dict[str, float] = {"gates_all": 60.0, "pytest": 5.0, "mutmut": 120.0}
     pyproject = root / "pyproject.toml"
     if not pyproject.exists():
-        return defaults
+        return hardcoded_defaults
     try:
         cfg = tomllib.loads(pyproject.read_text(encoding="utf-8"))
     except (OSError, tomllib.TOMLDecodeError):  # pragma: no cover - defensive
-        return defaults
-    raw = cfg.get("tool", {}).get("sunxue", {}).get("budgets", {})
+        return hardcoded_defaults
+    sunxue = cfg.get("tool", {}).get("sunxue", {})
+    # v1.3.0 F14: defaults now live under [tool.sunxue.defaults]; if
+    # that section is missing, fall back to the hard-coded safety net
+    # (above) so a broken pyproject cannot silently drop a budget.
+    raw_defaults = sunxue.get("defaults", {})
+    pyproject_defaults: dict[str, float] = {}
+    if isinstance(raw_defaults, dict):
+        for k, v in raw_defaults.items():
+            try:
+                pyproject_defaults[str(k)] = float(v)  # type: ignore[arg-type]
+            except (TypeError, ValueError):
+                continue
+    defaults = dict(hardcoded_defaults)
+    defaults.update(pyproject_defaults)
+    raw = sunxue.get("budgets", {})
     out = dict(defaults)
     if isinstance(raw, dict):
         for k, v in raw.items():

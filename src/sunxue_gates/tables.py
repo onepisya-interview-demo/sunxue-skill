@@ -33,18 +33,98 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 __all__ = [
-    "Drill",
+    "CHARS_PER_TOKEN_ESTIMATE",
+    "DEG_ADV",
     "DRILLS",
-    "PII_PATTERNS",
-    "SECRET_PATTERNS",
+    "Drill",
+    "EMO_DIRECT",
+    "HARD_KEYWORDS",
     "INJECTION_PATTERNS",
     "ITER_PATTERNS",
     "KEY_PHRASES",
-    "HARD_KEYWORDS",
-    "DEG_ADV",
-    "EMO_DIRECT",
+    "KNOWN_UV_SUBCOMMANDS",
+    "LOOP_CLOSURE_MIN_LEN",
+    "LOOP_CLOSURE_MAX_LEN",
+    "PII_PATTERNS",
+    "SECRET_PATTERNS",
     "SERVER_POLYPHONY_WORDS",
+    "SPLIT_MARKER_RE",
+    "MUTATION_SYNONYMS",
+    "MUTATION_SPLIT_WORDS",
+    "MUTATION_SOFTEN_REPLACEMENTS",
 ]
+
+# ---------------------------------------------------------------------------
+# token_budget — heuristic chars-to-tokens divisor (plan 3.3)
+# ---------------------------------------------------------------------------
+# v1.3.0 F17: magic number `3` in token_budget.run promoted to a named
+# constant here so the figure is one search away from any future tuning.
+# Empirical value; the precise-mode (tiktoken) path bypasses it entirely.
+CHARS_PER_TOKEN_ESTIMATE: int = 3
+
+# ---------------------------------------------------------------------------
+# regression_output — loop-closure candidate sentence length window
+# ---------------------------------------------------------------------------
+# v1.3.0 F16: the literal 4 / 20 in count_loop_closure were magic numbers
+# for the "sentences counted as 闭环句候选 must be 4 < len < 20" window.
+# Promote to named constants here so the window is auditable and tunable
+# without touching the counter implementation.
+LOOP_CLOSURE_MIN_LEN: int = 4
+LOOP_CLOSURE_MAX_LEN: int = 20
+
+# ---------------------------------------------------------------------------
+# mutation_drill — split-marker regex (was _SPLIT_MARKERS in mutation_drill.py)
+# ---------------------------------------------------------------------------
+# v1.3.0 cluster B F21: keep the literal regex on ``co_consts`` (so mutmut
+# excludes it via the do_not_mutate glob) but expose it as a top-level name
+# here for readability. mutation_drill re-exports for backward compat.
+import re as _re
+SPLIT_MARKER_RE: str = r"([，。；])"
+
+# ---------------------------------------------------------------------------
+# mutation_drill — synonym / soften replacement tables
+# ---------------------------------------------------------------------------
+# v1.3.0 cluster B F21: the inline tuples inside mutate_synonym /
+# mutate_soften were literal "noise" mutations for mutmut. They live here
+# (mutmut's do_not_mutate list covers tables.py) and mutation_drill
+# re-exports them under the original attribute paths.
+MUTATION_SYNONYMS: tuple[tuple[str, str], ...] = (
+    ("必须", "务必"),
+    ("不要", "请勿"),
+    ("应该", "宜"),
+    ("改写", "改写成"),
+)
+MUTATION_SPLIT_WORDS: str = " 也就是说, "
+MUTATION_SOFTEN_REPLACEMENTS: tuple[tuple[str, str], ...] = (
+    ("必须", "建议"),
+    ("务必", "尽量"),
+    ("请勿", "尽量不要"),
+    ("不要", "尽量不要"),
+    ("严禁", "不推荐"),
+    ("应该", "可以"),
+)
+
+# ---------------------------------------------------------------------------
+# lint_claims — known ``uv run <subcommand>`` invocations
+# ---------------------------------------------------------------------------
+# v1.3.0 cluster A F9: the 9-entry dict that used to live in
+# lint_claims._KNOWN_UV_SUBCOMMANDS moves here (canonical home: the
+# pure-data tables module) so mutmut's do_not_mutate exclusion covers it
+# and the test_golden_literals contract enforces byte-level stability.
+# The dict shape is ``{regex: resolved_subcommand_label}`` — callers
+# match the regex against docs, then look up the resolved label for
+# "is the subcommand actually in this repo?" checks.
+KNOWN_UV_SUBCOMMANDS: dict[str, str] = {
+    r"\buv\s+run\s+pytest\b": "pytest",
+    r"\buv\s+run\s+basedpyright\b": "basedpyright",
+    r"\buv\s+run\s+ty\s+check\b": "ty",
+    r"\buv\s+run\s+ruff\s+check\b": "ruff",
+    r"\buv\s+run\s+ruff\s+format\b": "ruff",
+    r"\buv\s+run\s+gates\b": "gates",
+    r"\buv\s+run\s+diff-cover\b": "diff-cover",
+    r"\buv\s+run\s+mutmut\b": "mutmut",
+    r"\buv\s+run\s+python\b": "python",
+}
 
 
 # ---------------------------------------------------------------------------

@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Protocol
 
 from .results import CheckResult, GateResult
+from .tables import CHARS_PER_TOKEN_ESTIMATE as _CHARS_PER_TOKEN_ESTIMATE
 
 
 class _TiktokenEncoding(Protocol):
@@ -47,7 +48,9 @@ __all__ = [
     "run",
 ]
 
-CHARS_PER_TOKEN: int = 3  # empirical, approximates English tokenization for Chinese-heavy text.
+CHARS_PER_TOKEN: int = (
+    _CHARS_PER_TOKEN_ESTIMATE  # v1.3.0 F17: 3 magic → tables.CHARS_PER_TOKEN_ESTIMATE
+)
 
 SOFT_LIMIT: dict[str, int] = {
     "SKILL.md": 8_500,
@@ -121,6 +124,18 @@ def est_tokens_text(text: str) -> tuple[int, str]:
     return len(text) // CHARS_PER_TOKEN, "heuristic"
 
 
+def _estimate_with_mode(text: str, size: int, precise: bool) -> tuple[int, str]:
+    """Return ``(token_count, mode)`` for a file's body — v1.3.0 F7 helper.
+
+    Centralises the precise/heuristic dispatch so the two call-sites in
+    :func:`run` (SKILL.md + per-reference file) don't duplicate the
+    ``if precise: est_tokens_text(text) else: est_tokens(size)`` shape.
+    """
+    if precise:
+        return est_tokens_text(text)
+    return est_tokens(size), "heuristic"
+
+
 def run(root: Path) -> GateResult:
     """Run the token-budget gate against `root`."""
     skill_md = root / "SKILL.md"
@@ -151,11 +166,7 @@ def run(root: Path) -> GateResult:
         t1 = time.perf_counter()
         cold_ms = (t1 - t0) * 1000
         size = len(text)
-        if precise:
-            tok, mode = est_tokens_text(text)
-        else:
-            tok = est_tokens(size)
-            mode = "heuristic"
+        tok, mode = _estimate_with_mode(text, size, precise)
         limit = SOFT_LIMIT["SKILL.md"]
         ok = tok <= limit
         tag = "OK" if ok else "OVER"
@@ -185,11 +196,7 @@ def run(root: Path) -> GateResult:
         for ref in sorted(references_dir.glob("*.md")):
             text = ref.read_text(encoding="utf-8")
             size = len(text)
-            if precise:
-                tok, mode = est_tokens_text(text)
-            else:
-                tok = est_tokens(size)
-                mode = "heuristic"
+            tok, mode = _estimate_with_mode(text, size, precise)
             total_chars += size
             total_tok += tok
             single_limit = SOFT_LIMIT["reference_single"]

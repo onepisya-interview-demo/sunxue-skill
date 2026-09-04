@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from .results import CheckResult, GateResult
+from .tables import KNOWN_UV_SUBCOMMANDS
 
 __all__ = ["run"]
 
@@ -41,26 +42,20 @@ _SKILL_MD: str = "SKILL.md"
 # SKILL.md frontmatter version (which is intentionally frozen at 1.0.0).
 _FREEZE_ANNOTATION: str = "元信息冻结"
 
-# uv commands we expect to find in tests/README.md. Each entry is a regex
-# matched against the file contents; the regex captures the command's
-# primary subcommand (group 1). The match must also be wired up to an
-# actual file in the repo (or a recognised CLI flag) to count as
-# "resolvable".
-_KNOWN_UV_SUBCOMMANDS: dict[str, str] = {
-    r"\buv\s+run\s+pytest\b": "pytest",
-    r"\buv\s+run\s+basedpyright\b": "basedpyright",
-    r"\buv\s+run\s+ty\s+check\b": "ty",
-    r"\buv\s+run\s+ruff\s+check\b": "ruff",
-    r"\buv\s+run\s+ruff\s+format\b": "ruff",
-    r"\buv\s+run\s+gates\b": "gates",
-    r"\buv\s+run\s+diff-cover\b": "diff-cover",
-    r"\buv\s+run\s+mutmut\b": "mutmut",
-    r"\buv\s+run\s+python\b": "python",
-}
+# v1.3.0 cluster A F9: the 9-entry dict that used to live here as
+# _KNOWN_UV_SUBCOMMANDS moved to tables.KNOWN_UV_SUBCOMMANDS (canonical
+# home, mutmut do_not_mutate covers it). We re-bind it under the
+# historical name so existing tests / golden references that import
+# ``lint_claims._KNOWN_UV_SUBCOMMANDS`` keep working.
+_KNOWN_UV_SUBCOMMANDS: dict[str, str] = KNOWN_UV_SUBCOMMANDS
 
-# CLI surface that the ``gates`` console script exposes (mirrors
-# sunxue_gates.__main__.main).
-_GATES_FLAGS: frozenset[str] = frozenset({"--all", "--json"})
+# CLI surface that the ``gates`` console script exposes. v1.3.0 cluster
+# A F8: source-of-truth moved to ``sunxue_gates.get_gates_flags``; this
+# binding kept for backward-compat with any tests that import the
+# historical name.
+from . import get_gates_flags as _get_gates_flags
+
+_GATES_FLAGS: frozenset[str] = _get_gates_flags()
 
 
 # ---------------------------------------------------------------------------

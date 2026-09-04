@@ -92,6 +92,16 @@ show_missing = true
 # the mutation scan, which pushed the previous 30s cap over the edge
 # on a clean run. 45s leaves ~10s headroom for the synthesis-deferred
 # counters that 档 ② will introduce without needing another bump.
+#
+# v1.3.0 cluster A F14: defaults are now declared under
+# [tool.sunxue.defaults] (single source of truth, read by
+# sunxue_gates.__main__._load_budgets). The hard-coded safety net in
+# code mirrors these values; if you change one, change the other.
+[tool.sunxue.defaults]
+gates_all = 60
+pytest = 5
+mutmut = 120
+
 [tool.sunxue.budgets]
 gates_all = 60
 pytest = 5

@@ -22,7 +22,14 @@ from collections.abc import Callable
 from pathlib import Path
 
 from .results import CheckResult, GateResult
-from .tables import HARD_KEYWORDS, KEY_PHRASES
+from .tables import (
+    HARD_KEYWORDS,
+    KEY_PHRASES,
+    MUTATION_SOFTEN_REPLACEMENTS,
+    MUTATION_SPLIT_WORDS,
+    MUTATION_SYNONYMS,
+    SPLIT_MARKER_RE,
+)
 
 __all__ = [
     "KEY_PHRASES",
@@ -36,44 +43,47 @@ __all__ = [
     "run",
 ]
 
-_SPLIT_MARKERS = re.compile(r"([，。；])")
+# v1.3.0 cluster B F21: literal regex on co_consts (kept here so mutmut
+# can find it under the original attribute path); the canonical home is
+# tables.SPLIT_MARKER_RE. The compiled regex below is the only thing
+# the runtime actually uses.
+_SPLIT_MARKERS = re.compile(SPLIT_MARKER_RE)
 
 
 def mutate_synonym(text: str) -> str:
-    """Replace strong-mood words with neutral synonyms (M1)."""
-    table = (
-        ("必须", "务必"),
-        ("不要", "请勿"),
-        ("应该", "宜"),
-        ("改写", "改写成"),
-    )
+    """Replace strong-mood words with neutral synonyms (M1).
+
+    v1.3.0 cluster B F21: the synonym table now lives in
+    :data:`sunxue_gates.tables.MUTATION_SYNONYMS` (canonical home, mutmut
+    excluded via do_not_mutate).
+    """
     out = text
-    for a, b in table:
+    for a, b in MUTATION_SYNONYMS:
         out = out.replace(a, b)
     return out
 
 
 def mutate_split(text: str) -> str:
-    """Split the sentence at the first comma/period/semicolon, joining with '也就是说,' (M2)."""
+    """Split the sentence at the first comma/period/semicolon, joining with '也就是说,' (M2).
+
+    v1.3.0 cluster B F21: the joiner string now lives in
+    :data:`sunxue_gates.tables.MUTATION_SPLIT_WORDS`.
+    """
     parts = _SPLIT_MARKERS.split(text, maxsplit=1)
     if len(parts) >= 3:
         head, sep, tail = parts[0], parts[1], "".join(parts[2:])
-        return f"{head}{sep} 也就是说, {tail}"
+        return f"{head}{sep}{MUTATION_SPLIT_WORDS}{tail}"
     return text + " 这一条不要忘。"
 
 
 def mutate_soften(text: str) -> str:
-    """Soften strong words into suggestions (M3)."""
-    table = (
-        ("必须", "建议"),
-        ("务必", "尽量"),
-        ("请勿", "尽量不要"),
-        ("不要", "尽量不要"),
-        ("严禁", "不推荐"),
-        ("应该", "可以"),
-    )
+    """Soften strong words into suggestions (M3).
+
+    v1.3.0 cluster B F21: the soften table now lives in
+    :data:`sunxue_gates.tables.MUTATION_SOFTEN_REPLACEMENTS`.
+    """
     out = text
-    for a, b in table:
+    for a, b in MUTATION_SOFTEN_REPLACEMENTS:
         out = out.replace(a, b)
     return out
 

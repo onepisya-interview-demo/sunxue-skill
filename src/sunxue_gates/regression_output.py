@@ -43,7 +43,16 @@ from .results import CheckResult, GateResult
 # ``regression_output.SERVER_POLYPHONY_WORDS``); the runtime code
 # uses the local literal ``_WORDS`` inside ``count_server_polyphony``
 # (see comment there for why the literal is duplicated).
-from .tables import DEG_ADV, EMO_DIRECT, SERVER_POLYPHONY_WORDS  # noqa: F401
+# LOOP_CLOSURE_MIN_LEN / LOOP_CLOSURE_MAX_LEN (v1.3.0 F16) come from
+# tables so the 4 / 20 magic numbers in count_loop_closure are no
+# longer inline.
+from .tables import (  # noqa: F401
+    DEG_ADV,
+    EMO_DIRECT,
+    LOOP_CLOSURE_MAX_LEN,
+    LOOP_CLOSURE_MIN_LEN,
+    SERVER_POLYPHONY_WORDS,
+)
 
 Mode = Literal["writing", "judgment", "meta", "yingxue"]
 
@@ -308,9 +317,17 @@ def count_object_callback(text: str) -> int:
 
 
 def count_loop_closure(text: str) -> int:
-    """Count sentences that appear at least twice in length 4–20 (loop closure candidates)."""
+    """Count sentences that appear at least twice in the length window (loop closure candidates).
+
+    v1.3.0 F16: the 4 / 20 window was inline; it now comes from
+    :data:`tables.LOOP_CLOSURE_MIN_LEN` / :data:`tables.LOOP_CLOSURE_MAX_LEN`.
+    """
     sents = re.split(r"[。\n]", text)
-    counts: Counter[str] = Counter(s.strip() for s in sents if 4 < len(s.strip()) < 20)
+    counts: Counter[str] = Counter(
+        s.strip()
+        for s in sents
+        if LOOP_CLOSURE_MIN_LEN < len(s.strip()) < LOOP_CLOSURE_MAX_LEN
+    )
     return sum(1 for v in counts.values() if v >= 2)
 
 

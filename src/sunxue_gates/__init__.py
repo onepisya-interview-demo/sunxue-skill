@@ -19,9 +19,22 @@ __all__ = [
     "GateResult",
     "GATES",
     "GATE_NAMES",
+    "get_gates_flags",
     "run",
     "run_all",
 ]
+
+
+def get_gates_flags() -> frozenset[str]:
+    """Return the canonical set of CLI flags exposed by the ``gates`` console script.
+
+    v1.3.0 cluster A F8: single source of truth for the CLI flag set.
+    ``__main__.main`` and ``lint_claims._GATES_FLAGS`` both import from
+    here, so the dict-vs-set drift that the v1.2.0 audit caught cannot
+    happen again. The return type is a frozenset for O(1) membership
+    tests in the ast-based detection path.
+    """
+    return frozenset({"--all", "--json"})
 
 # Gate modules are imported eagerly below so that :data:`GATES` is a concrete
 # module tuple ready for ``run_all`` / ``run`` lookups. Tests can still import
