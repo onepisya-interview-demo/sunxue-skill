@@ -16,9 +16,10 @@ def get_gates_flags() -> frozenset[str]:
     """Return the canonical set of CLI flags exposed by the ``gates`` console script.
 
     v1.3.0 cluster A F8: single source of truth for the CLI flag set.
-    ``__main__.main`` and ``lint_claims._GATES_FLAGS`` both import from
-    here, so the dict-vs-set drift that the v1.2.0 audit caught cannot
-    happen again. The return type is a frozenset for O(1) membership
-    tests in the ast-based detection path.
+    ``__main__.main`` consumes this set for flag-membership checks
+    (unknown-flag rejection + un-wired-flag alarm, wired v1.3.1 per
+    audit-v4 N4), and the lint_claims ast-check keeps ``--all`` /
+    ``--json`` literals in ``__main__`` aligned with it. The return
+    type is a frozenset for O(1) membership tests.
     """
     return frozenset({"--all", "--json"})

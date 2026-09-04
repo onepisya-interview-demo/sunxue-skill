@@ -38,7 +38,7 @@ jobs:
           python-version: "3.11"
 
       - name: sync dev deps
-        run: uv sync --dev
+        run: uv sync --locked --dev  # audit-v4 PE-03: CI must not silently re-resolve on lock drift
 
       - name: gates --all (8-stage acceptance chain)
         run: uv run gates --all

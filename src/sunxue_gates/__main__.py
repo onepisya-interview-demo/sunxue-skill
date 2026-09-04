@@ -43,6 +43,7 @@ import tomllib
 from pathlib import Path
 
 from . import GATE_NAMES, run_all
+from ._cli_flags import get_gates_flags
 
 __all__ = ["main", "default_root"]
 
@@ -103,7 +104,8 @@ def _load_budgets(root: Path) -> dict[str, float]:
     hard-coded fallback is for offline / scaffold scenarios).
 
     v1.2.2 mutmut default raised 45→120s: mutmut 3.7.0 with the
-    13-file surface generates 2581 mutants and empirically needs ~80s
+    13-file surface generates 2581 mutants (v1.2.2 时点; v1.3 起
+    14 文件 2582 — audit-v4 N11) and empirically needs ~80s
     on Linux runners, exceeding the v1.1 45s budget. mutmut 3.7.1
     upstream fix not released; the relaxation is a stop-gap until the
     upgrade. See ``pyproject.toml [tool.sunxue.budgets]`` for context.
@@ -280,6 +282,7 @@ def main(argv: list[str] | None = None) -> int:
     chain = False
     as_json = False
     positional: list[str] = []
+    known_flags = get_gates_flags()  # N4/F8 (v1.3.1): canonical set actually consumed
     for a in args:
         if a == "--all":
             chain = True
@@ -295,7 +298,16 @@ def main(argv: list[str] | None = None) -> int:
             )
             return 0
         elif a.startswith("-"):
-            print(f"unknown flag: {a}", file=sys.stderr)
+            if a not in known_flags:
+                print(
+                    f"unknown flag: {a} (known: {', '.join(sorted(known_flags))})",
+                    file=sys.stderr,
+                )
+                return 2
+            # registered in get_gates_flags() but not wired above —
+            # keeps the canonical set honest if a flag is added there
+            # without a dispatch branch here (audit-v4 N4).
+            print(f"flag {a} is registered but not wired in main()", file=sys.stderr)
             return 2
         else:
             positional.append(a)

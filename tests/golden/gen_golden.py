@@ -1,10 +1,12 @@
-"""Literal-provenance golden generator (plan 1.1).
+"""Literal-provenance golden generator (plan 1.1; v1.3.1 audit-v4 N5 扩五模块).
 
-Walks every pure-string keyword/pattern table in the four gate modules
+Walks every pure-string keyword/pattern table in the five golden modules
 (:mod:`sunxue_gates.injection_drill`, :mod:`sunxue_gates.scan_security`,
-:mod:`sunxue_gates.mutation_drill`, :mod:`sunxue_gates.regression_output`),
-hashes each string with SHA-256 + encodes it as UTF-8 hex, and writes
-``tests/golden/literals.json``.
+:mod:`sunxue_gates.mutation_drill`, :mod:`sunxue_gates.regression_output`,
+plus :mod:`sunxue_gates.tables` and :mod:`sunxue_gates.lint_pii` —
+audit-v4 N5: the v1.3 cluster-A tables relocated into tables.py had
+dropped out of the hash contract), hashes each string with SHA-256 +
+encodes it as UTF-8 hex, and writes ``tests/golden/literals.json``.
 
 The golden file contains ONLY ``sha256`` + ``hex_utf8`` fields — never
 plaintext. The matching test
@@ -12,7 +14,7 @@ plaintext. The matching test
 the runtime table against the golden field-by-field (exact string equality,
 order, nesting, counts).
 
-Re-run this generator whenever one of the four source tables changes
+Re-run this generator whenever one of the source tables changes
 (``regenerating golden is part of triage discipline``). Then re-run pytest
 to refresh the test contract.
 
@@ -135,6 +137,36 @@ def _pattern_module() -> dict[str, list[list[HashLeaf]]]:
     }
 
 
+def _pair_table(pairs) -> list[list[HashLeaf]]:
+    """Hash a tuple of ``(str, str)`` pairs (labels / synonyms / patterns)."""
+    return [[_hash_string(a), _hash_string(b)] for a, b in pairs]
+
+
+def _tables_module() -> dict[str, object]:
+    """Harvest the v1.3 keyword tables that live in ``tables.py`` (audit-v4 N5).
+
+    Shapes: MUTATION_SYNONYMS / MUTATION_SOFTEN_REPLACEMENTS are
+    ``(str, str)`` pair tuples; MUTATION_SPLIT_WORDS is a single marker
+    string; KNOWN_UV_SUBCOMMANDS is a ``dict[str, str]`` harvested as
+    sorted ``(key, value)`` pairs so the golden order is deterministic.
+    """
+    from sunxue_gates import tables
+
+    return {
+        "MUTATION_SYNONYMS": _pair_table(tables.MUTATION_SYNONYMS),
+        "MUTATION_SPLIT_WORDS": _hash_string(tables.MUTATION_SPLIT_WORDS),
+        "MUTATION_SOFTEN_REPLACEMENTS": _pair_table(tables.MUTATION_SOFTEN_REPLACEMENTS),
+        "KNOWN_UV_SUBCOMMANDS": _pair_table(sorted(tables.KNOWN_UV_SUBCOMMANDS.items())),
+    }
+
+
+def _pii_module() -> dict[str, list[list[HashLeaf]]]:
+    """Harvest ``lint_pii.PII_LINT_PATTERNS`` (audit-v4 N5, closes v3-F3)."""
+    from sunxue_gates import lint_pii
+
+    return {"PII_LINT_PATTERNS": _pair_table(lint_pii.PII_LINT_PATTERNS)}
+
+
 def _flat_string_tables(
     module_name: str,
     *table_names: str,
@@ -192,7 +224,7 @@ def _counts(obj: object) -> int:
 
 
 def main() -> int:
-    """Walk all four modules; write ``tests/golden/literals.json``."""
+    """Walk all golden modules; write ``tests/golden/literals.json``."""
     injection: dict[str, list[HashLeaf] | list[list[HashLeaf]]] = _drill_module()
     security: dict[str, list[list[HashLeaf]]] = _pattern_module()
     mutation: dict[str, list[HashLeaf]] = _flat_string_tables(
@@ -209,14 +241,17 @@ def main() -> int:
             "schema_version": 1,
             "note": (
                 "This file stores ONLY sha256 + hex_utf8 of every pure-string "
-                "token in the four keyword/pattern tables. Plaintext is "
-                "banned in tests/** (LLM-transcription corruption guard)."
+                "token in every keyword/pattern table across the golden "
+                "modules (four gates + tables.py + lint_pii, audit-v4 N5). "
+                "Plaintext is banned in tests/** (LLM-transcription corruption guard)."
             ),
         },
         "sunxue_gates.injection_drill": injection,
         "sunxue_gates.scan_security": security,
         "sunxue_gates.mutation_drill": mutation,
         "sunxue_gates.regression_output": regression,
+        "sunxue_gates.tables": _tables_module(),
+        "sunxue_gates.lint_pii": _pii_module(),
     }
 
     out_path = Path(__file__).resolve().parent / "literals.json"

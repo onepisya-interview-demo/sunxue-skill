@@ -49,6 +49,17 @@ class TestCliContract:
         assert "FAIL" not in proc.stdout
         assert "FAIL" not in proc.stderr
 
+    def test_weekday_anchor_frequency_passes(self) -> None:
+        """audit-v4 CR-N6 回归：星期锚点「每周三」= 周频（52/年）。
+
+        150 次 / 3 年 = 50 次/年，与周频偏差 3.8% < 50%，必须 PASS。
+        修复前的 pattern 匹配不上「每 + 周 + 星期几」，这类声明被静默
+        忽略；本 fixture 钉住「星期锚点被正确解析且不自洽草稿不误伤」。
+        """
+        proc = _run([str(FIXTURES / "coherence_weekday_anchor.md")])
+        assert proc.returncode == 0, proc.stdout + "\n--stderr--\n" + proc.stderr
+        assert "[FREQUENCY]" not in proc.stdout
+
     def test_broken_fixture_exits_two_with_timeline_and_frequency(self) -> None:
         """coherence_broken.md must fail with at least 1 timeline + 1
         frequency issue — these are the 2026-09-04 regression baseline.

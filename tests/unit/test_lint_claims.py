@@ -20,7 +20,7 @@ from sunxue_gates.lint_claims import (
     _check_thresholds,
     _check_uv_commands,
     _check_version_match,
-    _disk_count,
+    _count_top_level_md,
     run,
 )
 from sunxue_gates.results import GateResult
@@ -234,24 +234,24 @@ class TestDirectoryCounts:
         assert check.detail["references"]["claimed"] == 5
         assert check.detail["references"]["disk"] == 0
 
-    def test_disk_count_returns_zero_for_missing_dir(self, tmp_path: Path) -> None:
-        # ``_disk_count`` is the helper that powers directory-count checks.
+    def test_count_top_level_md_returns_zero_for_missing_dir(self, tmp_path: Path) -> None:
+        # ``_count_top_level_md`` is the helper that powers directory-count checks.
         # When the target directory does not exist, the helper must
         # return 0 rather than raising — the gate's report then records
         # ``disk=0`` for that subdir and the README's claimed count is
         # compared against zero. Pins the early-return branch (line 88).
-        assert _disk_count("references", tmp_path) == 0
-        assert _disk_count("examples", tmp_path) == 0
+        assert _count_top_level_md("references", tmp_path) == 0
+        assert _count_top_level_md("examples", tmp_path) == 0
         # Sanity: an existing empty directory also counts as zero.
         (tmp_path / "empty_dir").mkdir()
-        assert _disk_count("empty_dir", tmp_path) == 0
+        assert _count_top_level_md("empty_dir", tmp_path) == 0
         # Sanity: a non-empty directory counts the .md files inside.
         d = tmp_path / "full_dir"
         d.mkdir()
         (d / "a.md").write_text("x", encoding="utf-8")
         (d / "b.md").write_text("x", encoding="utf-8")
         (d / "c.txt").write_text("x", encoding="utf-8")  # non-.md is ignored
-        assert _disk_count("full_dir", tmp_path) == 2
+        assert _count_top_level_md("full_dir", tmp_path) == 2
 
 
 class TestThresholds:

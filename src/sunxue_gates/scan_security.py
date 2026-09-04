@@ -41,10 +41,11 @@ __all__ = [
 # entry from this list will re-arm the gate; adding one is a deliberate
 # decision and must be called out in the CHANGELOG.
 #
-# v1.2.1 audit (reviewer.code F6): switched from filename-only to
-# path-prefix tuple — matches the lint_pii._NARRATIVE_EXEMPT convention
-# so the two gates are aligned on how to recognize "this is a
-# narrative sample, not a real injection vector".
+# v1.2.1 audit (reviewer.code F6): switched from filename-only to a
+# tolerant filename-or-substring match (entries may be bare filenames
+# or path fragments; matching is `path.name == m or m in path_str`) —
+# v1.3.1 audit-v4 N15 wording fix: this is NOT a strict path-prefix
+# tuple, the comment previously over-claimed precision.
 _INJECTION_NARRATIVE_EXEMPT: tuple[str, ...] = (
     # v2 门禁实战样本：脚本化讲述 D3 ChatML 注入事件，原文含 <|im_start|>
     # / <|im_end|> 的 hex 与 ASCII 形态作为事件物证，不是注入向量。

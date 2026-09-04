@@ -3,7 +3,7 @@
 Threat model
 ============
 
-The four ``src/sunxue_gates/*.py`` modules covered by
+The five ``src/sunxue_gates/*.py`` golden modules covered by
 ``tests/golden/literals.json`` carry hot-literal marker tokens
 (ChatML ``<|im_start|>``, Llama ``[INST]`` / ``<<SYS>>``,
 template ``{{system_prompt}}``, the always-substring ``""`` empty-string
@@ -25,7 +25,7 @@ the SHA-256 + UTF-8 hex of each string, never plaintext.
 Triage discipline when a src table changes
 =========================================
 
-If you intentionally edit one of the four src tables, the test will go
+If you intentionally edit one of the golden-locked src tables, the test will go
 RED with a ``field_mismatch`` (hex no longer matches the runtime string).
 That is the desired signal. To acknowledge the change:
 
@@ -84,6 +84,14 @@ if TYPE_CHECKING:
         vector: list[HashLeaf]
         keywords: list[list[HashLeaf]]
 
+    class GoldenTABLES(TypedDict, total=True):
+        """``sunxue_gates.tables`` golden shape (audit-v4 N5)."""
+
+        MUTATION_SYNONYMS: list[list[HashLeaf]]
+        MUTATION_SPLIT_WORDS: HashLeaf
+        MUTATION_SOFTEN_REPLACEMENTS: list[list[HashLeaf]]
+        KNOWN_UV_SUBCOMMANDS: list[list[HashLeaf]]
+
     class GoldenModule(TypedDict, total=True):
         """Generic module-table wrapper: ``module_name -> {table_name: ...}``.
 
@@ -97,6 +105,7 @@ if TYPE_CHECKING:
         sunxue_gates_injection_drill: GoldenDRILLS  # actually "sunxue_gates.injection_drill"
 else:
     HashLeaf = dict
+    GoldenTABLES = dict
 
 
 MOD_KEYS: tuple[str, ...] = (
@@ -104,6 +113,10 @@ MOD_KEYS: tuple[str, ...] = (
     "sunxue_gates.scan_security",
     "sunxue_gates.mutation_drill",
     "sunxue_gates.regression_output",
+    # audit-v4 N5 (v1.3.1): the cluster-A tables relocated into tables.py
+    # and the lint_pii pattern table join the hash contract.
+    "sunxue_gates.tables",
+    "sunxue_gates.lint_pii",
 )
 SCAN_TABLE_KEYS: tuple[str, ...] = (
     "PII_PATTERNS",
@@ -123,7 +136,7 @@ SERVER_POLYPHONY_KEY = "SERVER_POLYPHONY_WORDS"
 # ---------------------------------------------------------------------------
 
 
-def _decode(leaf: Mapping[str, str]) -> str:
+def _decode(leaf: HashLeaf | Mapping[str, str]) -> str:
     """Decode one ``{sha256, hex_utf8}`` leaf back to its plaintext runtime string.
 
     We assert the SHA-256 matches the hex payload BEFORE decoding so a
@@ -174,6 +187,65 @@ def _parse_leaf_list_list(node: object, path: str) -> list[list[HashLeaf]]:
     for i, v in enumerate(node):
         out.append(_parse_leaf_list(v, f"{path}[{i}]"))
     return out
+
+
+def _parse_pair_table(node: object, path: str) -> list[list[HashLeaf]]:
+    """Validate ``node`` as a list of exactly-``[HashLeaf, HashLeaf]`` rows.
+
+    Used by the audit-v4 N5 modules (tables.py pair tables, KNOWN_UV
+    sorted key-value pairs, lint_pii pattern/label rows).
+    """
+    if not isinstance(node, list):
+        raise AssertionError(f"{path}: expected list, got {type(node).__name__}")
+    out: list[list[HashLeaf]] = []
+    for i, row in enumerate(node):
+        p = f"{path}[{i}]"
+        if not isinstance(row, list) or len(row) != 2:
+            raise AssertionError(f"{p}: expected [leaf, leaf] pair")
+        out.append([_parse_leaf(row[0], f"{p}[0]"), _parse_leaf(row[1], f"{p}[1]")])
+    return out
+
+
+def _parse_tables_module(node: object, path: str) -> GoldenTABLES:
+    """Validate the ``sunxue_gates.tables`` golden shape (audit-v4 N5)."""
+    if not isinstance(node, dict):
+        raise AssertionError(f"{path}: expected dict, got {type(node).__name__}")
+    expected = {
+        "MUTATION_SYNONYMS",
+        "MUTATION_SPLIT_WORDS",
+        "MUTATION_SOFTEN_REPLACEMENTS",
+        "KNOWN_UV_SUBCOMMANDS",
+    }
+    got = set(node.keys())
+    if got != expected:
+        raise AssertionError(f"{path}: keys={sorted(got)} expected={sorted(expected)}")
+    return {
+        "MUTATION_SYNONYMS": _parse_pair_table(
+            node["MUTATION_SYNONYMS"], f"{path}.MUTATION_SYNONYMS"
+        ),
+        "MUTATION_SPLIT_WORDS": _parse_leaf(
+            node["MUTATION_SPLIT_WORDS"], f"{path}.MUTATION_SPLIT_WORDS"
+        ),
+        "MUTATION_SOFTEN_REPLACEMENTS": _parse_pair_table(
+            node["MUTATION_SOFTEN_REPLACEMENTS"], f"{path}.MUTATION_SOFTEN_REPLACEMENTS"
+        ),
+        "KNOWN_UV_SUBCOMMANDS": _parse_pair_table(
+            node["KNOWN_UV_SUBCOMMANDS"], f"{path}.KNOWN_UV_SUBCOMMANDS"
+        ),
+    }
+
+
+def _parse_pii_module(node: object, path: str) -> dict[str, list[list[HashLeaf]]]:
+    """Validate the ``sunxue_gates.lint_pii`` golden shape (audit-v4 N5)."""
+    if not isinstance(node, dict):
+        raise AssertionError(f"{path}: expected dict, got {type(node).__name__}")
+    if set(node.keys()) != {"PII_LINT_PATTERNS"}:
+        raise AssertionError(f"{path}: keys={sorted(node.keys())} expected=['PII_LINT_PATTERNS']")
+    return {
+        "PII_LINT_PATTERNS": _parse_pair_table(
+            node["PII_LINT_PATTERNS"], f"{path}.PII_LINT_PATTERNS"
+        )
+    }
 
 
 def _parse_drills(node: object, path: str) -> GoldenDRILLS:
@@ -233,9 +305,10 @@ def _parse_flat_string_module(
 class _ValidatedGoldenShape:
     """Container for the typed golden payload parsed from ``literals.json``.
 
-    Holds the four validated module sub-tables in attributes typed as
-    the concrete classes the validator produced, so the test classes
-    can index them with full static coverage.
+    Holds the validated module sub-tables (five golden modules since
+    audit-v4 N5) in attributes typed as the concrete classes the
+    validator produced, so the test classes can index them with full
+    static coverage.
     """
 
     def __init__(
@@ -245,6 +318,8 @@ class _ValidatedGoldenShape:
         scan: dict[str, list[list[HashLeaf]]],
         mutation: dict[str, list[HashLeaf]],
         regression: dict[str, list[HashLeaf] | list[list[HashLeaf]]],
+        tables: GoldenTABLES,
+        pii: dict[str, list[list[HashLeaf]]],
         meta: dict[str, object],
     ) -> None:
         self.drills: GoldenDRILLS = drills
@@ -253,6 +328,8 @@ class _ValidatedGoldenShape:
         # ``regression`` has one nested-list entry (SERVER_POLYPHONY_WORDS);
         # the other two are flat. Narrowing happens where the value is read.
         self.regression: dict[str, list[HashLeaf] | list[list[HashLeaf]]] = regression
+        self.tables: GoldenTABLES = tables
+        self.pii: dict[str, list[list[HashLeaf]]] = pii
         self.meta: dict[str, object] = meta
 
 
@@ -298,6 +375,8 @@ def _load_golden() -> _ValidatedGoldenShape:
                 REGRESSION_FLAT_KEYS + (SERVER_POLYPHONY_KEY,),
             ),
         ),
+        tables=_parse_tables_module(root["sunxue_gates.tables"], "$.sunxue_gates.tables"),
+        pii=_parse_pii_module(root["sunxue_gates.lint_pii"], "$.sunxue_gates.lint_pii"),
         meta=meta_obj,
     )
 
@@ -416,16 +495,17 @@ class TestGoldenFileShape:
         assert g.meta["generator"] == "tests/golden/gen_golden.py"
         assert g.meta["schema_version"] == 1
 
-    def test_all_four_modules_present(self) -> None:
+    def test_all_modules_present(self) -> None:
         g = _load_golden()
-        # All four modules already validated by ``_load_golden``.
+        # All golden modules already validated by ``_load_golden``
+        # (four gate modules + tables.py + lint_pii since audit-v4 N5).
         assert g.drills["id"]
         assert g.scan["PII_PATTERNS"]
         assert g.mutation["KEY_PHRASES"]
         assert g.regression["DEG_ADV"]
 
     def test_no_plaintext_in_golden(self) -> None:
-        """Every golden leaf under the four module tables MUST be the ``{sha256, hex_utf8}`` shape.
+        """Every golden leaf under the module tables MUST be the ``{sha256, hex_utf8}`` shape.
 
         The ``_meta`` block is the only allowed exception (it is generator
         bookkeeping, not a marker-table entry). If a future edit drops a
@@ -526,6 +606,29 @@ class TestRegressionOutputGolden:
         runtime = _runtime_flat("sunxue_gates.regression_output", "EMO_DIRECT")
         _assert_tree_equal(runtime, golden, ("EMO_DIRECT",))
 
+    def test_tables_module_round_trip(self) -> None:
+        """audit-v4 N5: tables.py 的 4 张表逐字符串与 golden 解码相等。"""
+        g = _load_golden()
+        tables = importlib.import_module("sunxue_gates.tables")
+
+        syn = [[_decode(a), _decode(b)] for a, b in g.tables["MUTATION_SYNONYMS"]]
+        assert syn == [list(p) for p in tables.MUTATION_SYNONYMS]
+
+        assert _decode(g.tables["MUTATION_SPLIT_WORDS"]) == tables.MUTATION_SPLIT_WORDS
+
+        soft = [[_decode(a), _decode(b)] for a, b in g.tables["MUTATION_SOFTEN_REPLACEMENTS"]]
+        assert soft == [list(p) for p in tables.MUTATION_SOFTEN_REPLACEMENTS]
+
+        uv = [[_decode(k), _decode(v)] for k, v in g.tables["KNOWN_UV_SUBCOMMANDS"]]
+        assert dict(uv) == tables.KNOWN_UV_SUBCOMMANDS
+
+    def test_pii_module_round_trip(self) -> None:
+        """audit-v4 N5 / v3-F3 收口：lint_pii 词表进 golden 后逐对相等。"""
+        g = _load_golden()
+        lint_pii = importlib.import_module("sunxue_gates.lint_pii")
+        rows = [[_decode(pat), _decode(label)] for pat, label in g.pii["PII_LINT_PATTERNS"]]
+        assert rows == [list(p) for p in lint_pii.PII_LINT_PATTERNS]
+
     def test_server_polyphony_words(self) -> None:
         g = _load_golden()
         poly_leaves: list[HashLeaf] = cast("list[HashLeaf]", g.regression["SERVER_POLYPHONY_WORDS"])
@@ -582,3 +685,7 @@ class TestSingleByteContract:
         assert len(g.regression["DEG_ADV"]) >= 5
         assert len(g.regression["EMO_DIRECT"]) >= 5
         assert len(g.scan["INJECTION_PATTERNS"]) >= 5
+        # audit-v4 N5: keep the new modules honest too.
+        assert len(g.tables["MUTATION_SYNONYMS"]) >= 3
+        assert len(g.tables["KNOWN_UV_SUBCOMMANDS"]) >= 5
+        assert len(g.pii["PII_LINT_PATTERNS"]) >= 3

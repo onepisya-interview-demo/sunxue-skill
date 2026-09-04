@@ -2,7 +2,7 @@
 # 注意力定价：要不要公开承认产品 bug — sunxue meta 层拆解
 
 > 范例性质：meta 引擎真实调用样本
-> 提问：注意力定价：要不要公开承认我们产品出了这个 bug？
+> 提问：注意力定价——产品出了 bug，管理层在纠结要不要公开承认。
 > 引擎：sunxue `<!-- @mode:meta -->`（三层孙学）
 > 日期：2026-09-04
 > 来源：从 notes/bug-disclosure-meta.md (v1.2.0 实施期未跟踪草稿) 移入 examples/，v1.2.1 audit 收口

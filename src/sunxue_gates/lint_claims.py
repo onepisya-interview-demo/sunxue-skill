@@ -75,8 +75,19 @@ def _load_pyproject(root: Path) -> dict[str, Any]:
     return tomllib.loads(path.read_text(encoding="utf-8"))
 
 
-def _disk_count(reldir: str, root: Path) -> int:
-    """Count ``*.md`` files under ``root / reldir``."""
+def _count_top_level_md(reldir: str, root: Path) -> int:
+    """Count top-level ``*.md`` files under ``root / reldir`` (non-recursive).
+
+    F13 (v1.3.1, audit-v4): renamed from the vague ``_disk_count`` and
+    documented. Semantics the directory-counts cross-check relies on:
+
+    - only files directly inside ``root / reldir`` (``glob("*.md")`` is
+      NOT recursive — subdirectories are ignored);
+    - a missing directory returns ``0`` (which the README-claims
+      cross-check then reports as a mismatch rather than skipping);
+    - this is the disk-side source of truth for
+      ``_check_directory_counts`` (README comment counts vs reality).
+    """
     d = root / reldir
     if not d.exists():
         return 0
@@ -200,7 +211,7 @@ def _check_directory_counts(root: Path) -> CheckResult:
     mismatches: list[str] = []
     details: dict[str, dict[str, int | None]] = {}
     for reldir in ("references", "examples"):
-        disk = _disk_count(reldir, root)
+        disk = _count_top_level_md(reldir, root)
         claim = _readme_claimed_count(text, reldir)
         details[reldir] = {"disk": disk, "claimed": claim}
         if claim is None:

@@ -26,8 +26,11 @@ EXIT CODE CONTRACT (synthesis §1.1 公理 4)
 ==========================================
 
 exit 0  all strict metrics pass              → "deliverable"
-exit 1  only INFO-level relaxations occurred → "soft-OK" (judgment/meta tier)
-exit 2  one or more strict metrics failed    → "block, return to step 6"
+exit 1  RESERVED (unused today: every INFO-level relaxation already
+        returns 0; kept so 档 2 can introduce "soft-OK" without a
+        breaking change — do not build on it yet)
+exit 2  one or more strict metrics failed, bad args, or missing draft
+        → "block, return to step 6"
 
 stderr is reserved for the failure summary so a Stop hook can echo it
 back to the agent (Claude Code's Stop event does exactly that).
@@ -52,7 +55,7 @@ USAGE
 
 ::
 
-    python3 scripts/writing_gate.py <draft.md> [--mode writing|judgment|meta]
+    python3 scripts/writing_gate.py <draft.md> [--mode writing|judgment|meta|yingxue]
 
 UNKNOWN METRICS / FUTURE WORK
 =============================
@@ -91,18 +94,25 @@ _SRC = Path(__file__).resolve().parents[1] / "src"
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
-from sunxue_gates.regression_output import (  # noqa: E402  (sys.path tweak above)
-    Mode,
-    _check_text,
-    _merge_expect,
-)
+try:
+    from sunxue_gates.regression_output import (  # noqa: E402  (sys.path tweak above)
+        Mode,
+        _check_text,
+        _merge_expect,
+    )
+except ImportError as exc:  # F10 (v1.3.1): bare python3 outside the repo venv
+    sys.stderr.write(
+        "writing_gate: cannot import sunxue_gates. Run from the repo with "
+        "`uv run python scripts/writing_gate.py ...` (or `uv sync` / "
+        f"`pip install -e .` first).\n  underlying error: {exc}\n"
+    )
+    raise SystemExit(2) from exc
 
-# Metrics known to the script today. The first 15 are the original
-# 技法 counters plus 闭环句候选 (from the EXPECT table) and 场景切换
-# (the EXPECT table calls it a writing-tier check; 档 1 keeps it
-# strict). 16 + 17 are the 档 2 placeholders. Items 18+ are the
-# semantic tier — the script emits an INFO line for them and a
-# pointer to "go do step 8 of the writing engine".
+# Metrics known to the script today: 17 total (matches the EXPECT
+# table / regression_output docstring). Items 1-15 are the original
+# 技法 counters plus 闭环句候选; 16-17 (场景切换 / 结尾直接提问) are
+# strict writing-tier checks. The 档 2 placeholders are NOT here —
+# they live in _DEFERRED_INFO below and emit INFO lines only.
 _TIER_INFO_NOTE = "(机器判不了，走 SKILL.md 第 8 步)"
 _KNOWN_METRICS: tuple[str, ...] = (
     "数字",
@@ -155,17 +165,19 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="writing_gate",
         description=(
-            "Apply the sunxue skill 16 hard metrics to a draft. "
-            "Exit 0 = pass, 1 = info-only, 2 = strict fail. "
+            "Apply the sunxue skill 17 hard metrics to a draft. "
+            "Exit 0 = pass, 2 = strict fail (exit 1 reserved). "
             "Re-run on the same draft to verify."
         ),
     )
     parser.add_argument("draft", type=Path, help="Path to the draft .md file")
     parser.add_argument(
         "--mode",
-        choices=("writing", "judgment", "meta"),
+        choices=("writing", "judgment", "meta", "yingxue"),
         default="writing",
-        help="Which tier of EXPECT_BY_MODE to apply (default: writing)",
+        help="Which tier of EXPECT_BY_MODE to apply (default: writing). "
+        "yingxue wired in v1.3.1 (audit-v4 CR-N1) — EXPECT_BY_MODE had "
+        "the tier since v1.2.1.",
     )
     args = parser.parse_args(argv)
 

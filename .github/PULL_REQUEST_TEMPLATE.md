@@ -9,7 +9,7 @@
 ## 门禁自检
 
 - [ ] `uv run gates` 单跑 8/8 PASS
-- [ ] `git diff gate-v1.2.1..HEAD -- coverage.xml` 变更行覆盖率 100%
+- [ ] `git diff <baseline>..HEAD -- coverage.xml` 变更行覆盖率 100%（baseline = tests/README §8.3 当前基线，现为 `gate-v1.3.0`）
 - [ ] 没有引入新 mutmut survivor (除非在 mutation-exemptions.json 标注)
 - [ ] 没有引入新 lint_pii 命中
 - [ ] SKILL.md frontmatter 未修改 (v1.0.0 frozen, 见 lint_claims.skill_freeze)

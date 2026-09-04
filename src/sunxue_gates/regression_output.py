@@ -32,7 +32,6 @@ from __future__ import annotations
 
 import re
 from collections import Counter
-from collections.abc import Callable
 from pathlib import Path
 from typing import Literal
 
@@ -351,12 +350,19 @@ def count_emo(text: str) -> int:
 
 
 def count_punct(text: str) -> dict[str, int]:
-    """Return the four punctuation counters used by the gate."""
+    """Return the four punctuation counters used by the gate.
+
+    v1.3.1 (audit-v4): HTML comments (``<!-- ... -->``) are stripped
+    before counting. Mode-routing headers like ``<!-- @mode:yingxue -->``
+    are metadata, not prose — the ASCII ``!`` inside ``<!--`` was being
+    counted as an exclamation mark and false-failing the yingxue tier.
+    """
+    prose = re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
     return {
-        "感叹号": text.count("！") + text.count("!"),
-        "省略号": text.count("……") + text.count("..."),
-        "破折号": text.count("——") + text.count("--"),
-        "引号": len(re.findall(r"[\u201c\u201d]", text)) + text.count('"'),
+        "感叹号": prose.count("！") + prose.count("!"),
+        "省略号": prose.count("……") + prose.count("..."),
+        "破折号": prose.count("——") + prose.count("--"),
+        "引号": len(re.findall(r"[\u201c\u201d]", prose)) + prose.count('"'),
     }
 
 
@@ -375,11 +381,14 @@ def sample_files(root: Path) -> list[tuple[str, Path]]:
     """Return the list of example files this gate scans.
 
     Auto-discovery (plan 3.1 sample-expansion downstream): glob
-    ``examples/writing-*.md`` and ``examples/judgment-*.md`` so that any
-    new sample tester-2 ships under one of those prefixes is
-    picked up automatically. ``meta-*`` and other prefixes are not
-    scanned by the regression gate — meta samples have their own
-    minimal-lint tier and a future tester-3 will wire them in.
+    ``examples/{writing,judgment,meta,yingxue}-*.md`` so that any new
+    sample shipped under a mode prefix is picked up automatically and
+    routed to its tier via :func:`_mode_for_label`. v1.3.1 (audit-v4
+    CR-N3): the ``meta-*`` / ``yingxue-*`` globs are wired — the two
+    tier tables existed since v1.2.1 but were unreachable from the
+    default scan. Files whose name carries a
+    :data:`_REFERENCE_QUOTE_MARKERS` marker (原文片段 / 范例 / 反例 …)
+    stay excluded: they are metadata/teaching files, not mode prose.
     Files are returned sorted by stem for deterministic gate output
     regardless of filesystem ordering.
     """
@@ -388,7 +397,7 @@ def sample_files(root: Path) -> list[tuple[str, Path]]:
     if not examples.exists():
         return samples
     seen: set[Path] = set()
-    for pattern in ("writing-*.md", "judgment-*.md"):
+    for pattern in ("writing-*.md", "judgment-*.md", "meta-*.md", "yingxue-*.md"):
         for path in sorted(examples.glob(pattern)):
             if path in seen:
                 continue
@@ -488,10 +497,6 @@ def _check_text(
     return checks
 
 
-# Helpful type alias for callers (kept here, not exported).
-_MetricFn = Callable[[str], int]
-
-
 def run(
     root: Path,
     expect: dict[str, tuple[str, int, str]] | None = None,
@@ -507,8 +512,8 @@ def run(
     :func:`_merge_expect` to overlay the writing tier with the
     per-mode ``EXPECT_BY_MODE`` overrides.
 
-    ``samples`` defaults to :func:`sample_files` (the canonical 5
-    hardcoded stems under ``examples/``). Tests may pass a custom
+    ``samples`` defaults to :func:`sample_files` (glob-discovered
+    mode-prefixed stems under ``examples/``). Tests may pass a custom
     list to drive synthetic scenarios with new stems or alternate
     modes — the gate still routes each entry through the mode-aware
     expect merge via the stem prefix.

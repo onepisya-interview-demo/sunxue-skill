@@ -18,6 +18,13 @@ USAGE
 
     python3 scripts/coherence_gate.py <draft.md> [--json]
 
+KNOWN LIMITATIONS (启发式边界, v1.3.1 起明示)
+==========================================
+
+- 复合中文数词（「十八次」「一百五」）按末位单字解析（十八 → 8），
+  频次交叉验证可能静默低估；需要精确计数时用阿拉伯数字。
+- 「每 X 单位」只取首个时间单位；「每两周」按 2 周/次计。
+
 EXIT CODE CONTRACT
 ==================
 
@@ -93,8 +100,11 @@ _NUM_PATTERN = re.compile(
 # 允许: 每周 / 每周二 / 每周二和周五(只取首个时间单位)
 # 允许动词和"一次"出现在时间单位之后(可选)
 _FREQ_PATTERN = re.compile(
-    r"每\s*([一二两三四五六七八九十\d]+)\s*(?:个)?"
-    r"(年|月|日|天|周|星期|小时|分)"
+    r"每\s*(?:"
+    # 「每周三 / 每周五和周六」星期锚点 → 周频（N6, audit-v4）
+    r"(?P<weekly>周|星期)\s*[一二两三四五六日天](?:\s*[和与、至到]\s*[一二两三四五六日天])*"
+    r"|(?P<num>[一二两三四五六七八九十\d]+)\s*(?:个)?(?P<unit>年|月|日|天|周|星期|小时|分)"
+    r")"
 )
 
 # 日期: YYYY 年 (M 月)
@@ -152,13 +162,22 @@ def extract_dates(text: str) -> list[DateToken]:
 
 
 def extract_frequencies(text: str) -> list[tuple[float, str, int]]:
+    """抽取「每 X 时间单位」频次声明。
+
+    N6 (audit-v4): 「每周三 / 每周二和周五」这类星期锚点习语表达的是
+    周频（每 1 周 = 52 次/年）。旧 pattern 要求「每 + 数字 + 单位」，
+    「每 + 周 + 星期几」匹配不上 → 这类声明被静默忽略（假阴性，
+    频次矛盾漏检）。现作为独立分支按 (1, 周) 抽取。
+    """
     out: list[tuple[float, str, int]] = []
     for m in _FREQ_PATTERN.finditer(text):
-        num, unit = m.group(1), m.group(2)
-        v = _to_num(num)
+        if m.group("weekly"):
+            out.append((1.0, "周", m.start()))
+            continue
+        v = _to_num(m.group("num"))
         if v is None:
             continue
-        out.append((v, unit, m.start()))
+        out.append((v, m.group("unit"), m.start()))
     return out
 
 

@@ -81,6 +81,15 @@ class TestCliContract:
         assert "[INFO] 「我说好」类" in proc.stdout
         assert "[INFO] 服务者复调" in proc.stdout
 
+    def test_yingxue_mode_wired_v131(self) -> None:
+        # audit-v4 CR-N1: scripts-README documented ``--mode yingxue``
+        # since v1.2.1 but argparse rejected it (choices lacked it).
+        # The 冻鸡挽歌 example is the yingxue corpus sample and must
+        # pass its tier end-to-end through the CLI.
+        proc = _run(["--mode", "yingxue", "examples/yingxue-冻鸡挽歌-仿写.md"])
+        assert proc.returncode == 0, proc.stdout + "\n--stderr--\n" + proc.stderr
+        assert "mode:  yingxue" in proc.stdout
+
     def test_banner_is_first_three_lines(self) -> None:
         proc = _run(["examples/writing-巴菲特午餐.md"])
         first_lines = proc.stdout.splitlines()[:3]
