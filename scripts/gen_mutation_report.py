@@ -37,14 +37,19 @@ MUTMUT_BIN = os.environ.get("SUNXUE_MUTMUT_BIN", "mutmut")  # v1.2.1 F12: 环境
 
 
 def _run_mutmut_results() -> str:
-    """Invoke ``mutmut results`` and return stdout text.
+    """Invoke ``mutmut results --all true`` and return stdout text.
 
-    mutmut prints a textual table (one row per mutant id). Tests live
-    under ``tests/`` so the test runner mutmut invokes stays the same as
-    the one in pyproject.toml (``[tool.mutmut] source_paths``).
+    mutmut prints a textual table (one row per mutant id). The plain
+    ``mutmut results`` (no --all) only lists *un-killed* mutants, which
+    makes the survivor-rate denominator wrong (v1.2.1 era). Use
+    ``--all true`` to get the full set including killed mutants, then the
+    Counter parses all four status labels (killed / survived / no tests /
+    timeout) and the divisor is the total. v1.2.2 release-note
+    correction (commit 52ad116) records the old bug as a known issue;
+    this fix closes the loop.
     """
     proc = subprocess.run(
-        [MUTMUT_BIN, "results"],
+        [MUTMUT_BIN, "results", "--all", "true"],
         cwd=str(REPO_ROOT),
         check=False,
         capture_output=True,
@@ -170,8 +175,21 @@ def _render(
     lines.append(f"| Timeout | {timeout} |")
     lines.append("")
     if total:
-        ratio = survived / total * 100
-        lines.append(f"Survivor rate: **{ratio:.1f}%** ({survived}/{total})")
+        # Survivor rate is the "un-killed" rate: tests that *did* run but
+        # didn't kill the mutant (survived) plus mutants with no test
+        # coverage (no_tests) plus timeouts. Divided by the full total
+        # including killed. v1.2.1 era counted only "survived" against
+        # total (49.5%) which understated the real "your test suite
+        # missed this mutant" rate; v1.2.2 widens the numerator to
+        # the full un-killed set per commit 52ad116's release-note
+        # correction and the post-release fix in commit f05405d.
+        un_killed = survived + no_tests + timeout
+        ratio = un_killed / total * 100
+        lines.append(
+            f"Survivor rate: **{ratio:.1f}%** ({un_killed}/{total})  "
+            f"= survived {survived} + no_tests {no_tests} + timeout {timeout} "
+            f"(killed {killed} of {total})"
+        )
         lines.append("")
     if exempt_total:
         lines.append(
