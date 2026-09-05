@@ -5,6 +5,17 @@ All notable changes to this skill are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-09-05
+
+### Changed — SKILL.md 再外化：收敛为路由器（resolver pattern）
+
+SKILL.md 13,132 → 4,295 chars（-67%，冷启动估算 4,377 → 1,431 tok）；references/ 总量 63,3xx → 65,0xx chars 仍在 22,000 tok 预算内。8/8 gates --all 全绿。
+
+- **删重不复述**：13 技法卡 / 7 步流程 / 16 项自检目录 / 判断 7 规则 + 6 步 + 规则 0 表 / meta 三层一句话 + 爆红原因 + 三档建议 / 原文参照映射表 / 版本变更详表，全部自 SKILL.md 删除——真源本就在 references/（v1.2.0 已外化），SKILL.md 属二次复述，双处维护已生漂移
+- **唯一真源迁移**：yingxue 六技法命名真源卡（承 bayshier 上游）+ 五步流程 + 六条红线 + 孙颖对照表，自 SKILL.md 迁入 `references/yingxue-anatomy.md` 附录二；audit-v4 IF-03 仲裁「以 SKILL.md 卡为准」更新为「以该附录为准」；SKILL.md 卡与 anatomy 衍生命名的漂移（卖萌反讽/养他论三件套/讲义体 vs 自降咖位/数字的喜剧用法/短句停顿）就此归一
+- **保留不动的**：H1「孙学 Skill v1.0」+ frontmatter（冻结锚点）+ 四个 `<!-- @mode -->` 章节骨架 + 触发词组；输入安全条款逐字保留（injection_drill 五向量关键词覆盖不变）；共同铁律、致谢、路由速查表
+- **新增 SOP 结构**：四模式各存「一句话定位 + 按序读取 SOP（含交稿门禁命令 `python3 scripts/writing_gate.py` 与 coherence 扫描）」；SKILL.md 职责宣言「本文件只是路由器，真源一律在 references/ 与 examples/」
+
 ## [1.3.1] - 2026-09-04
 
 ### Added — audit-v4 全面审计收口（9 维度 / 10 commits）
@@ -369,6 +380,7 @@ sunxue/
 - 本次仅原样搬运两个仓库的内容，未做任何技法去重、章节切分或合并
   重写——所有合并与去重工作留给 T2。
 
+[1.4.0]: #140---2026-09-05
 [1.3.0]: #130---2026-09-04
 [1.3.1]: #131---2026-09-04
 [1.2.2]: #122---2026-09-04
