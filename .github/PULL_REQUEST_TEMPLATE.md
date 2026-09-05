@@ -12,7 +12,7 @@
 - [ ] `git diff <baseline>..HEAD -- coverage.xml` 变更行覆盖率 100%（baseline = tests/README §8.3 当前基线，现为 `gate-v1.3.1`）
 - [ ] 没有引入新 mutmut survivor (除非在 mutation-exemptions.json 标注)
 - [ ] 没有引入新 lint_pii 命中
-- [ ] SKILL.md frontmatter 未修改 (v1.0.0 frozen, 见 lint_claims.skill_freeze)
+- [ ] SKILL.md frontmatter name/description 未修改 (frozen; license 为静态字段, 见 lint_claims.skill_freeze)
 
 ## 受影响文件
 

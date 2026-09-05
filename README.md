@@ -8,7 +8,7 @@
 **版本**：v1.3.1（audit-v4 全面审计收口：9 维度 / 90+ findings——文档真源勘误、README 四模式补全、SKILL.md 事实同步 D1③、meta/yingxue 门禁接线、golden 扩五模块、残留物清零；报表见 `notes/audit-v4-*.md`）
 **License**：MIT（双源版权 + 原文版权归原作者，详见 [LICENSE](./LICENSE)）
 
-> **元信息冻结**：SKILL.md 结构冻结（H1 标记 + frontmatter 不动）；事实数字与指针随版本同步（audit-v4 D1③，口径见 AGENTS.md）。
+> **元信息冻结**：SKILL.md 结构冻结（H1 标记 + frontmatter name/description 不动，license 为静态字段）；事实数字与指针随版本同步（audit-v4 D1③，口径见 AGENTS.md）。
 > `references/jingtian-essay-7000.md` 与 `examples/writing-示例3-AI时代前端.md`、
 > `examples/writing-景甜-原文片段.md` 自 v1.0 起已存在于仓库但未列入 v1.0 README 树，
 > 详见本 README 与 [CHANGELOG.md 1.1.0 条目](./CHANGELOG.md#110---2026-08-30)。

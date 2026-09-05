@@ -90,7 +90,7 @@ uv run gates
 
 ## 7. 禁止事项
 
-- ❌ 改 SKILL.md frontmatter (v1.0.0 frozen, 见 lint_claims.skill_freeze)
+- ❌ 改 SKILL.md frontmatter name/description (v1.0.0 frozen; license 为静态字段, 见 lint_claims.skill_freeze)
 - ❌ 改 CHANGELOG.md 历史段的数字 (历史 release 当时真值, 不可逆)
 - ❌ 改 examples/ 触发 regression_output FAIL (用 ASCII 引号 / 反引号避引号==0 约束)
 - ❌ 删 v1.0.0 的合并首发内容 (CHANGELOG 1.0.0 段)
