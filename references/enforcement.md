@@ -1,3 +1,10 @@
+<!--
+Source: sunxue-skill v1.2.0 本地新增
+Original license: MIT
+原内容用途: 交付期门禁契约 + 跨宿主诚实声明 + writing/judgment 两引擎绝对禁令 §6 + regression 覆盖豁免口径 §7
+合并说明: 本地编写, 无上游原文
+-->
+
 # Enforcement — 交付期门禁与跨宿主契约
 
 > SKILL.md 第 7 步「门禁回环（gate loop）」的工程细节、契约、以及
@@ -5,6 +12,8 @@
 > 本文件承载所有可被外置、且不应进入 SOP 层的硬约定。
 
 ---
+
+> **目录**：1 为什么 SKILL.md 不写这些 · 2 writing_gate.py · 3 第 7 步的三条「不得」 · 4 三条官方边界 · 5 后续档 · 6 两引擎绝对禁令 · 7 regression 覆盖与豁免口径
 
 ## 1. 为什么 SKILL.md 不写这些
 
