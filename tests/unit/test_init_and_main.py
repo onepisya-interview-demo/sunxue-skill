@@ -138,9 +138,11 @@ class TestLoadBudgets:
     def test_loads_from_real_pyproject(self, skill_root: Path) -> None:
         budgets = _load_budgets(skill_root)
         assert set(budgets.keys()) >= {"gates_all", "pytest", "mutmut"}
-        assert budgets["gates_all"] == 180
-        assert budgets["pytest"] == 5
-        assert budgets["mutmut"] == 180
+        # v1.4.0 首次 CI 实跑（macos-14, mutmut 367.55s / 全链 383.24s）后
+        # 放宽的执行值；改预算必须显式过这里（放大器设计）。
+        assert budgets["gates_all"] == 600
+        assert budgets["pytest"] == 15
+        assert budgets["mutmut"] == 540
 
     def test_defaults_when_no_budgets_table(self, tmp_path: Path) -> None:
         (tmp_path / "pyproject.toml").write_text(
