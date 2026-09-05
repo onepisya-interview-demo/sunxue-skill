@@ -74,10 +74,11 @@ root = ["src", "tests"]
 exclude = ["mutants"]
 
 [tool.ty.rules]
-# tiktoken 是 optional extra（precise）：装了则行内 ty: ignore 指令闲置、
-# 未装则生效。unused-ignore 警告在装了的环境必现，故关闭——跨环境可选
-# 依赖的标准处理（等价 mypy 的 --no-warn-unused-ignores 场景）。
-unused-ignore-comment = "ignore"
+# tiktoken 是 optional extra（precise）：CI 不装、本地装，行内
+# `# type: ignore` 只在未装环境（CI）实际生效，装了的环境必然闲置并触发
+# unused 告警；ty 对 warning 也 exit 1，故关闭该告警——跨环境可选依赖的
+# 标准处理（等价 mypy 的 --no-warn-unused-ignores 场景）。
+unused-type-ignore-comment = "ignore"
 
 [tool.coverage.run]
 branch = true
