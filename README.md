@@ -5,13 +5,10 @@
 > 四个子模式（writing / judgment / meta / **yingxue**）合装在一个 skill 内，
 > 触发词命中哪个子模式就只加载对应章节。
 
-**版本**：v1.3.1（audit-v4 全面审计收口：9 维度 / 90+ findings——文档真源勘误、README 四模式补全、SKILL.md 事实同步 D1③、meta/yingxue 门禁接线、golden 扩五模块、残留物清零）
+**版本**：v1.4.0（SKILL.md 再外化收敛为路由器：13,132 → 4,295 chars，冷启动开销 -67%；技法/流程/禁令真源归 `references/`，详见 [CHANGELOG 1.4.0](./CHANGELOG.md#140---2026-09-05)）
 **License**：MIT（双源版权 + 原文版权归原作者，详见 [LICENSE](./LICENSE)）
 
 > **元信息冻结**：SKILL.md 结构冻结（H1 标记 + frontmatter name/description 不动，license 为静态字段）；事实数字与指针随版本同步（audit-v4 D1③，口径见 AGENTS.md）。
-> `references/jingtian-essay-7000.md` 与 `examples/writing-示例3-AI时代前端.md`、
-> `examples/writing-景甜-原文片段.md` 自 v1.0 起已存在于仓库但未列入 v1.0 README 树，
-> 详见本 README 与 [CHANGELOG.md 1.1.0 条目](./CHANGELOG.md#110---2026-08-30)。
 
 ---
 
@@ -42,7 +39,7 @@
 
 ### 启动器同步（推荐）
 
-skill 目录已就位（按实际安装路径替换）：
+把本仓库克隆 / 同步到你的启动器 skills 目录（按实际安装路径替换）：
 
 ```
 $HOME/.agents/skills/sunxue-skill/
@@ -252,7 +249,7 @@ ls $HOME/.agents/skills/sunxue-skill/
 ```
 sunxue/
 ├── SKILL.md                          # 路由器：触发词 → 模式 → 读取顺序 SOP + 铁律（结构冻结；v1.4.0 实测 4,295 chars，技法/流程/禁令真源在 references/）
-├── VERSION                           # 1.3.1
+├── VERSION                           # 1.4.0
 ├── LICENSE                           # MIT + 双源版权声明
 ├── README.md                         # 本文件
 ├── CHANGELOG.md                      # v1.3.0 命名/常量清理+内容扩 / v1.2.2 patch 收口 / v1.2.1 audit 收口 / v1.2.0 yingxue+SKILL.md 外化 / v1.1.0 门禁工程化 / v1.0.0 合并首发
@@ -336,12 +333,14 @@ sunxue/
 
 详见 [CHANGELOG.md](./CHANGELOG.md)。
 
+> 注：`references/jingtian-essay-7000.md`、`examples/writing-示例3-AI时代前端.md`、`examples/writing-景甜-原文片段.md` 自 v1.0 起已在仓库而未列入 v1.0 README 树，见 [CHANGELOG 1.1.0](./CHANGELOG.md#110---2026-08-30)。
+
 ---
 
 ## 致谢与版权
 
 - **写作心法与三层孙学** —— 来自 [bayshier/sunxue](https://github.com/bayshier/sunxue)（MIT）
-- **写作机械结构与判断引擎** —— 来自 [gehao628](https://github.com/gehao628)（MIT）
+- **写作机械结构与判断引擎** —— 来自 [gehao628](https://github.com/gehao628)（MIT；原 sun-writing / sun-judgment 二仓已合并为 [gehao628/sunxue](https://github.com/gehao628/sunxue)）
 - **范本原文** —— 来自 [HEJustinSun/my-girlfriend-jingtian-latex](https://github.com/HEJustinSun/my-girlfriend-jingtian-latex)（《我的女友景甜》全文版权归原作者孙宇晨所有；2026-09-04 快照：该仓库与账号已 404，疑似注销/改名，本地摘录见 `references/jingtian-essay-7000.md`）
 
 本 skill 仅摘引片段作技法分析与语料研究，不修改、不续写、不商化原始内容。
@@ -352,7 +351,7 @@ sunxue/
 
 - **macOS GitHub Actions runner**: 默认 `macos-14` runner 上 mutmut 阶段会撞 libcst Rust 编译 + fork() 兼容性, 性能约为 Linux runner 的 30-50%。如需在 CI 跑 `gates --all`, 推荐 `ubuntu-latest` 跑 mutation 阶段, macOS 仅跑快速 7 门 (`uv run gates`)。
 - **Windows 原生**: 不支持。mutmut 需要 `fork()`, Windows 必须在 WSL 内运行。
-- **Python 版本**: ≥ 3.10 (mutmut 3.7.x 需要 py3.10+; pyproject.toml `target-version = "py311"`)。
+- **Python 版本**: ≥ 3.11 (pyproject.toml `requires-python = ">=3.11"`; mutmut 3.7.x 需 py3.10+, 本仓以 3.11 为下限)。
 - **磁盘**: `mutmut` 阶段会临时生成 `mutants/` 目录 (默认几十 MB), `gates --all` 跑完自动清理。
 
 ## 免责声明
