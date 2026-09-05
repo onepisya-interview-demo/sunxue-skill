@@ -253,6 +253,8 @@ sunxue/
 ├── LICENSE                           # MIT + 双源版权声明
 ├── README.md                         # 本文件
 ├── CHANGELOG.md                      # v1.3.0 命名/常量清理+内容扩 / v1.2.2 patch 收口 / v1.2.1 audit 收口 / v1.2.0 yingxue+SKILL.md 外化 / v1.1.0 门禁工程化 / v1.0.0 合并首发
+├── AGENTS.md                          # AI 协作规范（提交 WHAT/WHY/HOW / 仓库速览 / 门禁回环约束）
+├── CONTRIBUTING.md                    # 贡献指南（v1.2.2 起，最小流程）
 ├── pyproject.toml                    # uv 配置 + dev 工具链
 ├── uv.lock                           # 锁定依赖图 (本仓库 tracked, v1.2.1 audit 起入 git)
 ├── src/
@@ -306,11 +308,12 @@ sunxue/
 ├── scripts/                             # 辅助脚本（3 个非门禁脚本：coherence_gate / writing_gate / gen_mutation_report，用法见各脚本 docstring）
 └── tests/                            # pytest 测试树（unit + property + integration + golden + live）
     ├── README.md                     # 八层门禁命令表 + 质量五维映射 + 测试思路指针
+    ├── __init__.py                    # 包标记（pytest 根识别）
     ├── conftest.py                   # 共享 fixtures
     ├── unit/                         # 纯函数单元测试（12 文件，10 门禁模块全覆盖）
     ├── property/                     # hypothesis 属性测试（15 个 @given 不变量）
-    ├── integration/                  # scripts/ CLI 契约测试（2 文件：writing_gate + coherence_gate）
-    ├── golden/                       # 字面量金样（literals.json SHA-256 + hex_utf8 双签名，4 门覆盖）
+    ├── integration/                  # scripts/ CLI 契约测试（2 测试文件：writing_gate + coherence_gate；含 _helpers.py + fixtures/ 3 md）
+    ├── golden/                       # 字面量金样（literals.json + gen_golden.py；SHA-256 + hex_utf8 双签名，4 门覆盖）
     ├── test_gates_live.py            # 对当前仓库跑八门禁 run()，断言 PASS（旧行为回归）
     ├── mutation-report.md            # mutmut 3.x triage 报告（豁免台账见 mutation-exemptions.json）
     └── mutation-exemptions.json      # 50.7% 幸存者的豁免理由 JSON
