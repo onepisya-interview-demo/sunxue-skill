@@ -110,8 +110,15 @@ pytest = 5
 mutmut = 180
 
 [tool.sunxue.budgets]
-gates_all = 180
-pytest = 5
+# v1.4.0 首次 CI 实跑（github.com/onepisya-interview-demo/sunxue-skill,
+# run 33958147602, macos-14 runner）实测: mutmut 367.55s / 全链 383.24s /
+# pytest 5.93s——macos-14 约为本地 M 系的 1/3.4（README「平台限制」
+# 早已预告）。8 阶段本身全绿（exit 75 纯预算哨兵）, 按实测放宽并留
+# ~1.5x 抖动余量: gates_all 180→600s / pytest 5→15s / mutmut 180→540s。
+# 同源累积放宽第四例（45→120→180→540）。README 长期建议仍是把
+# mutation 阶段拆到 ubuntu runner, 届时按 Linux 实测回收。
+gates_all = 600
+pytest = 15
 # mutmut budget: v1.2.2 起 45s → 120s。mutmut 3.7.0 跑 13 文件 2581 个
 # 变异实测 ~80s (v1.2.2 时点; v1.3 起 14 文件 2582, audit-v4 N11 更新),
 # 旧 45s budget 会撞 exit 75 (用户豁免 'mutmut 时间长一点
@@ -125,7 +132,7 @@ pytest = 5
 # 2582 → 2607, 全链实测 120.42s 顶破 120s gates_all budget (超 0.42s),
 # 同源累积效应再放宽 120 → 180s. mutmut 阶段同批实测 112.8/119.4/132.3s
 # 抖动, 120s budget 进入不稳定区, 同步 120 → 180s.
-mutmut = 180
+mutmut = 540
 
 [tool.mutmut]
 source_paths = ["src/sunxue_gates"]
