@@ -247,7 +247,7 @@ ls $HOME/.agents/skills/sunxue-skill/
 ## 目录结构
 
 ```
-sunxue/
+sunxue-skill/
 ├── SKILL.md                          # 路由器：触发词 → 模式 → 读取顺序 SOP + 铁律（结构冻结；v1.4.0 实测 4,295 chars，技法/流程/禁令真源在 references/）
 ├── VERSION                           # 1.4.0
 ├── LICENSE                           # MIT + 双源版权声明
