@@ -80,7 +80,7 @@ def _try_load_tiktoken() -> _TiktokenEncoding | None:
     if _TIKTOKEN_ENCODING is not None or _TIKTOKEN_IMPORT_ERROR is not None:
         return _TIKTOKEN_ENCODING
     try:
-        import tiktoken  # type: ignore[import-not-found]
+        import tiktoken  # type: ignore[unresolved-import]
     except ImportError as e:
         _TIKTOKEN_IMPORT_ERROR = e
         return None
