@@ -5,7 +5,7 @@
 > 提问：注意力定价——产品出了 bug，管理层在纠结要不要公开承认。
 > 引擎：sunxue `<!-- @mode:meta -->`（三层孙学）
 > 日期：2026-09-04
-> 来源：从 notes/bug-disclosure-meta.md (v1.2.0 实施期未跟踪草稿) 移入 examples/，v1.2.1 audit 收口
+> 来源：v1.2.0 实施期草稿移入 examples/，v1.2.1 audit 收口
 
 ## 一句话结论
 

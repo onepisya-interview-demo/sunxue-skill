@@ -1,6 +1,6 @@
 # sunxue skill — 八层 Python 门禁工程
 
-按 [PLAN.md §0](../PLAN.md#0-背景与目标) 实施。把 v1.0.0 的 6 个 stdlib
+把 v1.0.0 的 6 个 stdlib
 脚本升级为完整 Python 门禁工程，对应质量五维（正确性 / 安全性 /
 可维护性 / 性能 / 成本效率）。plan 1.2 增补第 7 层 claims-lint
 口径一致性门禁。

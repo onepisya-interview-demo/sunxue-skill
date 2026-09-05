@@ -5,7 +5,7 @@
 > 四个子模式（writing / judgment / meta / **yingxue**）合装在一个 skill 内，
 > 触发词命中哪个子模式就只加载对应章节。
 
-**版本**：v1.3.1（audit-v4 全面审计收口：9 维度 / 90+ findings——文档真源勘误、README 四模式补全、SKILL.md 事实同步 D1③、meta/yingxue 门禁接线、golden 扩五模块、残留物清零；报表见 `notes/audit-v4-*.md`）
+**版本**：v1.3.1（audit-v4 全面审计收口：9 维度 / 90+ findings——文档真源勘误、README 四模式补全、SKILL.md 事实同步 D1③、meta/yingxue 门禁接线、golden 扩五模块、残留物清零）
 **License**：MIT（双源版权 + 原文版权归原作者，详见 [LICENSE](./LICENSE)）
 
 > **元信息冻结**：SKILL.md 结构冻结（H1 标记 + frontmatter name/description 不动，license 为静态字段）；事实数字与指针随版本同步（audit-v4 D1③，口径见 AGENTS.md）。
@@ -22,7 +22,7 @@
 | 来源 | 焦点 | 蒸馏产物 |
 |---|---|---|
 | bayshier/sunxue v1.4.0 | 写作心法 + 三层孙学 | 10 技法（命名 + 心法 + 元反思），见 `references/style-anatomy.md` |
-| gehao628/sun-writing v1.2 | 写作机械结构 | 12 条硬规则 + 16 项硬计数自检 + 7 步流程 |
+| gehao628/sun-writing v1.2 | 写作机械结构 | 12 条硬规则 + 15 项硬计数自检（本地增补 1 项后 16）+ 7 步流程 |
 | gehao628/sun-judgment v1.2 | 商业判断 | 规则 0（先量生意半径）+ 7 条规则 + 6 步流程 + 核实语料库 |
 
 > **技法归并说明**：`style-anatomy.md` 记的是 bayshier 原文例证的 **10 条技法**
@@ -51,7 +51,7 @@ $HOME/.agents/skills/sunxue-skill/
 > **注**: 实际路径因启动器而异——ZCode = `$HOME/.zcode/skills/sunxue-skill/`;
 > Claude Code = `$HOME/.claude/skills/sunxue-skill/`; Hermes = `$HOME/.agents/skills/sunxue-skill/`。
 > 下面示例用 `$HOME/.agents/skills/sunxue-skill/`。
-> **命名一致性**（官方规范要求目录名与 frontmatter `name` 一致）: 仓库名 = 安装目录名 = `name` = **`sunxue-skill`**（2026-09-04 用户裁决，解决 audit-v4 BP-C1 红线；`skills-ref validate` 通过）。
+> **命名一致性**（官方规范要求目录名与 frontmatter `name` 一致）: 仓库名 = 安装目录名 = `name` = **`sunxue-skill`**（audit-v4 BP-C1 红线收口；`agentskills validate` 通过）。
 
 启动器在启动时会自动同步 `.skills/` 下的 skill。无需额外步骤。
 
@@ -73,7 +73,7 @@ ln -s $HOME/.agents/skills/sunxue-skill ~/.zcode/skills/sunxue-skill
 ```bash
 ls $HOME/.agents/skills/sunxue-skill/
 # 应该看到：SKILL.md  VERSION  LICENSE  README.md  CHANGELOG.md
-#           references/  examples/  notes/  scripts/  tests/  src/  pyproject.toml
+#           references/  examples/  scripts/  tests/  src/  pyproject.toml
 ```
 
 ---
@@ -251,12 +251,10 @@ ls $HOME/.agents/skills/sunxue-skill/
 
 ```
 sunxue/
-├── SKILL.md                          # 四模式入口（结构冻结；事实数字随版本同步 D1③；v1.3.1 实测 13,068 chars）
-├── VERSION                           # 1.3.0
+├── SKILL.md                          # 四模式入口（结构冻结；事实数字随版本同步 D1③；v1.3.1 实测 13,118 chars）
+├── VERSION                           # 1.3.1
 ├── LICENSE                           # MIT + 双源版权声明
 ├── README.md                         # 本文件
-├── notes/PLAN-v1.3.md                # v1.3 集群计划（已实施归档）
-├── notes/audit-v3.2-final-report.md  # v1.3 release 最终报告
 ├── CHANGELOG.md                      # v1.3.0 命名/常量清理+内容扩 / v1.2.2 patch 收口 / v1.2.1 audit 收口 / v1.2.0 yingxue+SKILL.md 外化 / v1.1.0 门禁工程化 / v1.0.0 合并首发
 ├── pyproject.toml                    # uv 配置 + dev 工具链
 ├── uv.lock                           # 锁定依赖图 (本仓库 tracked, v1.2.1 audit 起入 git)
@@ -308,19 +306,7 @@ sunxue/
 │   ├── judgment-暑期招生窗口期.md     # v1.2.1 收口：三线培训机构问暑期招生（规则 6 争一千天 强示范）
 │   ├── meta-注意力定价-bug-disclosure.md  # v1.2.1 收口：注意力定价三层拆解（meta 真样本）
 │   └── yingxue-冻鸡挽歌-仿写.md      # v1.2.1 收口：曾颖《冻鸡挽歌》200 字仿写（yingxue 模式首例，演示荒诞物证/恍然大悟反转/典故降维/讲义体）
-├── notes/                               # 开发笔记（踩坑 / 手册 / 学习 / 测试思路）
-│   ├── pitfalls.md                      # 踩坑记录（10 条实战坑）
-│   ├── runbook.md                       # 操作手册（搭建 / 日常 / 发版 / 受限环境）
-│   ├── learning.md                      # 学习笔记（门禁分层设计理念）
-│   ├── testing.md                       # 测试思路（五层金字塔与豁免政策）
-│   ├── scripts-README.md                # v1.2.1 新增：3 个非门禁脚本的 owner 文档（coherence_gate / writing_gate / gen_mutation_report）
-│   ├── PLAN-v1.2.2.md                   # v1.2.2 patch 计划（已实施归档）
-│   ├── PLAN-audit-v3.md                 # v1.2.1 全面审计计划（已实施，audit-v4 H-2 归档至此）
-│   ├── PLAN-audit-v4.md                 # v1.3.1 全面审计计划（已实施归档）
-│   ├── PLAN-audit-v3.md                 # v1.2.1 全面审计计划（已实施，audit-v4 H-2 归档至此）
-│   ├── audit-v3-{map,consistency,infoflow,code-review,peer,example-qual,hygiene,final-report}.md + audit-v3.1/v3.2-final-report.md  # v1.2.1 audit 7 份子报告 + 三代最终报告
-│   └── audit-v4-{map,conflicts,infoflow,code-review,hygiene,example-qual,best-practice,deps,peer}.md + audit-v4-final-report.md  # v1.3.1 audit 9 份维度报表 + 最终报告
-├── scripts/                             # 辅助脚本（3 个非门禁脚本：coherence_gate / writing_gate / gen_mutation_report；owner 详见 notes/scripts-README.md）
+├── scripts/                             # 辅助脚本（3 个非门禁脚本：coherence_gate / writing_gate / gen_mutation_report，用法见各脚本 docstring）
 └── tests/                            # pytest 测试树（unit + property + integration + golden + live）
     ├── README.md                     # 八层门禁命令表 + 质量五维映射 + 测试思路指针
     ├── conftest.py                   # 共享 fixtures
@@ -330,7 +316,7 @@ sunxue/
     ├── golden/                       # 字面量金样（literals.json SHA-256 + hex_utf8 双签名，4 门覆盖）
     ├── test_gates_live.py            # 对当前仓库跑八门禁 run()，断言 PASS（旧行为回归）
     ├── mutation-report.md            # mutmut 3.x triage 报告（豁免台账见 mutation-exemptions.json）
-    └── mutation-exemptions.json      # 51.5% 幸存者的豁免理由 JSON
+    └── mutation-exemptions.json      # 50.7% 幸存者的豁免理由 JSON
 ```
 
 ---
