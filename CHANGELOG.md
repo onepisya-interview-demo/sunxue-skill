@@ -5,6 +5,63 @@ All notable changes to this skill are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-09-04
+
+### Added — audit-v4 全面审计收口（9 维度 / 10 commits）
+
+audit-v4（PLAN-audit-v4.md，v1.3.0 基线）9 维度正交审计（8 并行子代理 + peer 元审计）的 P0/P1 修复收口，报表归档 `notes/audit-v4-*.md`。**不推到 PyPI**（仓库无 origin remote，tag 仅本地）。
+
+**文档真源（59ce2e1）**
+- mutmut 幸存率 README 7.9% 残留纠错（51.4%）；CHANGELOG 节序 1.2.1↔1.2.2 对调；「口口径」等错字
+- references 真源重算：v1.3.0 曾把 yingxue-anatomy 的字节数 7,621 当 chars（真值 3,515）、「我沉默了 5274 chars」幻数（真值 1,863）、总量 60,847 不可复现
+- 补打漏标的 gate-v1.2.2 / gate-v1.3.0 基线 tag（H-8），diff-cover 基线切 gate-v1.3.0
+
+**README 四模式补全（9a6cf90）**
+- yingxue 进入快速上手 / 素材给法 / 铁律 / 模式说明 / 触发词总表（IF-04~09：头部四模式 vs 正文三模式半更新）
+- 触发词总表与 frontmatter description 逐词对齐（脚本验证 0 missing）；被割版去 meta 双列撞车（IF-06）
+
+**audit 报表入库（3173365）**：notes/audit-v4-*.md 八维度报表 + PLAN-audit-v4.md 入库（H-3）
+
+**残留物处置（25117b8）**：零引用 promo 图 546KB 删除（D2）；PLAN-audit-v3 改「已实施」移 notes/（H-2/D4）；gehao628 两个从未存在的顶层仓库 URL 与 HEJustinSun 404 快照注（H-4/H-5）；yingxue-anatomy 上游路径勘误（H-6）
+
+**SKILL.md 事实同步（746dcf1，D1③）**
+- freeze 政策改「结构冻结、事实数字随版本同步」（实证 freeze 门禁只锁 2 个子串）
+- yingxue 必读转本地 `yingxue-anatomy.md`（原全库 0 路由孤儿，IF-01/02）；meta 必读补真样本（IF-08）；路由表 meta 行去「被割/爆红」泛词（IF-06）；样本计数 8/5 → 9/6（IF-07）
+
+**代码修复批（ba91494）**
+- regression 门禁接线 meta-*/yingxue-*（CR-N3：tier 自 v1.2.1 起不可达死配置；机械覆盖 10/17 → 12/17，其余 5 文件 marker 豁免口径成文于 `enforcement.md` §7）
+- `count_punct` 剥离 HTML 注释（`<!--` 中 ASCII `!` 被计感叹号的伪阳性）
+- writing_gate 补 `--mode yingxue` + exit 契约对齐实现（CR-N1/N10）；gen_mutation_report `--check` 降级为预览、删「隐式入 CI」不实声明（CR-N2）
+- golden 契约扩五模块（+tables.py 4 表 + lint_pii；literals.json +257 行纯增量；CR-N5/PE-07——v1.3.0「golden 双重保护」声明自此成立，v3-F3 静默脱期收口）
+- coherence_gate 频次解析认识「每周三」星期锚点（CR-N6：旧 pattern 静默漏检假阴性）；F8 真接线 + registered-but-unwired 告警（CR-N4）；F10 ImportError 提示；F13 改名 `_count_top_level_md`
+- CI `uv sync --locked`（PE-03）；PR 模板基线改指针式（PE-06）；豁免 JSON pattern 与现存函数对齐（N8）
+
+**内容修复批（d15ccf7）**：我沉默了补第 5 件遗留物（搪瓷缸子 callback，EQ-06）；冻鸡挽歌自检去虚标（EQ-04）；4 篇 judgment 死指针（EQ-07）；暑期招生合规注（EQ-08）；示例2 出处注（EQ-09）；十二个字节时代注（EQ-11）；yingxue 两套六技法仲裁注（EQ-05/IF-03）；11 处 v1.0 时代行号锚点标注（IF-11）；x-field-notes 伪指令注释降级（PE-09）
+
+**终值回填（ff0a5fe）**：peer 互证仲裁落地——token 算法统一为 Σ⌊chars/3⌋（PE-08）；4 份报表头部 corrigendum；AGENTS 补 16 项自检 / 17 项门禁指标桥接
+
+### Fixed
+
+- 8/8 `gates --all` 全绿（126.61s；gates_all budget 120→180s，同源累积放宽第三例）
+- 341 tests pass（新增 yingxue CLI / weekday anchor / N4 分支 / golden 五模块 round-trip 等）
+- regression 机械覆盖 10/17 → 12/17 examples，豁免口径书面化（enforcement §7）
+- mutmut 机渲报告刷新并回归纯机渲：2607 mutants，幸存率 **50.7%**（1285 killed / 1117 survived / 205 no_tests）；手写叙述段移除，历史真源归本文件 v1.3.0 段
+
+### Post-release fix（v1.3.1 tag 后）
+
+- **mutmut budget 120→180s**：预算收口后三连实测 mutmut 阶段 112.8 / 119.4 / 132.3s 抖动，120s 进入不稳定区；同源累积放宽（2607 变异体），gates_all=180s 维持。复验 `gates --all` 8/8 全绿 143.04s。
+- **BP-C1 目录同名红线解决（维护者裁决）**：skill 命名定为 **`sunxue-skill`**——frontmatter `name: sunxue` → `sunxue-skill`（目录/仓库名保持不变），README 标题与 7 处安装路径联动；`skills-ref validate` 由 FAIL 转 PASS，官方规范「name 与目录同名」达成，H1「孙学 Skill v1.0」freeze 子串未动。
+
+### Backlog（v1.4+ / 不在 1.3.1 范围）
+
+- mutmut 幸存率 50.7% → <10%（长期工程）
+- references >100 行加 TOC + ref→ref 链接标注（BP-C6；预算消耗项，落地后须复测 token_budget）
+- lint_structure 增补官方口径机检：name 格式 / 目录同名 / description ≤1024（BP-C12）；验收链加 `npx -y skills-ref validate .`
+- ~~skills-ref 目录同名红线~~ ✅ 已裁决解决（v1.3.1 post-release：name 定为 `sunxue-skill`，validate 通过）
+- directory_counts 门禁补目录树条目校验（audit-v4 实证只查注释计数）
+- CI actions pin SHA；mutmut 报告 CI diff 守卫设计（N2 方案 a）
+- F15 scan_security → lint_security 改名 / F18 _ALL_CHAIN 外移（延续 v1.4）
+
 ## [1.3.0] - 2026-09-04
 
 ### Added — v1.3 集群实施 (5 集群 / 4 commits + 1 release + 1 归档)
@@ -62,63 +119,6 @@ tables.py / `__init__.py` / `pyproject.toml` 真源化 + 1 个 helper：
 - 8/8 门禁全绿 (含 1 个新 reference + 1 个新 example 后 regression_output 仍 PASS)
 - 335 tests pass (含 1 个新 example，writing tier 17 项硬指标全 OK——audit-v4 勘误：门禁实为 17 项，原记 16/16)
 - 17 examples / 13 references / 4 模式 / 3 scripts / 8 门禁 (集群 D 新增 1 example 后; audit-v4 勘误：原记 16 examples 漏计)
-
-## [1.3.1] - 2026-09-04
-
-### Added — audit-v4 全面审计收口（9 维度 / 10 commits）
-
-audit-v4（PLAN-audit-v4.md，v1.3.0 基线）9 维度正交审计（8 并行子代理 + peer 元审计）的 P0/P1 修复收口，报表归档 `notes/audit-v4-*.md`。**不推到 PyPI**（仓库无 origin remote，tag 仅本地）。
-
-**文档真源（59ce2e1）**
-- mutmut 幸存率 README 7.9% 残留纠错（51.4%）；CHANGELOG 节序 1.2.1↔1.2.2 对调；「口口径」等错字
-- references 真源重算：v1.3.0 曾把 yingxue-anatomy 的字节数 7,621 当 chars（真值 3,515）、「我沉默了 5274 chars」幻数（真值 1,863）、总量 60,847 不可复现
-- 补打漏标的 gate-v1.2.2 / gate-v1.3.0 基线 tag（H-8），diff-cover 基线切 gate-v1.3.0
-
-**README 四模式补全（9a6cf90）**
-- yingxue 进入快速上手 / 素材给法 / 铁律 / 模式说明 / 触发词总表（IF-04~09：头部四模式 vs 正文三模式半更新）
-- 触发词总表与 frontmatter description 逐词对齐（脚本验证 0 missing）；被割版去 meta 双列撞车（IF-06）
-
-**audit 报表入库（3173365）**：notes/audit-v4-*.md 八维度报表 + PLAN-audit-v4.md 入库（H-3）
-
-**残留物处置（25117b8）**：零引用 promo 图 546KB 删除（D2）；PLAN-audit-v3 改「已实施」移 notes/（H-2/D4）；gehao628 两个从未存在的顶层仓库 URL 与 HEJustinSun 404 快照注（H-4/H-5）；yingxue-anatomy 上游路径勘误（H-6）
-
-**SKILL.md 事实同步（746dcf1，D1③）**
-- freeze 政策改「结构冻结、事实数字随版本同步」（实证 freeze 门禁只锁 2 个子串）
-- yingxue 必读转本地 `yingxue-anatomy.md`（原全库 0 路由孤儿，IF-01/02）；meta 必读补真样本（IF-08）；路由表 meta 行去「被割/爆红」泛词（IF-06）；样本计数 8/5 → 9/6（IF-07）
-
-**代码修复批（ba91494）**
-- regression 门禁接线 meta-*/yingxue-*（CR-N3：tier 自 v1.2.1 起不可达死配置；机械覆盖 10/17 → 12/17，其余 5 文件 marker 豁免口径成文于 `enforcement.md` §7）
-- `count_punct` 剥离 HTML 注释（`<!--` 中 ASCII `!` 被计感叹号的伪阳性）
-- writing_gate 补 `--mode yingxue` + exit 契约对齐实现（CR-N1/N10）；gen_mutation_report `--check` 降级为预览、删「隐式入 CI」不实声明（CR-N2）
-- golden 契约扩五模块（+tables.py 4 表 + lint_pii；literals.json +257 行纯增量；CR-N5/PE-07——v1.3.0「golden 双重保护」声明自此成立，v3-F3 静默脱期收口）
-- coherence_gate 频次解析认识「每周三」星期锚点（CR-N6：旧 pattern 静默漏检假阴性）；F8 真接线 + registered-but-unwired 告警（CR-N4）；F10 ImportError 提示；F13 改名 `_count_top_level_md`
-- CI `uv sync --locked`（PE-03）；PR 模板基线改指针式（PE-06）；豁免 JSON pattern 与现存函数对齐（N8）
-
-**内容修复批（d15ccf7）**：我沉默了补第 5 件遗留物（搪瓷缸子 callback，EQ-06）；冻鸡挽歌自检去虚标（EQ-04）；4 篇 judgment 死指针（EQ-07）；暑期招生合规注（EQ-08）；示例2 出处注（EQ-09）；十二个字节时代注（EQ-11）；yingxue 两套六技法仲裁注（EQ-05/IF-03）；11 处 v1.0 时代行号锚点标注（IF-11）；x-field-notes 伪指令注释降级（PE-09）
-
-**终值回填（ff0a5fe）**：peer 互证仲裁落地——token 算法统一为 Σ⌊chars/3⌋（PE-08）；4 份报表头部 corrigendum；AGENTS 补 16 项自检 / 17 项门禁指标桥接
-
-### Fixed
-
-- 8/8 `gates --all` 全绿（126.61s；gates_all budget 120→180s，同源累积放宽第三例）
-- 341 tests pass（新增 yingxue CLI / weekday anchor / N4 分支 / golden 五模块 round-trip 等）
-- regression 机械覆盖 10/17 → 12/17 examples，豁免口径书面化（enforcement §7）
-- mutmut 机渲报告刷新并回归纯机渲：2607 mutants，幸存率 **50.7%**（1285 killed / 1117 survived / 205 no_tests）；手写叙述段移除，历史真源归本文件 v1.3.0 段
-
-### Post-release fix（v1.3.1 tag 后）
-
-- **mutmut budget 120→180s**：预算收口后三连实测 mutmut 阶段 112.8 / 119.4 / 132.3s 抖动，120s 进入不稳定区；同源累积放宽（2607 变异体），gates_all=180s 维持。复验 `gates --all` 8/8 全绿 143.04s。
-- **BP-C1 目录同名红线解决（用户裁决）**：skill 命名定为 **`sunxue-skill`**——frontmatter `name: sunxue` → `sunxue-skill`（目录/仓库名保持不变），README 标题与 7 处安装路径联动；`skills-ref validate` 由 FAIL 转 PASS，官方规范「name 与目录同名」达成，H1「孙学 Skill v1.0」freeze 子串未动。
-
-### Backlog（v1.4+ / 不在 1.3.1 范围）
-
-- mutmut 幸存率 50.7% → <10%（长期工程）
-- references >100 行加 TOC + ref→ref 链接标注（BP-C6；预算消耗项，落地后须复测 token_budget）
-- lint_structure 增补官方口径机检：name 格式 / 目录同名 / description ≤1024（BP-C12）；验收链加 `npx -y skills-ref validate .`
-- ~~skills-ref 目录同名红线~~ ✅ 已裁决解决（v1.3.1 post-release：name 定为 `sunxue-skill`，validate 通过）
-- directory_counts 门禁补目录树条目校验（audit-v4 实证只查注释计数）
-- CI actions pin SHA；mutmut 报告 CI diff 守卫设计（N2 方案 a）
-- F15 scan_security → lint_security 改名 / F18 _ALL_CHAIN 外移（延续 v1.4）
 
 ## [1.2.2] - 2026-09-04
 
