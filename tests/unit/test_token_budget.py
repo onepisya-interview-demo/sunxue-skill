@@ -159,6 +159,8 @@ class TestEstTokensText:
     def test_precise_when_env_set_and_tiktoken_available(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
+        if token_budget._try_load_tiktoken() is None:
+            pytest.skip("tiktoken not installed in this environment")
         monkeypatch.setenv("SUNXUE_PRECISE", "1")
         text = "hello world \u8fd9\u662f\u4e2d\u6587\u6d4b\u8bd5"
         tok, mode = est_tokens_text(text)
