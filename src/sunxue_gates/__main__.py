@@ -7,7 +7,7 @@ gate PASSES. Preserves the original ``PASS = 0 / FAIL = 1`` contract.
 ``gates --all`` runs the full eight-command acceptance chain as subprocesses
 (ruff check, ruff format --check, basedpyright, ty check ., pytest, pytest
 --cov=... --cov-fail-under=90, diff-cover coverage.xml --compare-branch
-gate-baseline --fail-under=100, mutmut run). Each stage is timed; the chain
+gate-v1.3.1 --fail-under=100, mutmut run). Each stage is timed; the chain
 stops at the first failure (exit code surfaced verbatim); a stage table and
 total wall time are printed at the end; the ``mutants/`` directory created by
 mutmut is removed afterwards. Useful for CI and the one-command local
@@ -83,7 +83,7 @@ _ALL_CHAIN: tuple[tuple[str, tuple[str, ...], str], ...] = (
             "diff-cover",
             "coverage.xml",
             "--compare-branch",
-            "gate-baseline",
+            "gate-v1.3.1",
             "--fail-under=100",
         ),
         "gates_all",

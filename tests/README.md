@@ -238,6 +238,7 @@ git tag -a gate-v1.3.1 -m "v1.3.1 — audit-v4 全面审计收口 (9 维度)"
 
 **audit-v4 H-8 补打说明（v1.3.1）**：v1.2.2 与 v1.3.0 两个 release 漏打
 `gate-` 基线 tag（政策自 v1.2.2 起连续两版未执行），audit-v4 已按
-`git tag -a gate-v1.2.2 0579c10` / `git tag -a gate-v1.3.0 219e877` 补打；
+`gate-v1.2.2` / `gate-v1.3.0` 两个基线 tag 按各自 release commit 补打（不引裸
+SHA，历史重写后短 SHA 会漂移）；
 release 流程回归「每个 release 必打 gate-vX.Y.Z」纪律。
 
