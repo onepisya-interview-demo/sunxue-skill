@@ -10,15 +10,16 @@ htmlcov/
 .ruff_cache/
 *.egg-info/
 .DS_Store
-text_*.json
 mutants/
 .cache/
 .env
 .env.*
-!.env.example
 
 # local-only planning archive
 PLAN.md
+
+# 内部文档（D3 裁决：不随公开仓库发布，filter-repo 已移出历史，文件仅本地保留）
+notes/
 
 # sunxue skill synthesis staging area (synthesis §4.2 落盘约定)
 .sunxue/
